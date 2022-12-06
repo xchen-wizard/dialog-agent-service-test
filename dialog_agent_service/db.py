@@ -1,0 +1,87 @@
+from __future__ import annotations
+
+import asyncio
+import json
+import logging
+import os
+import uuid
+from contextlib import contextmanager
+from typing import Any
+
+import mysql
+import pymongo
+import requests
+from bson.objectid import ObjectId
+from dialog_agent_service import init_mysql_db, init_mongo_db
+
+logger = logging.getLogger(__name__)
+
+mysql_pool = init_mysql_db()
+mongo_db = init_mongo_db()
+
+
+@contextmanager
+def get_mysql_cnx_cursor():
+    try:
+        cnx = mysql_pool.get_connection()
+        cursor = cnx.cursor(dictionary=True, buffered=True)
+        yield cursor
+    except mysql.connector.Error as err:
+        logger.error(f'problem getting connection from pool or creating a cursor object {err}')
+    finally:
+        cursor.close()
+        logger.debug('closing cursor')
+        cnx.close()
+        logger.debug('returning connection to pool')
+
+
+async def get_user_contexts(doc_id: str) -> dict | None:
+    """
+    Get the user contexts stored in mongodb.spt.DialogflowContexts collection.
+    Returns:
+
+    """
+    data = mongo_db['DialogflowContexts'].find_one({'_id': doc_id})
+    logger.debug(f'retrieved data from mongo DialogflowContexts collection: {data}')
+    return data
+
+
+async def update_user_contexts():
+    pass
+
+
+async def get_campaign_products(campaign_id: int) -> list[dict] | None:
+    """
+    Retrieves campaign products from mysql campaignProducts table
+    Args:
+        campaign_id: the unique campaign id
+    Returns:
+        a list of products associated with the campaign
+    """
+    query = """
+    SELECT productId, retailerId, defaultQuantity, maxQuantity
+    FROM campaignProducts
+    WHERE campaignId = %s
+    """
+    with get_mysql_cnx_cursor() as cursor:
+        cursor.execute(query, (campaign_id,))
+        data = cursor.fetchall()
+    logger.debug(f'Get campaign products for campaign {campaign_id}: {data}')
+    return data
+
+
+async def get_campaign_variant_type(campaign_id: int) -> int | None:
+    """
+    get campaignFlowType for campaignId
+    Returns:
+        the campaign flow type as an int or None
+    """
+    query = """
+    SELECT campaignFlowType FROM campaigns
+    WHERE id = %s
+    """
+    with get_mysql_cnx_cursor() as cursor:
+        cursor.execute(query, (campaign_id,))
+        data = cursor.fetchone()
+    logger.debug(f'fetched products for campaign {campaign_id}')
+    return data
