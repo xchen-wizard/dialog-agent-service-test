@@ -1,5 +1,8 @@
-from typing import NamedTuple, Optional
+from __future__ import annotations
+
 from enum import Enum
+from typing import NamedTuple
+from typing import Optional
 
 
 class FlowType(Enum):
@@ -13,13 +16,11 @@ class FlowType(Enum):
 
 class TemplateMessage(NamedTuple):
     templateTypeId: str
-    templateVariables: Optional[dict]
+    templateVariables: dict | None = {}
 
 
 class DASResponse(NamedTuple):
     vendorId: int
-    templateMessages: list[TemplateMessage]
+    templateMessages: list[dict] = []
     message: str = ''
     autoResponse: bool = True
-
-

@@ -12,12 +12,14 @@ import mysql
 import pymongo
 import requests
 from bson.objectid import ObjectId
-from dialog_agent_service import init_mysql_db, init_mongo_db
+
+from dialog_agent_service import init_mongo_db
+from dialog_agent_service import init_mysql_db
 
 logger = logging.getLogger(__name__)
 
-mysql_pool = init_mysql_db()
-mongo_db = init_mongo_db()
+mysql_pool = init_mysql_db()  # type: ignore
+mongo_db = init_mongo_db()  # type: ignore
 
 
 @contextmanager
@@ -27,7 +29,9 @@ def get_mysql_cnx_cursor():
         cursor = cnx.cursor(dictionary=True, buffered=True)
         yield cursor
     except mysql.connector.Error as err:
-        logger.error(f'problem getting connection from pool or creating a cursor object {err}')
+        logger.error(
+            f'problem getting connection from pool or creating a cursor object {err}',
+        )
     finally:
         cursor.close()
         logger.debug('closing cursor')
@@ -42,12 +46,30 @@ async def get_user_contexts(doc_id: str) -> dict | None:
 
     """
     data = mongo_db['DialogflowContexts'].find_one({'_id': doc_id})
-    logger.debug(f'retrieved data from mongo DialogflowContexts collection: {data}')
+    logger.debug(
+        f'retrieved data from mongo DialogflowContexts collection:\n{data}',
+    )
     return data
 
 
-async def update_user_contexts():
-    pass
+async def update_user_contexts(doc_id: str, user_contexts: dict) -> dict | None:
+    """"
+    Find and update the contexts in Mongo DialogflowContexts collection
+    Args:
+        doc_id: the document id
+        user_contexts: the new contexts
+    Returns:
+        the original doc
+    """
+    data = mongo_db['DialogflowContexts'].find_one_and_update(
+        {'_id': doc_id},
+        {'contexts': user_contexts},
+        upsert=True,
+    )
+    logger.debug(
+        f"updating doc {data.get('_id')} in mongo DialogflowContexts collection",
+    )
+    return data
 
 
 async def get_campaign_products(campaign_id: int) -> list[dict] | None:

@@ -9,10 +9,15 @@ from flask import jsonify
 from flask import make_response
 from flask import request
 
-from dialog_agent_service import create_app, init_logger
-from dialog_agent_service.app_utils import generate_session_id, generate_uuid, create_user_contexts
+from dialog_agent_service import create_app
+from dialog_agent_service import init_logger
+from dialog_agent_service.app_utils import create_user_contexts
+from dialog_agent_service.app_utils import generate_session_id
+from dialog_agent_service.app_utils import generate_uuid
 from dialog_agent_service.db import get_user_contexts
-from dialog_agent_service.df_utils import get_df_response, parse_df_response
+from dialog_agent_service.db import update_user_contexts
+from dialog_agent_service.df_utils import get_df_response
+from dialog_agent_service.df_utils import parse_df_response
 
 
 formatter = init_logger()
@@ -35,7 +40,11 @@ async def agent():
     validate_req(req)
 
     # add extra fields to log records to make logs distinct and searchable per user + campaign
-    formatter.extras = {'user_id': req.get('userId'), 'service_channel_id': req.get('serviceChannelId')}
+    formatter.extras = {
+        'user_id': req.get(
+            'userId',
+        ), 'service_channel_id': req.get('serviceChannelId'),
+    }
     logger.info(f'DF webhook request: {req}')
     try:
         resp = await handle_request(req)
@@ -52,7 +61,7 @@ def validate_req(req: dict) -> None:
             or req.get('payload') is None \
             or req.get('flowType') is None \
             or not req.get('text'):
-        raise Exception(f"a required param is missing from the request: {req}")
+        raise Exception(f'a required param is missing from the request: {req}')
 
 
 async def handle_request(req: dict) -> dict:
@@ -73,18 +82,20 @@ async def handle_request(req: dict) -> dict:
     logger.debug(f'DF user contexts: {user_contexts}')
 
     df_resp = await get_df_response(req, user_contexts)
-    resp = parse_df_response(df_resp)
+    resp = parse_df_response(df_resp, req.get('vendorId'))
+    if df_resp and df_resp['query_result']['output_contexts']:
+        await update_user_contexts(doc_id, df_resp['query_result']['output_contexts'])
     return resp
 
 
 if __name__ == '__main__':
     if not os.getenv('AGENT_TYPE'):
-        raise Exception("Missing env var AGENT_TYPE")
+        raise Exception('Missing env var AGENT_TYPE')
     if os.getenv('AGENT_TYPE').lower() != 'dialogflow':
-        raise Exception("We currently only support DialogFlow!")
+        raise Exception('We currently only support DialogFlow!')
     if not os.getenv('DIALOGFLOW_PROJECT_ID'):
-        raise Exception("Missing dialogflow project id!")
+        raise Exception('Missing dialogflow project id!')
     if not os.getenv('DIALOGFLOW_ENVIRONMENT'):
-        raise Exception("Missing dialogflow environment")
+        raise Exception('Missing dialogflow environment')
     port = os.getenv('DIALOG_AGENT_SERVICE_PORT', 8080)
     app.run(host='0.0.0.0', port=port)
