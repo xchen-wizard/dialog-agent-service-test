@@ -81,7 +81,7 @@ async def handle_request(req: dict) -> dict:
         user_contexts = await create_user_contexts(req, session_id, doc_id)
     logger.debug(f'DF user contexts: {user_contexts}')
 
-    df_resp = await get_df_response(req, user_contexts)
+    df_resp: dict | None = await get_df_response(req, user_contexts)
     resp = parse_df_response(df_resp, req.get('vendorId'))
     if df_resp and df_resp['query_result']['output_contexts']:
         await update_user_contexts(doc_id, df_resp['query_result']['output_contexts'])

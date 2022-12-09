@@ -40,9 +40,9 @@ async def test_create_user_contexts(campaign_req: dict, mocker: MockerFixture, c
     actual_contexts = await create_user_contexts(campaign_req, session_id, doc_id)
     logger.info(actual_contexts)
     expected_contexts = {
-        '_id': '3f994047-51c3-5a94-a6da-fe63aba8f757', 'sessionStr': 'projects/campaign-prototype-oxtt/agent/environments/dev/users/123/sessions/campaign-123-6-146', 'contexts': [
-            {'name': 'projects/campaign-prototype-oxtt/agent/environments/dev/users/123/sessions/campaign-123-6-146/contexts/46-followup', 'lifespan_count': 2}, {
-                'name': 'projects/campaign-prototype-oxtt/agent/environments/dev/users/123/sessions/campaign-123-6-146/contexts/session-vars', 'lifespan_count': 50, 'parameters': {
+        '_id': '3f994047-51c3-5a94-a6da-fe63aba8f757', 'sessionStr': 'projects/campaign-prototype-oxtt/agent/environments/draft/users/123/sessions/campaign-123-6-146', 'contexts': [
+            {'name': 'projects/campaign-prototype-oxtt/agent/environments/draft/users/123/sessions/campaign-123-6-146/contexts/46-followup', 'lifespan_count': 2}, {
+                'name': 'projects/campaign-prototype-oxtt/agent/environments/draft/users/123/sessions/campaign-123-6-146/contexts/session-vars', 'lifespan_count': 50, 'parameters': {
                     'products': [{'isSelected': False, 'productId': 'mongo_doc_id_01', 'retailerId': 12, 'defaultQuantity': 1, 'maxQuantity': 100}, {'isSelected': False, 'productId': 'mongo_doc_id_02', 'retailerId': 12, 'defaultQuantity': 1, 'maxQuantity': 100}, {'isSelected': False, 'productId': 'mongo_doc_id_03', 'retailerId': 12, 'defaultQuantity': 1, 'maxQuantity': 100}],
                 },
             },

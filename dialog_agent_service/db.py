@@ -52,18 +52,18 @@ async def get_user_contexts(doc_id: str) -> dict | None:
     return data
 
 
-async def update_user_contexts(doc_id: str, user_contexts: dict) -> dict | None:
+async def update_user_contexts(doc_id: str, user_contexts: list[dict]) -> dict | None:
     """"
     Find and update the contexts in Mongo DialogflowContexts collection
     Args:
         doc_id: the document id
         user_contexts: the new contexts
     Returns:
-        the original doc
+        the original doc, which would've been replaced by the new doc
     """
     data = mongo_db['DialogflowContexts'].find_one_and_update(
         {'_id': doc_id},
-        {'contexts': user_contexts},
+        {'$set': {'contexts': user_contexts}},
         upsert=True,
     )
     logger.debug(
@@ -106,4 +106,4 @@ async def get_campaign_variant_type(campaign_id: int) -> int | None:
         cursor.execute(query, (campaign_id,))
         data = cursor.fetchone()
     logger.debug(f'fetched products for campaign {campaign_id}')
-    return data
+    return data.get('campaignFlowType')

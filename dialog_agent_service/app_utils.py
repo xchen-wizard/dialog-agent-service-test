@@ -12,6 +12,7 @@ from dialog_agent_service.db import get_campaign_variant_type
 logger = logging.getLogger(__name__)
 
 NAMESPACE = uuid.UUID(os.getenv('MONGO_UUID_NAMESPACE'))
+DIALOGFLOW_SESSION_ID_CHAR_LIMIT = 36
 
 
 def generate_session_id(req: dict) -> str:
@@ -33,6 +34,10 @@ def generate_session_id(req: dict) -> str:
         session_id = f"{flow_type}-{req['userId']}-{req['serviceChannelId']}"
     else:
         raise NotImplementedError(f'{flow_type} is not supported!')
+    if len(session_id) > DIALOGFLOW_SESSION_ID_CHAR_LIMIT:
+        raise Exception(
+            f'Session ID must not exceed {DIALOGFLOW_SESSION_ID_CHAR_LIMIT}:\n{session_id}',
+        )
     logger.debug(f'session_id: {session_id}')
     return session_id
 

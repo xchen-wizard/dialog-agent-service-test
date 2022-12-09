@@ -41,11 +41,12 @@ async def get_df_response(req: dict, user_contexts: dict):
             ),
         ),
     )
-    logger.debug(f'df request: {request}')
+    logger.debug(f'df request:\n{request}')
 
     for _ in range(MAX_TRIES):
         try:
             response = await client.detect_intent(request=request)
+            logger.debug(f'df response:\n{response}')
             if 'webhook_status' in response:  # if a webhook call was involved
                 if response.webhook_status.code == 0:
                     return MessageToDict(response._pb, preserving_proto_field_name=True)
@@ -81,6 +82,7 @@ def parse_df_response(df_response: dict | None, vendor_id: int) -> dict:
                 )._asdict(),
             ],
             autoResponse=False,
+            message='template',
         )._asdict()
     else:  # df_response is a dict
         response = DASResponse(
