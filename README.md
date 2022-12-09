@@ -6,7 +6,7 @@ A python Flask service to handle backend integration with a dialog agent.
 ```commandline
 poetry install
 ```
-2. Set env vars in a .env file. Please reach out to author for example values
+2. Set env vars in a .env file. See `./config/.env`
 3. Run app locally
 ```commandline
 poetry run python dialog_agent_service/app.py
@@ -14,8 +14,16 @@ poetry run python dialog_agent_service/app.py
 
 ## Tests
 ### Unit Tests
+First, set the path to the .env file. See `./config/.env` for an example or put a .env file in the root dir.
+```commandline
+export ENV_FILE=path/to/env/file
+```
+Then
 ```commandline
 poetry run python -m pytest tests/unit
 ```
 ### Integration Tests
-TBD
+Set the path to the .env file.
+```commandline
+poetry run python -m pytest tests/integration
+```
