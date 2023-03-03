@@ -18,6 +18,7 @@ from dialog_agent_service.db import get_user_contexts
 from dialog_agent_service.db import update_user_contexts
 from dialog_agent_service.df_utils import get_df_response
 from dialog_agent_service.df_utils import parse_df_response
+from dialog_agent_service.conversational_agent.conversation import conversation_response
 
 
 formatter = init_logger()
@@ -29,6 +30,27 @@ app = create_app()
 @app.route('/', methods=['GET'])
 def index():
     return 'Dialog Agent Service'
+
+@app.route('/conversation_response', methods=['POST'])
+def conversation_response():
+  req = request.get_json(force=True)
+  
+  merchant_id = req.get('merchantId')
+
+  if merchant_id is None:
+    raise Exception('missing merchant id')
+
+  user_id = int(req.get('userId'))
+
+  if user_id is None:
+    raise Exception('missing user id')
+  
+  service_channel_id = int(req.get('service_channel_id'))
+
+  if service_channel_id is None:
+    raise Exception('missing service channel id')
+
+  return make_response(jsonify(conversation_response(merchant_id, user_id, service_channel_id)))
 
 
 @app.route('/agent', methods=['POST'])
