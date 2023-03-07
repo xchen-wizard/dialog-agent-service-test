@@ -4,6 +4,7 @@ import asyncio
 import logging
 import os
 import uuid
+import requests
 
 from dialog_agent_service.data_types import FlowType
 from dialog_agent_service.db import get_campaign_products
@@ -13,6 +14,15 @@ logger = logging.getLogger(__name__)
 
 NAMESPACE = uuid.UUID(os.getenv('MONGO_UUID_NAMESPACE'))
 DIALOGFLOW_SESSION_ID_CHAR_LIMIT = 36
+GOOGLE_DISCOVERY_URL = (
+    "https://accounts.google.com/.well-known/openid-configuration"
+)
+
+def get_google_provider_cfg():
+    try:
+      return requests.get(GOOGLE_DISCOVERY_URL).json()
+    except:
+        logger.error('error connecting to Google provider')
 
 
 def generate_session_id(req: dict) -> str:
