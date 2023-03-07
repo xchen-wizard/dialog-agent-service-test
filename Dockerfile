@@ -15,7 +15,7 @@ COPY pyproject.toml ./
 COPY poetry.lock ./
 COPY dialog_agent_service ./dialog_agent_service
 COPY tests ./tests
-RUN pip3 install poetry==1.1.15 && \
+RUN pip3 install poetry==1.4.0 && \
   poetry config virtualenvs.create false && \
   poetry install --no-interaction --no-ansi
 RUN poetry run python -m pytest tests/unit
