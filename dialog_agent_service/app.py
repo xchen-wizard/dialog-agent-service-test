@@ -3,15 +3,29 @@ from __future__ import annotations
 import logging
 import os
 import sys
+import json
 
 import flask
 from flask import jsonify
 from flask import make_response
 from flask import request
+from dialog_agent_service.user import User
+
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
+
+import requests
+
+from oauthlib.oauth2 import WebApplicationClient
 
 from dialog_agent_service import create_app
 from dialog_agent_service import init_logger
-from dialog_agent_service.app_utils import create_user_contexts
+from dialog_agent_service.app_utils import create_user_contexts, get_google_provider_cfg
 from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
 from dialog_agent_service.db import get_user_contexts
@@ -20,17 +34,91 @@ from dialog_agent_service.df_utils import get_df_response
 from dialog_agent_service.df_utils import parse_df_response
 from dialog_agent_service.conversational_agent.conversation import conversation_response
 
-
 formatter = init_logger()
 logger = logging.getLogger(__name__)
 
 app = create_app()
+app.secret_key = os.environ.get('SECRET_KEY')
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+client = WebApplicationClient(os.environ.get('GOOGLE_CLIENT_ID'))
 
 
 @app.route('/', methods=['GET'])
-def index():
+def index():        
     return 'Dialog Agent Service'
 
+@app.route('/login')
+def login():
+    # temporary login code
+    user = User('1234', 'my_name', 'me@email.com')
+    login_user(user)
+
+    if user:
+      return flask.redirect(flask.url_for("index"))
+
+    
+    # Google OAuth2 code, should not be hit for now
+    google_provider_cfg = get_google_provider_cfg()
+    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+
+    request_uri = client.prepare_request_uri(
+        authorization_endpoint,
+        redirect_uri=request.base_url + "/callback",
+        scope=["openid", "email", "profile"],
+    )
+    return flask.redirect(request_uri)
+
+@app.route('/login/callback')
+def login_callback():
+  code = request.args.get("code")
+
+  google_provider_cfg = get_google_provider_cfg()
+  token_endpoint = google_provider_cfg["token_endpoint"]
+
+  token_url, headers, body = client.prepare_token_request(
+  token_endpoint,
+  authorization_response=request.url,
+  redirect_url=request.base_url,
+  code=code
+  )
+  token_response = requests.post(
+      token_url,
+      headers=headers,
+      data=body,
+      auth=(os.environ.get('GOOGLE_CLIENT_ID'), os.environ.get('GOOGLE_CLIENT_SECRET')),
+  )
+
+  client.parse_request_body_response(json.dumps(token_response.json()))
+
+  userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
+  uri, headers, body = client.add_token(userinfo_endpoint)
+  userinfo_response = requests.get(uri, headers=headers, data=body)
+
+  if userinfo_response.json().get("email_verified"):
+    unique_id = userinfo_response.json()["sub"]
+    users_email = userinfo_response.json()["email"]
+    picture = userinfo_response.json()["picture"]
+    users_name = userinfo_response.json()["given_name"]
+  else:
+    return "User email not available or not verified by Google.", 400
+  
+  user = User(
+    id_=unique_id, name=users_name, email=users_email
+  )
+
+  login_user(user)
+
+  return flask.redirect(flask.url_for("index"))
+
+@app.route("/logout")
+def logout():
+    # logout_user()
+    return flask.redirect(flask.url_for("index"))
+
+@login_required
 @app.route('/conversation_response', methods=['POST'])
 def conversation_response():
   req = request.get_json(force=True)
@@ -52,7 +140,7 @@ def conversation_response():
 
   return make_response(jsonify(conversation_response(merchant_id, user_id, service_channel_id)))
 
-
+@login_required
 @app.route('/agent', methods=['POST'])
 async def agent():
     """
