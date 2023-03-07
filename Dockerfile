@@ -29,7 +29,7 @@ COPY pyproject.toml ./
 COPY --from=tester poetry.lock ./
 COPY dialog_agent_service ./dialog_agent_service
 COPY entrypoint.sh ./
-RUN pip3 install poetry==1.1.15 && \
+RUN pip3 install poetry==1.4.0 && \
   poetry config virtualenvs.create false && \
   poetry install --no-interaction --no-ansi --no-dev
 RUN chmod +x ./entrypoint.sh
