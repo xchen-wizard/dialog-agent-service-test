@@ -207,5 +207,5 @@ if __name__ == '__main__':
         raise Exception('Missing dialogflow project id!')
     if not os.getenv('DIALOGFLOW_ENVIRONMENT'):
         raise Exception('Missing dialogflow environment')
-    port = os.getenv('DIALOG_AGENT_SERVICE_PORT', 8080)
+    port = os.getenv('DIALOGAGENTSERVICE_PORT', 8080)
     app.run(host='0.0.0.0', port=port)
