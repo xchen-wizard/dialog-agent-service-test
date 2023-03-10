@@ -53,6 +53,17 @@ def init_mysql_db():
         'autocommit': True,
     }
 
+    # Attempt initial connection to make sure we can connect
+    try:
+      cnx = mysql.connector.connect(user=os.getenv('MYSQL_USER'), 
+                                    password=os.getenv('MYSQL_PASSWORD'), 
+                                    host=os.getenv('MYSQL_HOST'), 
+                                    port=int(os.getenv('MYSQL_PORT', 3306)),
+                                    database=os.getenv('MYSQL_DATABASE'))
+    except mysql.connector.Error as err:
+      cnx.reconnect(attempts=12, delay=5)
+
+
     # explicitly creating a connection pool
     try:
         mysql_pool = mysql.connector.pooling.MySQLConnectionPool(**mysql_config)
