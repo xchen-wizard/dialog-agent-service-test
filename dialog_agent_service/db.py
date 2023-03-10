@@ -27,8 +27,6 @@ def get_mysql_cnx_cursor():
     try:
         cnx = mysql_pool.get_connection()
 
-        cnx.reconnect(attempts=12, delay=5)
-
         cursor = cnx.cursor(dictionary=True, buffered=True)
         yield cursor
     except mysql.connector.Error as err:
