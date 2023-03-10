@@ -15,7 +15,7 @@ from pymongo import ASCENDING
 
 from dialog_agent_service.db import get_mysql_cnx_cursor
 from dialog_agent_service.db import mongo_db
-from multi_task.infer import T5InferenceService
+from .infer import T5InferenceService
 
 logger = logging.getLogger(__name__)
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
