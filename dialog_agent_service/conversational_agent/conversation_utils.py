@@ -13,15 +13,15 @@ from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value
 from pymongo import ASCENDING
 
+from .infer import T5InferenceService
 from dialog_agent_service.db import get_mysql_cnx_cursor
 from dialog_agent_service.db import mongo_db
-from multi_task.infer import T5InferenceService
 
 logger = logging.getLogger(__name__)
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 SPEAKER_TAGS = {'inbound': 'Buyer:', 'outbound': 'Seller:'}
 
-inference_obj = T5InferenceService(os.path.abspath('../test_data'))
+inference_obj = T5InferenceService('../test_data')
 
 
 async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int, k: int, window: int):
