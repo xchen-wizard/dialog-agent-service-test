@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime
 from datetime import timedelta
 from typing import Dict
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 SPEAKER_TAGS = {'inbound': 'Buyer:', 'outbound': 'Seller:'}
 
-inference_obj = T5InferenceService('./test_data')
+inference_obj = T5InferenceService(os.path.abspath('../test_data'))
 
 
 async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int, k: int, window: int):
@@ -85,7 +86,8 @@ def process_past_k_turns(docs):
     if len(docs) > 0 and docs[-1][0] == 'outbound':
         # meaning that a CX agent may have already responded or a new outbound message has been auto-sent
         logger.warning(
-            'There has been a new outbound message since this call was made!')
+            'There has been a new outbound message since this call was made!',
+        )
         return []
     return docs
 
