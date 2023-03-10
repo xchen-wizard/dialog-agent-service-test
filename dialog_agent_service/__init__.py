@@ -64,6 +64,7 @@ def init_mysql_db():
             return mysql_pool
         except mysql.connector.Error as err:
             logger.error(f'prolbem initializing mysql connector pool: {err}')
+            time.sleep(3)  # sleep for 3 secs
     raise Exception('mySQL connection error!')
 
 
