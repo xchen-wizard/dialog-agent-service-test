@@ -26,6 +26,9 @@ mongo_db = init_mongo_db()  # type: ignore
 def get_mysql_cnx_cursor():
     try:
         cnx = mysql_pool.get_connection()
+
+        cnx.reconnect(attempts=6, delay=12)
+
         cursor = cnx.cursor(dictionary=True, buffered=True)
         yield cursor
     except mysql.connector.Error as err:
