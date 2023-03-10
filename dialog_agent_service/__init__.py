@@ -1,15 +1,16 @@
-import flask
+from __future__ import annotations
+
 import logging
 import os
 import sys
+import time
+from datetime import datetime
 
+import flask
 import mysql.connector.pooling
 import pymongo
-
-from datetime import datetime
-from pythonjsonlogger import jsonlogger
-
 from dotenv import load_dotenv
+from pythonjsonlogger import jsonlogger
 
 load_dotenv(os.getenv('ENV_FILE') or '.env')
 
@@ -49,28 +50,21 @@ def init_mysql_db():
         'port': int(os.getenv('MYSQL_PORT', 3306)),
         'database': os.getenv('MYSQL_DATABASE'),
         'pool_name': 'mysqlpool',
-        'pool_size': int(os.getenv('MYSQL_POOL_SIZE', 32)),  # 32 max_connections for the local mysql db
+        # 32 max_connections for the local mysql db
+        'pool_size': int(os.getenv('MYSQL_POOL_SIZE', 32)),
         'autocommit': True,
     }
 
-    # Attempt initial connection to make sure we can connect
-    try:
-      cnx = mysql.connector.connect(user=os.getenv('MYSQL_USER'), 
-                                    password=os.getenv('MYSQL_PASSWORD'), 
-                                    host=os.getenv('MYSQL_HOST'), 
-                                    port=int(os.getenv('MYSQL_PORT', 3306)),
-                                    database=os.getenv('MYSQL_DATABASE'))
-    except mysql.connector.Error as err:
-      cnx.reconnect(attempts=12, delay=5)
-
-
     # explicitly creating a connection pool
-    try:
-        mysql_pool = mysql.connector.pooling.MySQLConnectionPool(**mysql_config)
-        return mysql_pool
-    except mysql.connector.Error as err:
-        logger.error(f'prolbem initializing mysql connector pool: {err}')
-        raise
+    for _ in range(3):  # num of retries
+        try:
+            mysql_pool = mysql.connector.pooling.MySQLConnectionPool(
+                **mysql_config,
+            )
+            return mysql_pool
+        except mysql.connector.Error as err:
+            logger.error(f'prolbem initializing mysql connector pool: {err}')
+    raise Exception('mySQL connection error!')
 
 
 def init_mongo_db():
@@ -83,7 +77,7 @@ def init_mongo_db():
     mongo_url: str = os.getenv('MONGODB_URL')
     mongo_db = pymongo.MongoClient(mongo_url)[os.getenv('MONGODB_DBNAME')]
     return mongo_db
-    
+
 
 def create_app():
     # create and configure the app
@@ -98,7 +92,9 @@ def init_logger():
     root.setLevel(LOG_LEVEL)
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(LOG_LEVEL)
-    formatter = CustomJsonFormatter('%(timestamp)s %(severity)s %(filename)s %(funcName)s %(lineno)s %(message)s')
+    formatter = CustomJsonFormatter(
+        '%(timestamp)s %(severity)s %(filename)s %(funcName)s %(lineno)s %(message)s',
+    )
     handler.setFormatter(formatter)
     root.addHandler(handler)
     return formatter
