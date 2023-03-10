@@ -14,6 +14,8 @@ ENV GOOGLE_APPLICATION_CREDENTIALS=''
 COPY pyproject.toml ./
 COPY poetry.lock ./
 COPY dialog_agent_service ./dialog_agent_service
+COPY multi_task ./multi_task
+COPY test_data ./test_data
 COPY tests ./tests
 RUN pip3 install poetry==1.4.0 && \
   poetry config virtualenvs.create false && \
@@ -28,6 +30,8 @@ WORKDIR /$SERVICE_NAME
 COPY pyproject.toml ./
 COPY --from=tester poetry.lock ./
 COPY dialog_agent_service ./dialog_agent_service
+COPY multi_task ./multi_task
+COPY test_data ./test_data
 COPY entrypoint.sh ./
 RUN pip3 install poetry==1.4.0 && \
   poetry config virtualenvs.create false && \

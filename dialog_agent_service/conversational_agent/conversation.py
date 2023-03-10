@@ -1,8 +1,37 @@
+from __future__ import annotations
+
+import logging
 from enum import Enum
 
+from .conversation_utils import get_past_k_turns
+from .conversation_utils import run_inference
+
+logger = logging.getLogger(__name__)
+
+K = 3  # past k turns
+WINDOW = 12  # past hrs
+ENDPOINT_ID = '1012733772065406976'
+PROJECT_ID = '105526547909'
+
+
 class Response(Enum):
-  SUGGESTION = 'suggestion'
+    SUGGESTION = 'suggestion'
 
-def conversation_response(merchant_id: str, user_id: int, service_channel_id: str):
-  return { 'response': 'my response', 'responseType': Response('suggestion')}
 
+async def handle_conversation_response(merchant_id: str, user_id: int, service_channel_id: str):
+    """
+    Returns:
+        a dict containing the model response with {task: str, cart: list[tuple] | [], response: str | ''}
+        if the endpoint was called
+        else return an empty json
+    """
+    docs, vendor_name = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=K, window=WINDOW)
+    if len(docs) > 0:
+        response = await run_inference(docs, vendor_name, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID)
+        return {
+            'task': response.get('task', ''),
+            'cart': response.get('cart', []),
+            'response': response.get('response', ''),
+        }
+    logger.warning('skip calling the model endpoint')
+    return {}

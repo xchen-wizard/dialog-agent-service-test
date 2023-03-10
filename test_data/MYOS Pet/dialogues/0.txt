@@ -1,0 +1,29 @@
+Seller: Welcome to MYOS Fetch - your personal concierge for all things MYOS.
+
+So we can start getting to know your pet, what is their name and age?
+Buyer: Yes
+task: None
+Seller: Thank you for your text! Someone from our support team will be with you shortly.
+Hi! What MYOS products can we help you shop for today?
+Buyer: Muscle building supplement
+task: StartOrBuildOrder
+cart: Muscle building supplement
+Seller: The Canine Muscle Formula is available in these sizes (shipping is $5 - $10):
+
+A) 1 canister (12.7 oz) - $68 (normally $84.99)
+B) 2 canister bundle - $108.80 (normally $135.99)
+C) 1 bag - $38.40 (6.35 oz) (normally $47.99)
+D) Jumbo canister - $240 (50.8 oz) (normally $299.99)
+
+Which size would you like?
+Buyer: 2 canister bundle
+Have you seen this help dogs with protein losing entropy of unknown cause?
+task: StartOrBuildOrder, AnswerQuestionAboutProduct
+cart: Muscle building supplement 2 canister bundle
+Seller: We just need your shipping and billing info to complete your order. Tap this link to complete your checkout.
+https://wiz.fyi/hl4d
+I want to get you the best answer to this. I’m checking in with our team and will get back to you shortly.
+We recognize that every dog is different. While we are not able to speak to your dog’s specific condition, many customers have reported an increase in muscle and protein inta
+ke. We recommend sharing our nutritional information with your vet to determine if MYOS is right for your dog.
+
+Can we help you with anything else today?

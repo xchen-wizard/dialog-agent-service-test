@@ -1,0 +1,43 @@
+Seller: Welcome to MYOS Fetch - your personal concierge for all things MYOS.
+
+So we can start getting to know your pet, what is their name and age?
+🐶Happy Friday from your friends at MYOS!🐶
+
+Dropping in with a friendly reminder that you’ll receive 20% off your first order over text. Ready to purchase now?
+Buyer: Yes, how long would a container of Muscle formula last for a 40lb dog?
+task: AnswerQuestionAboutProduct
+Seller: Great question! A single 12.7oz canister comes with 120 scoops. For dogs 25-49lbs we recommend 2 scoops daily, totaling 60 days worth of Muscle Formula.
+The Canine Muscle Formula is available in these sizes (shipping is $5):
+
+A) 1 canister (12.7 oz) - $68 (normally $84.99)
+B) 2 canister bundle (12.7 oz each) - $135.99 (normally $169.98)
+C) 1 bag - $38.40 (6.35 oz) (normally $47.99)
+D) Jumbo canister - $240 (50.8 oz) (normally $299.99)
+
+Which size would you like?
+Buyer: And about how long till you start seeing results? I have 4 dogs who I currently give platinum performace Supplements but wanted to try this out for at least one of my d
+ogs and see how it works. They are competitive sport dogs.
+task: AnswerQuestionAboutProduct
+Seller: That’s a great question! We'll have an answer for you shortly. Please let us know if there’s anything else we can check into, as well.
+Thank you for your patience! You should start seeing results within 6 weeks of giving the Muscle Formula to your dog. If you have any other questions please let us know and w
+e'd be happy to answer them.
+
+Or reply with your size if you would like to continue with your purchase!
+Buyer: I would like to purchase B
+task: StartOrBuildOrder
+cart: Canine Muscle Formula 2 canister bundle (12.7 oz each)
+Seller: Perfect! Please update your MYOS Fetch profile info via the secure link below. This is a one-time step and you can easily change your info for future orders. We're he
+re to answer any questions, too.
+
+We'll check back in as soon as your profile is completed. Then we can place your order and send your final order details via text!
+https://wiz.fyi/uy8s
+Thanks for completing your profile, Rachel! We’re processing your order now and will send you a confirmation text shortly.
+Buyer: Perfect! Thank you!
+task: FinalizeOrder
+Seller: Order confirmed. Total is $140.99 with estimated arrival in 2-5 business days. We'll text you a tracking link when it ships.
+
+Be sure to save our contact and let us know the next time you need MYOS!
+Good news! Your MYOS Pet order is on its way.
+Tracking: https://wiz.fyi/oiio
+Buyer: Thank you so much! I'm so excited to try it!
+task: None

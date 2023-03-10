@@ -1,0 +1,45 @@
+Seller: Thanks for texting Under Luna!
+
+You can text to place an order, get recommendations, and more. To start:
+
+A - Tell us what you want to order today
+B - Ask us for a recommendation
+
+P.S. - Your first text order with us will be 10% off!
+Buyer: B
+task: RecommendProduct
+Seller: You can find something tailored to your needs with our hair quiz here: https://wiz.fyi/989df2
+
+Text us back with the items you’d like to build your cart with and we can help you check out!
+Buyer: Warrior Shampoo
+Revive Conditioner
+task: StartOrBuildOrder
+cart: Warrior Shampoo, Revive Conditioner
+Seller: Great! Would you like 8oz or 16oz?
+Buyer: 16oz
+task: StartOrBuildOrder
+cart: Warrior Shampoo 16oz, Revive Conditioner 16oz
+Seller: We've added to your cart:
+- Warrior Shampoo - 16 oz / Yes please! ($58.00) x 1
+- Revive Conditioner - 16 oz / Yes please! ($56.00) x 1
+
+Pricing is before tax and shipping is dependent on location (starting at $10). Don't forget you're getting 10% off your first text order!
+
+Reply YES to buy now.
+Buyer: YES
+task: FinalizeOrder
+Seller: We just need your shipping and billing info to complete your order. Route protection (starts at $0.98) will be automatically added to all orders. We can remove this upo
+n request. However, this package will not be insured if lost/stolen or damaged.
+
+Tap this link to complete your checkout.
+https://l.wizard.com/9d6r
+Hi Hailey! Thanks for your patience. Just to confirm, here's what your final cart looks like:
+- Warrior Shampoo - 16 oz / Yes please! ($58.00) x 1
+- Revive Conditioner - 16 oz / Yes please! ($56.00) x 1
+- Route Package Protection - $3.15 ($3.15) x 1
+
+Your final order total is $105.43, including tax, applicable discounts, and shipping -- dependent on location (starting at $10).
+
+Reply YES to buy now shipping to 509 North Drive.
+Buyer: YES
+task: FinalizeOrder

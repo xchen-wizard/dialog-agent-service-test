@@ -1,0 +1,35 @@
+Seller:
+AAVRANI:
+
+Don't wait too much longer. Order before 12p EST tomorrow to get your gifts by 12/25.
+
+Plus, get your entire order shipped for free when you join Rani Rewards today. Join the club & start shopping (no code needed): https://wiz.fyi/aks1f .
+Buyer: Hello. I joined the Rani Rewards but I don't see free shipping on order
+task: AnswerQuestionAboutSellerorService
+Seller: Here's a breakdown of the shipping rules regarding the Rani Reward:
+
+Rani Rewards Radiant tier: free U.S standard shipping on all orders (no min)
+Rani Rewards Luminous tier: free U.S standard shipping on all orders $35+
+Rani Rewards Glowing tier: free U.S standard shipping on all orders $50+
+
+Let us know if you have any other questions!
+Buyer: When I checkout , it shows $5 shipping
+task: AnswerQuestionAboutSellerorService
+Seller: Orders under these amounts are $5 for shipping!
+Buyer: Ok. I also signed up for email and text but don't see 10% code in text
+task: AnswerQuestionAboutSellerorService
+Seller: The 10% discount is exclusive to your first purchase via text! Can we get an order started for you?
+Buyer: Sure
+I would like to order
+https://aavrani.com/collections/merch/products/intro-ayurvedic-beauty-set
+Intro Ayurvedic beauty set
+task: StartOrBuildOrder
+cart: Intro Ayurvedic beauty set
+Seller: The Intro to Ayurvedic Beauty Set is priced at $490 before tax. Standard shipping is $5, and you'll receive 10% off your first text order (no code necessary).
+
+Reply YES to buy now and get 2 free samples of our newest product: Moisturizing Hydra Cream! Please let us know if you’d like to add other items to your bag.
+Buyer: What will be my total after discount and with shipping?
+task: AnswerQuestionAboutOrder
+Seller: Your order total comes to $49.10, with your discount and shipping applied. Would you like to proceed with your order?
+Buyer: Yes
+task: FinalizeOrder

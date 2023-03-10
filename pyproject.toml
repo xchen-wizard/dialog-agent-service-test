@@ -18,6 +18,8 @@ blinker = "^1.5"
 flask-dance = "^6.2.0"
 flask-login = "^0.6.2"
 oauthlib = "^3.2.2"
+google-cloud-aiplatform = "^1.22.1"
+torch = "1.12.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"

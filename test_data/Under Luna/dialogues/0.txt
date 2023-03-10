@@ -1,0 +1,58 @@
+Seller: Thanks for texting Under Luna!
+
+You can text to place an order, get recommendations, and more. To start:
+
+A - Tell us what you want to order
+B - Ask us for a recommendation
+
+We’re offline at the moment but will respond to you between the hours of 10 am-10 pm M-F and 11 am-7 pm Sa-Su ET.
+
+P.S. - Your first text order with us will be 10% off!
+Buyer: Unscented shampoo and conditioner
+task: StartOrBuildOrder
+cart: Unscented shampoo and conditioner
+Seller: Thank you for texting Under Luna!
+
+Our support team isn’t available at the moment, but will get back to you shortly. Our team is available M-F 10am - 10pm, Sa-Sun 11am - 7pm ET
+Our Unscented Shampoo and Conditioner come in these three sizes:
+
+A. 2 oz
+B. 8 oz
+C. 16 oz
+
+Which would you like to buy?"
+Buyer: 8 oz
+task: StartOrBuildOrder
+cart: Unscented shampoo and conditioner 8 oz
+Seller: We've added to your cart:
+- Unscented Shampoo - 8 oz / ($360) x 1
+- Unscented Conditioner - 8 oz / ($340) x 1
+
+Pricing is before tax and shipping. Don't forget you're getting 10% off your first text order!
+
+Reply YES to buy now.
+Buyer: Yes
+task: FinalizeOrder
+cart: Unscented shampoo and conditioner
+Seller: We just need your shipping and billing info to complete your order. Route protection (starts at $0.98) will be automatically added to all orders. We can remove this upon request. However, this package will not be insured if lost/stolen or damaged.
+
+Tap this link to complete your checkout.
+https://wiz.fyi/x4pim
+Buyer: Yes
+task: FinalizeOrder
+Seller: Thanks for submitting your payment info, Marina! We're processing your order now and will send you a confirmation text shortly.
+Order confirmed. Total is $76.88 with an estimated arrival in 2-8 business days. We'll text you a tracking link when it ships, so be sure to save our contact!
+Buyer: Did I get the 10% off ?
+That's the cost before the discount
+task: AnswerQuestionAboutOrder
+Seller: Correct! Here's a breakdown of the pricing details:
+
+Products Total: $700
+Route Package Protection: $0.98
+Discount: -$7.10
+Shipping: $130
+Order Total: $76.88
+
+Let us know if you have any other questions!
+Buyer: Shipping is not free?
+task: AnswerQuestionAboutSellerorService

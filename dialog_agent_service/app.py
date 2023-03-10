@@ -1,38 +1,34 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
 import sys
-import json
 
 import flask
+import requests
 from flask import jsonify
 from flask import make_response
 from flask import request
-from dialog_agent_service.user import User
-
-from flask_login import (
-    LoginManager,
-    current_user,
-    login_required,
-    login_user,
-    logout_user,
-)
-
-import requests
-
+from flask_login import current_user
+from flask_login import login_required
+from flask_login import login_user
+from flask_login import LoginManager
+from flask_login import logout_user
 from oauthlib.oauth2 import WebApplicationClient
 
 from dialog_agent_service import create_app
 from dialog_agent_service import init_logger
-from dialog_agent_service.app_utils import create_user_contexts, get_google_provider_cfg
+from dialog_agent_service.app_utils import create_user_contexts
 from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
+from dialog_agent_service.app_utils import get_google_provider_cfg
+from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
 from dialog_agent_service.db import get_user_contexts
 from dialog_agent_service.db import update_user_contexts
 from dialog_agent_service.df_utils import get_df_response
 from dialog_agent_service.df_utils import parse_df_response
-from dialog_agent_service.conversational_agent.conversation import conversation_response
+from dialog_agent_service.user import User
 
 formatter = init_logger()
 logger = logging.getLogger(__name__)
@@ -47,8 +43,9 @@ client = WebApplicationClient(os.environ.get('GOOGLE_CLIENT_ID'))
 
 
 @app.route('/', methods=['GET'])
-def index():        
+def index():
     return 'Dialog Agent Service'
+
 
 @app.route('/login')
 def login():
@@ -57,88 +54,95 @@ def login():
     login_user(user)
 
     if user:
-      return flask.redirect(flask.url_for("index"))
+        return flask.redirect(flask.url_for('index'))
 
-    
     # Google OAuth2 code, should not be hit for now
     google_provider_cfg = get_google_provider_cfg()
-    authorization_endpoint = google_provider_cfg["authorization_endpoint"]
+    authorization_endpoint = google_provider_cfg['authorization_endpoint']
 
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri=request.base_url + "/callback",
-        scope=["openid", "email", "profile"],
+        redirect_uri=request.base_url + '/callback',
+        scope=['openid', 'email', 'profile'],
     )
     return flask.redirect(request_uri)
 
+
 @app.route('/login/callback')
 def login_callback():
-  code = request.args.get("code")
+    code = request.args.get('code')
 
-  google_provider_cfg = get_google_provider_cfg()
-  token_endpoint = google_provider_cfg["token_endpoint"]
+    google_provider_cfg = get_google_provider_cfg()
+    token_endpoint = google_provider_cfg['token_endpoint']
 
-  token_url, headers, body = client.prepare_token_request(
-  token_endpoint,
-  authorization_response=request.url,
-  redirect_url=request.base_url,
-  code=code
-  )
-  token_response = requests.post(
-      token_url,
-      headers=headers,
-      data=body,
-      auth=(os.environ.get('GOOGLE_CLIENT_ID'), os.environ.get('GOOGLE_CLIENT_SECRET')),
-  )
+    token_url, headers, body = client.prepare_token_request(
+        token_endpoint,
+        authorization_response=request.url,
+        redirect_url=request.base_url,
+        code=code,
+    )
+    token_response = requests.post(
+        token_url,
+        headers=headers,
+        data=body,
+        auth=(
+            os.environ.get('GOOGLE_CLIENT_ID'),
+            os.environ.get('GOOGLE_CLIENT_SECRET'),
+        ),
+    )
 
-  client.parse_request_body_response(json.dumps(token_response.json()))
+    client.parse_request_body_response(json.dumps(token_response.json()))
 
-  userinfo_endpoint = google_provider_cfg["userinfo_endpoint"]
-  uri, headers, body = client.add_token(userinfo_endpoint)
-  userinfo_response = requests.get(uri, headers=headers, data=body)
+    userinfo_endpoint = google_provider_cfg['userinfo_endpoint']
+    uri, headers, body = client.add_token(userinfo_endpoint)
+    userinfo_response = requests.get(uri, headers=headers, data=body)
 
-  if userinfo_response.json().get("email_verified"):
-    unique_id = userinfo_response.json()["sub"]
-    users_email = userinfo_response.json()["email"]
-    picture = userinfo_response.json()["picture"]
-    users_name = userinfo_response.json()["given_name"]
-  else:
-    return "User email not available or not verified by Google.", 400
-  
-  user = User(
-    id_=unique_id, name=users_name, email=users_email
-  )
+    if userinfo_response.json().get('email_verified'):
+        unique_id = userinfo_response.json()['sub']
+        users_email = userinfo_response.json()['email']
+        picture = userinfo_response.json()['picture']
+        users_name = userinfo_response.json()['given_name']
+    else:
+        return 'User email not available or not verified by Google.', 400
 
-  login_user(user)
+    user = User(
+        id_=unique_id, name=users_name, email=users_email,
+    )
 
-  return flask.redirect(flask.url_for("index"))
+    login_user(user)
 
-@app.route("/logout")
+    return flask.redirect(flask.url_for('index'))
+
+
+@app.route('/logout')
 def logout():
     # logout_user()
-    return flask.redirect(flask.url_for("index"))
+    return flask.redirect(flask.url_for('index'))
+
 
 @login_required
 @app.route('/conversation_response', methods=['POST'])
-def conversation_response():
-  req = request.get_json(force=True)
-  
-  merchant_id = req.get('merchantId')
+async def conversation_response():
+    req = request.get_json(force=True)
 
-  if merchant_id is None:
-    raise Exception('missing merchant id')
+    merchant_id = req.get('merchantId')
 
-  user_id = int(req.get('userId'))
+    if merchant_id is None:
+        raise Exception('missing merchant id')
 
-  if user_id is None:
-    raise Exception('missing user id')
-  
-  service_channel_id = int(req.get('service_channel_id'))
+    user_id = int(req.get('userId'))
 
-  if service_channel_id is None:
-    raise Exception('missing service channel id')
+    if user_id is None:
+        raise Exception('missing user id')
 
-  return make_response(jsonify(conversation_response(merchant_id, user_id, service_channel_id)))
+    service_channel_id = int(req.get('service_channel_id'))
+
+    if service_channel_id is None:
+        raise Exception('missing service channel id')
+
+    response = await handle_conversation_response(merchant_id, user_id, service_channel_id)
+    return make_response(jsonify(response))
+
 
 @login_required
 @app.route('/agent', methods=['POST'])
@@ -199,13 +203,5 @@ async def handle_request(req: dict) -> dict:
 
 
 if __name__ == '__main__':
-    if not os.getenv('AGENT_TYPE'):
-        raise Exception('Missing env var AGENT_TYPE')
-    if os.getenv('AGENT_TYPE').lower() != 'dialogflow':
-        raise Exception('We currently only support DialogFlow!')
-    if not os.getenv('DIALOGFLOW_PROJECT_ID'):
-        raise Exception('Missing dialogflow project id!')
-    if not os.getenv('DIALOGFLOW_ENVIRONMENT'):
-        raise Exception('Missing dialogflow environment')
-    port = os.getenv('DIALOGAGENTSERVICE_PORT', 8080)
+    port = os.getenv('DIALOG_AGENT_SERVICE_PORT', 8080)
     app.run(host='0.0.0.0', port=port)

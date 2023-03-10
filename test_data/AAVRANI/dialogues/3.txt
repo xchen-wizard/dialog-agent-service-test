@@ -1,0 +1,38 @@
+Seller:
+Looking to elevate your skincare ritual? You came to the right place!
+
+Text us at any time with questions, for product recs, or an easy restock. As a thank you for joining, you'll receive 10% off your first text order.
+
+Would you like to try our bestselling Glow Activating Exfoliator? Reply YES to learn more.
+Buyer: I was thinking hte travel set and maybe the vitamin C stuff.
+task: StartOrBuildOrder
+cart: travel set, vitamin C
+Seller: The Travel Size Ritual Discovery Set is priced at $49 ($100 value) before tax.
+
+The Firming Vitamin C Treatment is priced at $48 before tax.
+
+Standard shipping is $5 or complimentary on orders over $50. By the way, you'll receive 10% off your first text order (no code necessary).
+
+If this is your full order, reply YES to buy now. If you want to add other items to your bag, let us know what else you're interested in and we'll get that going!"
+Buyer: I saw online that there was a vitamin c with the roller thing for $55?
+task: StartOrBuildOrder
+cart: travel set, vitamin C with the roller thing
+Seller: Yes! The Firming Duo (Firming Vitamin C Treatment & Rollmate Facial Roller) is priced at $55 ($84 value) before tax.
+
+If this is your full order, reply YES to buy now.
+Buyer: Yes.
+task: FinalizeOrder
+Seller: Perfect! Please update your AAVRANI profile info via the secure link below. This is a one-time step and you can easily change your info for future orders. We're here to answer any questions, too.
+
+We'll check back in as soon as your profile is completed. Then we can place your order and send your final order details via text!
+https://wiz.fyi/vv31
+Thanks for completing your profile, Martin! We’re processing your order now and will send you a confirmation text shortly.
+Buyer: Fantastic. Will i get rewards points for this order too?
+task: AnswerQuestionAboutSellerorService
+Seller: Your order is confirmed! Total is $93.60 with estimated arrival in 5-7 business days. We'll text you a tracking link when it ships.
+
+You'll earn points every time you place an order on AAVRANI.com or through our text channel!
+Buyer: Sweet
+Thank you
+task: None
+Seller: We're happy to help!
