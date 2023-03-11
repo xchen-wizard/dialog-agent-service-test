@@ -82,13 +82,17 @@ def process_past_k_turns(docs):
         a list of tuples containing the "direction" and the "body" of the document if the last turn was "inbound"
         else return an empty list
     """
+    if len(docs) > 0 and docs[-1].get('direction') == 'outbound':
+        if docs[-1].get('senderType') == 'cx':
+            # meaning that a CX agent may have already responded or a new outbound message has been auto-sent
+            logger.warning(
+                'There has been a new outbound message since this call was made!',
+            )
+            return []
+        else:  # system message
+            # filter the last system message out before sending to model
+            docs = docs[:-1]
     docs = [(doc.get('direction'), doc.get('body')) for doc in docs]
-    if len(docs) > 0 and docs[-1][0] == 'outbound':
-        # meaning that a CX agent may have already responded or a new outbound message has been auto-sent
-        logger.warning(
-            'There has been a new outbound message since this call was made!',
-        )
-        return []
     return docs
 
 
