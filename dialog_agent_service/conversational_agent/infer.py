@@ -23,7 +23,7 @@ class T5InferenceService:
         self.response_prediction_prompt = dict()
         fact_sheets = glob.glob(f'{data_dir}/*/fact_sheet.txt')
         for fact_sheet in fact_sheets:
-            vendor = fact_sheet.split('/')[1]
+            vendor = fact_sheet.split('/')[2]
             with open(fact_sheet) as f:
                 facts = f.read()
             self.response_prediction_prompt[vendor] = f'{vendor} response: {facts}\n'
@@ -49,7 +49,6 @@ class T5InferenceService:
                 conversation, task_descriptions=self.task_descriptions,
             ),
         )[0]
-
         if task not in {'StartOrBuildOrder', 'FinalizeOrder'}:
             conversation += 'Seller: '
             response = predict_fn(
