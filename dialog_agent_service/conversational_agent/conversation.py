@@ -9,7 +9,7 @@ from .conversation_utils import run_inference
 
 logger = logging.getLogger(__name__)
 
-K = 3  # past k turns
+K = 5  # past k turns
 WINDOW = 12  # past hrs
 ENDPOINT_ID = '1012733772065406976'
 PROJECT_ID = '105526547909'

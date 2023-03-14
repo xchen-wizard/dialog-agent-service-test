@@ -47,7 +47,7 @@ async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int
         'serviceNumber': data['serviceNumber'],
         'createdAt': {'$lt': endtime, '$gt': starttime},
     }).sort('createdAt', ASCENDING).limit(k)
-    docs = process_past_k_turns(docs)
+    docs = process_past_k_turns(list(docs))
     return docs, data['vendorName']
 
 
