@@ -62,6 +62,6 @@ async def test_handle_conversation_response(mocker: MockerFixture):
             'responseType': 'suggestion',
         },
     )
-    response = await handle_conversation_response(merchant_id=1, user_id=1, service_channel_id=1)
+    response = await handle_conversation_response(merchant_id=6, user_id=58789, service_channel_id=5)
     logger.info(response)
     assert response is not None
