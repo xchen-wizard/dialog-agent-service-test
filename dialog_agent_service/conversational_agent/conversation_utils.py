@@ -36,6 +36,7 @@ async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int
         Tuple of concatenated messages and the vendor name as stored in vendors tabel
     """
     data = await get_user_and_service_number(user_id, service_channel_id, vendor_id)
+    # start and end time of the window
     utcnow = datetime.utcnow()
     endtime = utcnow.strftime(MONGO_TIME_STR_FORMAT)
     starttime = (
@@ -54,6 +55,10 @@ async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int
 async def get_user_and_service_number(user_id: int, service_channel_id: int, vendor_id: int):
     """
     retrieve the user phone number and service channel phone number from mysql db
+    Returns:
+        a dict with userNumber, serviceNumber, and vendorName as keys
+    Raises:
+        exception if no record matches
     """
     query = """
     SELECT
@@ -70,6 +75,10 @@ async def get_user_and_service_number(user_id: int, service_channel_id: int, ven
     with get_mysql_cnx_cursor() as cursor:
         cursor.execute(query, (user_id, service_channel_id, vendor_id))
         data = cursor.fetchone()
+    if not data:
+        raise Exception(f"""cannot retrieve user and service phone numbers for
+            userId {user_id}, serviceChannelId {service_channel_id}, and vendorId {vendor_id}
+            """)
     logger.debug(f'retrieved user, service numbers and vendor name: {data}')
     return data
 
@@ -77,20 +86,20 @@ async def get_user_and_service_number(user_id: int, service_channel_id: int, ven
 def process_past_k_turns(docs):
     """
     process past k turns
-    ToDo: how to account for auto-generated outbound messages like OOTO reply etc.
     Returns:
         a list of tuples containing the "direction" and the "body" of the document if the last turn was "inbound"
         else return an empty list
     """
     if len(docs) > 0 and docs[-1].get('direction') == 'outbound':
         if docs[-1].get('senderType') == 'cx':
-            # meaning that a CX agent may have already responded or a new outbound message has been auto-sent
+            # meaning that a CX agent may have already responded
             logger.warning(
                 'There has been a new outbound message since this call was made!',
             )
             return []
         else:  # system message
             # filter the last system message out before sending to model
+            # ToDo: more advanced processing to remove the last n (> 1) auto messages
             docs = docs[:-1]
     docs = [(doc.get('direction'), doc.get('body')) for doc in docs]
     return docs
@@ -106,6 +115,7 @@ async def run_inference(docs: list[tuple], vendor_name: str, project_id: str, en
         for direction, message in docs
     ]
     conversation = '\n'.join(conversation)  # type: ignore
+    logger.debug(f'conversation context: {conversation}')
 
     def predict_fn(text: str | list[str]):
         if isinstance(text, str):
@@ -113,7 +123,11 @@ async def run_inference(docs: list[tuple], vendor_name: str, project_id: str, en
         responses = predict_custom_trained_model_sample(
             project=project_id,
             endpoint_id=endpoint_id,
-            location='us-central1',
+            location=os.getenv('VERTEX_AI_LOCATION', 'us-central1'),
+            api_endpoint=os.getenv(
+                'VERTEX_AI_ENDPOINT',
+                'us-central1-aiplatform.googleapis.com',
+            ),
             instances=[{'data': {'context': t}} for t in text],
         )
         return responses

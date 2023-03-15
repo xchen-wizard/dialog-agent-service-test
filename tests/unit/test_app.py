@@ -55,13 +55,13 @@ async def test_handle_conversation_response(mocker: MockerFixture):
         'dialog_agent_service.conversational_agent.conversation.get_past_k_turns',
         return_value=(past_k_turns, vendor_name),
     )
-    mocker.patch(
-        'dialog_agent_service.conversational_agent.conversation.run_inference',
-        return_value={
-            'response': 'test response',
-            'responseType': 'suggestion',
-        },
-    )
+    # mocker.patch(
+    #     'dialog_agent_service.conversational_agent.conversation.run_inference',
+    #     return_value={
+    #         'response': 'test response',
+    #         'responseType': 'suggestion',
+    #     },
+    # )
     response = await handle_conversation_response(merchant_id=6, user_id=58789, service_channel_id=5)
     logger.info(response)
     assert response is not None

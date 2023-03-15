@@ -19,11 +19,13 @@ class T5InferenceService:
             self.tokenizer = T5Tokenizer.from_pretrained(model_name)
             self.model = T5ForConditionalGeneration.from_pretrained(model_dir)
         with open(f'{data_dir}/task_descriptions.txt') as f:
+            logger.info(f'loading task_descriptions.txt from {data_dir}')
             self.task_descriptions = f.read()
         self.response_prediction_prompt = dict()
         fact_sheets = glob.glob(f'{data_dir}/*/fact_sheet.txt')
         for fact_sheet in fact_sheets:
             vendor = fact_sheet.split('/')[2]
+            logger.info(f'loading fact sheets from {fact_sheet}')
             with open(fact_sheet) as f:
                 facts = f.read()
             self.response_prediction_prompt[vendor] = f'{vendor} response: {facts}\n'
@@ -49,6 +51,7 @@ class T5InferenceService:
                 conversation, task_descriptions=self.task_descriptions,
             ),
         )[0]
+        logger.debug(f'predicted task {task}')
         if task not in {'StartOrBuildOrder', 'FinalizeOrder'}:
             conversation += 'Seller: '
             response = predict_fn(
@@ -59,6 +62,7 @@ class T5InferenceService:
             return {'task': task}
         if task == 'StartOrBuildOrder':
             products = predict_fn(create_input_cart(conversation))[0]
+            logger.debug(f'predicted products {products}')
             if products == 'None':
                 return {'task': task, 'cart': []}
             else:

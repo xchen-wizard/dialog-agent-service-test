@@ -124,23 +124,26 @@ def logout():
 @app.route('/conversation_response', methods=['POST'])
 async def conversation_response():
     req = request.get_json(force=True)
-
+    logger.debug(f'request: {req}')
     merchant_id = req.get('merchantId')
-
     if merchant_id is None:
         raise Exception('missing merchant id')
-
     user_id = int(req.get('userId'))
-
     if user_id is None:
         raise Exception('missing user id')
-
-    service_channel_id = int(req.get('service_channel_id'))
-
+    service_channel_id = int(req.get('serviceChannelId'))
     if service_channel_id is None:
         raise Exception('missing service channel id')
 
-    response = await handle_conversation_response(merchant_id, user_id, service_channel_id)
+    response = await handle_conversation_response(
+        merchant_id,
+        user_id,
+        service_channel_id,
+        k=int(req.get('k', 5)),
+        window=int(req.get('window', 12)),
+        test_merchant=req.get('testMerchant', ''),
+    )
+    logger.debug(f'response: {response}')
     return make_response(jsonify(response))
 
 
