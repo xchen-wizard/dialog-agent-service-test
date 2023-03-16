@@ -9,8 +9,8 @@ from .conversation_utils import run_inference
 
 logger = logging.getLogger(__name__)
 
-ENDPOINT_ID = os.getenv('VERTEX_AI_ENDPOINT_ID', '1418518344')
-PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', 'prod-us-333918')
+ENDPOINT_ID = os.getenv('VERTEX_AI_ENDPOINT_ID', '1012733772065406976')
+PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 
 class Response(Enum):
