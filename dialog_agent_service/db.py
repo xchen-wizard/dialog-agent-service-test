@@ -9,9 +9,6 @@ from contextlib import contextmanager
 from typing import Any
 
 import mysql
-import pymongo
-import requests
-from bson.objectid import ObjectId
 
 from dialog_agent_service import init_mongo_db
 from dialog_agent_service import init_mysql_db

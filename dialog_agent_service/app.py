@@ -4,6 +4,9 @@ import json
 import logging
 import os
 import sys
+import json
+from dialog_agent_service.conversational_agent.conversation_utils import get_variants
+# from dialog_agent_service.search.SemanticSearch import semanticSearch
 
 import flask
 import requests
@@ -29,6 +32,7 @@ from dialog_agent_service.db import update_user_contexts
 from dialog_agent_service.df_utils import get_df_response
 from dialog_agent_service.df_utils import parse_df_response
 from dialog_agent_service.user import User
+from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
 
 formatter = init_logger()
 logger = logging.getLogger(__name__)
@@ -145,7 +149,6 @@ async def conversation_response():
     )
     logger.debug(f'response: {response}')
     return make_response(jsonify(response))
-
 
 @login_required
 @app.route('/agent', methods=['POST'])

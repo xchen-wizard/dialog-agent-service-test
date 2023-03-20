@@ -12,6 +12,7 @@ from google.cloud import aiplatform
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value
 from pymongo import ASCENDING
+from bson.objectid import ObjectId
 
 from .infer import T5InferenceService
 from dialog_agent_service.db import get_mysql_cnx_cursor
@@ -174,3 +175,92 @@ def predict_custom_trained_model_sample(
     # The predictions are a google.protobuf.Value representation of the model's predictions.
     predictions = response.predictions
     return predictions
+
+def get_merchant(merchant_id: int):
+  query = """
+  SELECT
+    id,
+    name,
+    siteId
+  FROM vendors
+  WHERE id = %s
+  """
+
+  with get_mysql_cnx_cursor() as cursor:
+      cursor.execute(query, (merchant_id))
+      data = cursor.fetchone()
+
+  return { 'id': data.get('id'), 'name': data.get('name'), 'site_id': data.get('siteId')}
+
+def get_merchant_site_ids():
+  query = """
+  SELECT
+    id,
+    siteId
+  FROM vendors
+  """
+
+  with get_mysql_cnx_cursor() as cursor:
+      cursor.execute(query)
+      data = cursor.fetchall()
+
+  merchants = {}
+
+  for merchant in data:
+     merchants[str(merchant['id'])] = merchant['siteId']
+
+  return merchants
+
+def get_variants(variant_ids: list):
+
+  object_ids = list(map(ObjectId, variant_ids))
+     
+  variant_cursor = mongo_db['productVariants'].find({ '_id': { '$in': object_ids } })
+
+  variants = []
+
+  for variant in variant_cursor:
+    product = mongo_db['productCatalog'].find_one({ '_id': ObjectId(variant['productId'])})
+    variant['product'] = product
+
+    listings = list(mongo_db['productListings'].find({ 'productVariantId': str(variant['_id'])}))
+    variant['listings'] = listings
+
+    variants.append(variant)
+
+  return variants
+
+def get_variants_by_merchant_id(merchant_id: str):
+     
+  variant_cursor = mongo_db['productVariants'].find({ 'merchantId': merchant_id})
+
+  variants = []
+
+  for variant in variant_cursor:
+    product = mongo_db['productCatalog'].find_one({ '_id': ObjectId(variant['productId'])})
+    variant['product'] = product
+
+    listings = list(mongo_db['productListings'].find({ 'productVariantId': str(variant['_id'])}))
+    variant['listings'] = listings
+
+      # name = variant['product']['name'] + ' - ' + variant['name']
+
+      # price =  variant['listings'][0]['price']
+
+    variants.append(variant)
+
+  return variants
+
+def get_all_variants():
+  variant_names = {}
+
+  products = mongo_db['productCatalog'].find()
+
+  for product in products:
+     variants = mongo_db['productVariants'].find({ 'productId': str(product['_id']) })
+
+     for variant in variants:
+        name = product['name'] + ' - ' + variant['name']
+        variant_names[variant['_id']] = { 'name': name, 'merchant_id': product['merchantId'] }
+
+  return variant_names
