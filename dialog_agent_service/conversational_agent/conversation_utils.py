@@ -135,15 +135,16 @@ async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, p
         return responses
     ret = inference_obj.infer(conversation, vendor_name, predict_fn)
     # product search lookup if cart is present
-    if 'cart' in ret and len(ret['cart']) > 1:
+    if 'cart' in ret and len(ret['cart']) > 0:
         resolved_cart = []
         for product, qty in ret['cart']:
             products, response = match_product_variant(merchant_id, product)
             if products:
                 resolved_cart.extend([(p[0], p[1], qty) for p in products])
             if response:
-                ret["response"] = response + '\n' + ret["response"]
-        ret["response"] = gen_cart_response(resolved_cart) + '\n' + ret["response"]
+                ret["response"] = response + '\n' + ret.get("response", "")
+        ret["response"] = gen_cart_response(resolved_cart) + '\n' + ret.get("response", "")
+        ret['cart'] = [(name, qty) for (name, _, qty) in resolved_cart]
         return ret
 
 
@@ -278,7 +279,7 @@ def get_all_variants():
 
 
 def match_product_variant(merchant_id: str, product_name: str) -> ProductResponseUnion:
-    product_matches = process.extract(product_name, match_product_variant.variants_obj[merchant_id].keys())
+    product_matches = process.extract(product_name, match_product_variant.variants_obj[merchant_id].keys(), scorer=fuzz.token_set_ratio)
     significant_matches = [tup[0] for tup in product_matches if tup[1] > FUZZY_MATCH_THRESHOLD]
     if len(significant_matches) > 2:
         logger.debug(f"{product_name} matched to many product names: {significant_matches}. No match returned")
@@ -288,13 +289,15 @@ def match_product_variant(merchant_id: str, product_name: str) -> ProductRespons
         products = []
         response = ""
         for product_match in significant_matches:
-            variant_matches = [(product_match + ' - ' + tup[2], tup[0])
-                               for tup in match_product_variant.variants_obj[merchant_id][product_match] if tup[1] > FUZZY_MATCH_THRESHOLD]
-            if len(variant_matches) > 1:
+            variant_matches = [(product_name + ' - ' + tup[0], match_product_variant.variants_obj[merchant_id][product_match][tup[0]])
+                               for tup in process.extract(product_match, match_product_variant.variants_obj[merchant_id][product_match].keys(), scorer=fuzz.token_set_ratio)
+                               if tup[1] > FUZZY_MATCH_THRESHOLD]
+            if len(variant_matches) > 0:
                 products.extend(variant_matches)
             else:
-                response += "\n" + gen_variant_selection_response(product_match, match_product_variant.variants_obj[product_match].keys())
+                response += "\n" + gen_variant_selection_response(product_match, match_product_variant.variants_obj[merchant_id][product_match].keys())
 
         return ProductResponseUnion(products, response)
 
-match_product_variant.variant_obj = get_all_variants_by_merchant_id()
+
+match_product_variant.variants_obj = get_all_variants_by_merchant_id()

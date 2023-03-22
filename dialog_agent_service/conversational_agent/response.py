@@ -23,4 +23,4 @@ def gen_cart_response(cart):
     return f"""
     Your current cart has:
     {newline.join([f'- {name}  ${price} X {qty}' for name, price, qty in cart])}
-    """
+    """ if cart else ""
