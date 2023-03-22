@@ -43,7 +43,7 @@ async def handle_conversation_response(
         vendor_name = test_merchant
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
-        response = await run_inference(docs, vendor_name, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID)
+        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID)
         return {
             'task': response.get('task', ''),
             'cart': response.get('cart', []),

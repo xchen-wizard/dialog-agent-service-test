@@ -7,23 +7,24 @@ from datetime import timedelta
 from typing import Dict
 from typing import List
 from typing import Union
-
+from collections import defaultdict, namedtuple
 from google.cloud import aiplatform
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value
 from pymongo import ASCENDING
 from bson.objectid import ObjectId
-
+from fuzzywuzzy import process, fuzz
+from .response import *
 from .infer import T5InferenceService
-from dialog_agent_service.db import get_mysql_cnx_cursor
-from dialog_agent_service.db import mongo_db
+from dialog_agent_service.db import get_mysql_cnx_cursor, mongo_db, query_mongo
 
 logger = logging.getLogger(__name__)
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 SPEAKER_TAGS = {'inbound': 'Buyer:', 'outbound': 'Seller:'}
 
 inference_obj = T5InferenceService('../test_data')
-
+ProductResponseUnion = namedtuple("ProductResponseUnion", ["products", "response"])
+FUZZY_MATCH_THRESHOLD = 90
 
 async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int, k: int, window: int):
     """
@@ -106,7 +107,7 @@ def process_past_k_turns(docs):
     return docs
 
 
-async def run_inference(docs: list[tuple], vendor_name: str, project_id: str, endpoint_id: str):
+async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, project_id: str, endpoint_id: str):
     """
     call the T5 model service endpoint and generate a response
     ToDo: implement the logic for making multiple calls to the model api here
@@ -132,7 +133,18 @@ async def run_inference(docs: list[tuple], vendor_name: str, project_id: str, en
             instances=[{'data': {'context': t}} for t in text],
         )
         return responses
-    return inference_obj.infer(conversation, vendor_name, predict_fn)
+    ret = inference_obj.infer(conversation, vendor_name, predict_fn)
+    # product search lookup if cart is present
+    if 'cart' in ret and len(ret['cart']) > 1:
+        resolved_cart = []
+        for product, qty in ret['cart']:
+            products, response = match_product_variant(merchant_id, product)
+            if products:
+                resolved_cart.extend([(p[0], p[1], qty) for p in products])
+            if response:
+                ret["response"] = response + '\n' + ret["response"]
+        ret["response"] = gen_cart_response(resolved_cart) + '\n' + ret["response"]
+        return ret
 
 
 def predict_custom_trained_model_sample(
@@ -230,26 +242,25 @@ def get_variants(variant_ids: list):
 
   return variants
 
-def get_variants_by_merchant_id(merchant_id: str):
-     
-  variant_cursor = mongo_db['productVariants'].find({ 'merchantId': merchant_id})
+def get_all_variants_by_merchant_id():
+    ret_dict = defaultdict(lambda: defaultdict(dict))
+    variant_cursor = mongo_db['productVariants'].find()
 
-  variants = []
+    variants = []
 
-  for variant in variant_cursor:
-    product = mongo_db['productCatalog'].find_one({ '_id': ObjectId(variant['productId'])})
-    variant['product'] = product
+    for variant in variant_cursor:
+        product = mongo_db['productCatalog'].find_one({'_id': ObjectId(variant['productId'])})
+        variant['product'] = product
 
-    listings = list(mongo_db['productListings'].find({ 'productVariantId': str(variant['_id'])}))
-    variant['listings'] = listings
+        listings = list(mongo_db['productListings'].find({'productVariantId': str(variant['_id'])}))
+        variant['listings'] = listings
 
-      # name = variant['product']['name'] + ' - ' + variant['name']
+        # name = variant['product']['name'] + ' - ' + variant['name']
 
-      # price =  variant['listings'][0]['price']
+        # price =  variant['listings'][0]['price']
 
-    variants.append(variant)
-
-  return variants
+        ret_dict[variant['merchantId']][variant['product']['name']][variant['name']] = variant['listings'][0]['price']
+    return ret_dict
 
 def get_all_variants():
   variant_names = {}
@@ -264,3 +275,26 @@ def get_all_variants():
         variant_names[variant['_id']] = { 'name': name, 'merchant_id': product['merchantId'] }
 
   return variant_names
+
+
+def match_product_variant(merchant_id: str, product_name: str) -> ProductResponseUnion:
+    product_matches = process.extract(product_name, match_product_variant.variants_obj[merchant_id].keys())
+    significant_matches = [tup[0] for tup in product_matches if tup[1] > FUZZY_MATCH_THRESHOLD]
+    if len(significant_matches) > 2:
+        logger.debug(f"{product_name} matched to many product names: {significant_matches}. No match returned")
+        return ProductResponseUnion(None, gen_non_specific_product_response(
+            product_name, significant_matches[0], significant_matches[1], significant_matches[2]))
+    else:
+        products = []
+        response = ""
+        for product_match in significant_matches:
+            variant_matches = [(product_match + ' - ' + tup[2], tup[0])
+                               for tup in match_product_variant.variants_obj[merchant_id][product_match] if tup[1] > FUZZY_MATCH_THRESHOLD]
+            if len(variant_matches) > 1:
+                products.extend(variant_matches)
+            else:
+                response += "\n" + gen_variant_selection_response(product_match, match_product_variant.variants_obj[product_match].keys())
+
+        return ProductResponseUnion(products, response)
+
+match_product_variant.variant_obj = get_all_variants_by_merchant_id()
