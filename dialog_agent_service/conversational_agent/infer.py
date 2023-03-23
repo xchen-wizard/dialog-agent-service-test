@@ -1,8 +1,6 @@
 import glob
 import logging
-from multi_task.datasets.dst_dataset import DSTDataset
 import traceback
-from multi_task.constants import RESPONSE_TASKS
 
 max_conversation_chars_task = 600
 max_conversation_chars_cart = 1500
@@ -49,7 +47,7 @@ class T5InferenceService:
         input, _ = create_input_target_task(conversation, "", task_descriptions=self.task_descriptions)
         task = predict_fn(input)[0]
 
-        if any(x in task for x in RESPONSE_TASKS) and vendor in self.response_prediction_prompt:
+        if any(x in task for x in ['RecommendProduct', 'AnswerMiscellaneousQuestions']) and vendor in self.response_prediction_prompt:
             conversation += "Seller: "
             response = predict_fn(self.response_prediction_prompt[vendor] + conversation)[0]
             return {"task": task, "response": response}
