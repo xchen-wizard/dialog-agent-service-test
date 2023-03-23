@@ -3,6 +3,8 @@ from __future__ import annotations
 import glob
 import logging
 
+max_conversation_chars_task = 600
+max_conversation_chars_cart = 1500
 logger = logging.getLogger(__name__)
 
 
@@ -46,13 +48,12 @@ class T5InferenceService:
         :return: dict with different outputs of interest
         """
         # first predict task
-        task = predict_fn(
-            create_input_task(
-                conversation, task_descriptions=self.task_descriptions,
-            ),
-        )[0]
+        input, _ = create_input_target_task(
+            conversation, '', task_descriptions=self.task_descriptions,
+        )
+        task = predict_fn(input)[0]
         logger.debug(f'predicted task {task}')
-        if task not in {'StartOrBuildOrder', 'FinalizeOrder'}:
+        if any(x in task for x in ['RecommendProduct', 'AnswerMiscellaneousQuestions']) and vendor in self.response_prediction_prompt:
             conversation += 'Seller: '
             response = predict_fn(
                 self.response_prediction_prompt[vendor] + conversation,
@@ -60,42 +61,54 @@ class T5InferenceService:
             return {'task': task, 'response': response}
         if task == 'FinalizeOrder':
             return {'task': task}
-        if task == 'StartOrBuildOrder':
-            products = predict_fn(create_input_cart(conversation))[0]
-            logger.debug(f'predicted products {products}')
+        if task == 'CreateOrUpdateOrderCart':
+            product_input, _ = create_input_target_cart(conversation, '')
+            products = predict_fn(product_input)[0]
             if products == 'None':
                 return {'task': task, 'cart': []}
             else:
-                products_list = products.split(',')
-            # TODO: We are not finetuning on quantity yet. This will change in future and then this will not be hardcoded here.
-            qty_text = [
-                f"""
-question answering:
-{conversation}
-How many {product} does the buyer want?
-"""
-                for product in products_list
-            ]
-            qty_list = predict_fn(qty_text)
-            return {'task': task, 'cart': list(zip(products_list, qty_list))}
-        # if all fails
-        logger.error(f'the returned task {task} is not accounted for')
-        return {}
+                qty_input, _ = create_input_target_cart(
+                    conversation, products + ';', qty_infer=True,
+                )
+                qty_list = predict_fn(qty_input)
+            try:
+                return {'task': task, 'cart': list(zip(products.split(','), map(int, qty_list)))}
+            except Exception as e:
+                logger.error(
+                    f'encountered the following error while parsing products and quantities:\n{e}',
+                )
+                return {'task': task}
+        return {'task': task}
 
 
-def create_input_task(conversation, **kwargs):
-    return f"""
-question answering:
+def create_input_target_task(conversation, target_str, **kwargs):
+    return [f"""
+predict task based on task descriptions below:
 {kwargs['task_descriptions']}
 The below is an interaction between buyer and seller:
-{conversation}
+{conversation[-max_conversation_chars_task:]}
 Write a comma separated list of tasks that the buyer wants us to do right now.
-"""
+"""], [target_str]
 
 
-def create_input_cart(conversation, **kwargs):
-    return f"""
-question answering:
-{conversation}
+def create_input_target_cart(conversation, target_str, **kwargs):
+    inputs = [f"""
+answer products of interest:
+{conversation[-max_conversation_chars_cart:]}
 Write a comma separated list of products that the buyer is interested in purchasing.
-"""
+"""] if not kwargs.get('qty_infer', False) else []
+    products_qty = target_str.split(';')
+    products = products_qty[0].strip()
+    targets = [products]
+    if len(products_qty) > 1:
+        targets.extend([s.strip() for s in products_qty[1].strip().split(',')])
+        products = products.split(',')
+        for product in products:
+            inputs.append(
+                f"""
+answer product quantity:
+{conversation[-max_conversation_chars_cart:]}
+How many {product} does the buyer want?
+                """,
+            )
+    return inputs, targets
