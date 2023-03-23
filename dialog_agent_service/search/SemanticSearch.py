@@ -139,8 +139,11 @@ class SemanticSearch():
     
     answers = []
 
-    for hit in sem_search['hits']['hits'][0:5]:
+    for hit in sem_search['hits']['hits']:
       answers.append(hit['_source']['answer'])
+
+    if len(answers) == 0:
+      answers.append("Very sorry - this is a product FAQ. It doesn't know everything about everything!")
 
     return answers
 
@@ -166,7 +169,7 @@ class SemanticSearch():
     
     product_ids = []
 
-    for hit in sem_search['hits']['hits'][0:5]:
+    for hit in sem_search['hits']['hits']:
       product_ids.append(hit['_source']['id'])
 
     return product_ids
