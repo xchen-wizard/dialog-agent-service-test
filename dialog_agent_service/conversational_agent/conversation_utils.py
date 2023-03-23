@@ -394,3 +394,13 @@ def get_all_faqs():
      faqs[faq['siteId']][faq['question']] = faq['answer']
 
   return faqs
+
+def encode_sentence(query: str, project_id: str, endpoint_id: str):
+  embeddings = predict_custom_trained_model_sample(
+      project=project_id,
+      endpoint_id=endpoint_id,
+      location=os.getenv('VERTEX_AI_LOCATION', 'us-central1'),
+      instance_dict={"instances": [{"data": {"query": query}}]} 
+  )
+
+  return embeddings['predictions'][0]

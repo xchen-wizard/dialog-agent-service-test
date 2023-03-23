@@ -1,13 +1,12 @@
-import copy
-import sys
-import re
 import os
 
-from dialog_agent_service.conversational_agent.conversation_utils import get_all_faqs, get_merchant_site_ids, get_all_variants
+from dialog_agent_service.conversational_agent.conversation_utils import encode_sentence, get_all_faqs, get_merchant_site_ids, get_all_variants
 from dialog_agent_service.app_utils import logger
 
-from sentence_transformers import SentenceTransformer
 from elasticsearch import Elasticsearch, helpers
+
+ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
+PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 class SemanticSearch():
   def __init__(self, dimensions = 768, model = 'sentence-transformers/all-mpnet-base-v2'):
@@ -15,7 +14,6 @@ class SemanticSearch():
     cloud_id=os.environ.get('ES_CLOUD_ID'),
     basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
     )
-    self.model = SentenceTransformer(model)
     self.dimensions = dimensions
 
   def index_faqs(self):
@@ -31,7 +29,7 @@ class SemanticSearch():
 
     for merchant in faqs:
       for question in merchant:
-        embedding = self.model.encode(question, show_progress_bar=False)
+        embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID)
 
         es_data = {
           "question": question,
@@ -80,7 +78,7 @@ class SemanticSearch():
       if variants[id]['merchant_id'] not in site_ids:
         continue
 
-      embedding = self.model.encode(variants[id]['name'], show_progress_bar=False)
+      embedding = encode_sentence(variants[id]['name'], PROJECT_ID, ENDPOINT_ID)
       idx = site_ids[variants[id]['merchant_id']]
 
       es_data = {
@@ -119,7 +117,7 @@ class SemanticSearch():
       self.client.indices.delete(index=indices[idx], ignore=[404])
 
   def faq_search(self, merchant_site_id: str, query: str):
-    embedding = self.model.encode(query, show_progress_bar=False)
+    embedding = encode_sentence(query, PROJECT_ID, ENDPOINT_ID)
 
     sem_search = self.client.search(index=merchant_site_id + '-faqs', body={
       "query": {
@@ -149,7 +147,7 @@ class SemanticSearch():
 
 
   def product_search(self, merchant_site_id: str, query: str):
-    embedding = self.model.encode(query, show_progress_bar=False)
+    embedding = encode_sentence(query, PROJECT_ID, ENDPOINT_ID)
 
     sem_search = self.client.search(index=merchant_site_id + '-products', body={
       "query": {
