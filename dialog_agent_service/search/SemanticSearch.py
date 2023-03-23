@@ -8,6 +8,9 @@ from elasticsearch import Elasticsearch
 ENDPOINT_ID = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
+ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
+PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
+
 class SemanticSearch():
   def __init__(self, dimensions = 768):
     self.dimensions = dimensions
