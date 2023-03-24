@@ -26,7 +26,6 @@ from dialog_agent_service.db import mongo_db
 logger = logging.getLogger(__name__)
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 SPEAKER_TAGS = {'inbound': 'Buyer:', 'outbound': 'Seller:'}
-
 inference_obj = T5InferenceService('../test_data')
 ProductResponseUnion = namedtuple(
     'ProductResponseUnion', ['products', 'response'],
@@ -321,7 +320,7 @@ def get_all_variants():
 def match_product_variant(merchant_id: int, product_name: str) -> ProductResponseUnion:
     merchant_id = str(merchant_id)
     product_matches = process.extract(
-        product_name, match_product_variant.variants_obj[merchant_id].keys(), scorer=fuzz.token_set_ratio,
+        product_name, VARIANTS_OBJ[merchant_id].keys(), scorer=fuzz.token_set_ratio,
     )
     significant_matches = [
         tup[0]
@@ -343,16 +342,16 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
             variant_matches = [
                 (
                     product_name + ' - ' +
-                    tup[0], match_product_variant.variants_obj[merchant_id][product_match][tup[0]],
+                    tup[0], VARIANTS_OBJ[merchant_id][product_match][tup[0]],
                 )
-                for tup in process.extract(product_match, match_product_variant.variants_obj[merchant_id][product_match].keys(), scorer=fuzz.token_set_ratio)
+                for tup in process.extract(product_match, VARIANTS_OBJ[merchant_id][product_match].keys(), scorer=fuzz.token_set_ratio)
                 if tup[1] > FUZZY_MATCH_THRESHOLD
             ]
             if len(variant_matches) > 0:
                 products.extend(variant_matches)
             else:
                 response += '\n' + gen_variant_selection_response(
-                    product_match, match_product_variant.variants_obj[merchant_id][product_match].keys(
+                    product_match, VARIANTS_OBJ[merchant_id][product_match].keys(
                     ),
                 )
 
@@ -361,5 +360,6 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
 
 # this is loaded during the start-up and will have to be restarted after a mongo product update
 # ToDo: not ideal, replace later
-match_product_variant.variants_obj = get_all_variants_by_merchant_id(
+VARIANTS_OBJ = get_all_variants_by_merchant_id(
 ) if os.getenv('UNITTEST') != 'true' else {}
+logger.info('loaded product variants!')
