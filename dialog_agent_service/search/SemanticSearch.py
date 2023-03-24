@@ -2,7 +2,7 @@ import os
 
 from dialog_agent_service.conversational_agent.conversation_utils import encode_sentence, get_all_faqs, get_merchant_site_ids, get_all_variants
 from dialog_agent_service.app_utils import logger
-from dialog_agent_service.demo.under_luna_demo_utils import index_demo_helper
+from dialog_agent_service.demo.under_luna_demo_utils import faq_demo_search, index_demo_helper
 
 from elasticsearch import Elasticsearch
 
@@ -203,5 +203,9 @@ class SemanticSearch():
   def index_demo(self):
     # pass everything to the demo helper function to avoid clutter in this file
     index_demo_helper(self.client, self.dimensions)
+
+  def faq_demo(self, question):
+    # pass everything to the demo helper function to avoid clutter in this file
+    return faq_demo_search(self.client, question)
   
 semanticSearch = SemanticSearch()
