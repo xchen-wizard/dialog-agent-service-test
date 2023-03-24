@@ -3,7 +3,6 @@ import re
 import sys
 import openai
 import tiktoken
-from termcolor import colored
 from nltk.tokenize import sent_tokenize
 import configparser
 from elasticsearch import Elasticsearch
@@ -11,13 +10,14 @@ from elasticsearch import Elasticsearch
 
 from dialog_agent_service.conversational_agent.conversation_utils import encode_sentence
 from dialog_agent_service.db import get_mysql_cnx_cursor
-from dialog_agent_service.search.SemanticSearch import SemanticSearch
 
 
 ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
-demo_search = SemanticSearch(dimensions=768, is_demo=True)
+openai.api_key = os.getenv('OPENAI_API_KEY')
+
+messages = []
 
 
 def index_demo_helper(es_client, dimensions: int):
@@ -44,12 +44,12 @@ def index_demo_helper(es_client, dimensions: int):
 
     es_client.indices.create(index=index, body=es_index_body)
 
-    populate_demo_indices(index)
+    populate_demo_indices(es_client, index)
 
 
 def populate_demo_indices(es_client, index: str):
     faqs = get_demo_faqs()
-    txt_faqs = get_txt_demo_faqs
+    txt_faqs = {} # get_txt_demo_faqs()
 
     for question in faqs:
       embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID)
@@ -86,7 +86,7 @@ def get_demo_faqs():
   ON 
     q.answerId = a.id
   WHERE
-    q.merchantId = '53' q.type = 'question' OR q.type = 'questionExpansion' OR q.type = 'questionExtraction'
+    q.merchantId = '53' AND (q.type = 'question' OR q.type = 'questionExpansion' OR q.type = 'questionExtraction')
   """
 
   with get_mysql_cnx_cursor() as cursor:
@@ -143,8 +143,7 @@ def faq_demo_search(es_cleint, question: str):
   if sem_search['hits']['hits'] != []:
     if (sem_search['hits']['hits'][0]['_score']) > 0:
         for hit in sem_search['hits']['hits'][0:1]:
-            # top_product = hit['_source']['product_title'].strip('\n')
-            top_question = hit['_source']['text'].strip('\n')
+            top_question = hit['_source']['question'].strip('\n')
             top_answer = hit['_source']['answer'].strip('\n')
             break
         sem_search = (top_question, top_answer)
@@ -243,6 +242,7 @@ def get_focus(filler):
 def faq_demo(es_client, question: str):
   prompt = "combine this question/answer pair into a single clear consistent statement: <FILLERQ>, <FILLERA>."
   q1 = question
+  focus = None
 
   if focus != None:
       if ' it ' in q1.lower() and focus != None:

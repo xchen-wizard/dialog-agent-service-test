@@ -208,9 +208,11 @@ class SemanticSearch():
   def index_demo(self):
     # pass everything to the demo helper function to avoid clutter in this file
     index_demo_helper(self.client, self.dimensions)
+    return 'finished index'
 
   def faq_demo(self, question):
     # pass everything to the demo helper function to avoid clutter in this file
     return faq_demo(self.client, question)
   
 semanticSearch = SemanticSearch()
+demo_search = SemanticSearch(dimensions=768, is_demo=True)
