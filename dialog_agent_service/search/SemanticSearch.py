@@ -28,12 +28,12 @@ class SemanticSearch():
     faqs = get_all_faqs()
 
     for merchant in faqs:
-      for question in merchant:
+      for question in faqs[merchant]:
         embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID)
 
         es_data = {
           "question": question,
-          "answer": merchant[question],
+          "answer": faqs[merchant][question],
           "question_vector": embedding
         }
 
@@ -126,7 +126,7 @@ class SemanticSearch():
             "match_all": {}
           },
           "script": {
-            "source": "cosineSimilarity(params.queryVector, 'name_vector') + 1.0",
+            "source": "cosineSimilarity(params.queryVector, 'question_vector') + 1.0",
             "params": {
               "queryVector": embedding
             }

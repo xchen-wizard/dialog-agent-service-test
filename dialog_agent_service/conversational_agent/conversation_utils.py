@@ -211,10 +211,11 @@ def get_merchant(merchant_id: int):
   """
 
     with get_mysql_cnx_cursor() as cursor:
-        cursor.execute(query, (merchant_id))
+        cursor.execute(query, [merchant_id])
         data = cursor.fetchone()
 
     return {'id': data.get('id'), 'name': data.get('name'), 'site_id': data.get('siteId')}
+
 
 
 def get_merchant_site_ids():
@@ -381,7 +382,7 @@ def get_all_faqs():
   ON
     q.merchantId = v.id
   WHERE
-    q.category = 'question' OR q.category = 'questionExpansion' OR q.category = 'questionExtraction'
+    q.type = 'question' OR q.type = 'questionExpansion' OR q.type = 'questionExtraction'
   """
 
   with get_mysql_cnx_cursor() as cursor:
@@ -391,16 +392,20 @@ def get_all_faqs():
   faqs = {}
 
   for faq in data:
+     if faq['siteId'] not in faqs:
+        faqs[faq['siteId']] = {}
+        
      faqs[faq['siteId']][faq['question']] = faq['answer']
 
   return faqs
 
 def encode_sentence(query: str, project_id: str, endpoint_id: str):
+
   embeddings = predict_custom_trained_model_sample(
       project=project_id,
       endpoint_id=endpoint_id,
       location=os.getenv('VERTEX_AI_LOCATION', 'us-central1'),
-      instance_dict={"instances": [{"data": {"query": query}}]} 
+      instances={"instances": [{"data": {"query": query}}]} 
   )
 
   return embeddings['predictions'][0]

@@ -5,7 +5,7 @@ import logging
 import os
 import sys
 import json
-from dialog_agent_service.conversational_agent.conversation_utils import get_merchant, get_variants
+from dialog_agent_service.conversational_agent.conversation_utils import get_all_faqs, get_merchant, get_variants
 from dialog_agent_service.search.SemanticSearch import semanticSearch
 
 import flask
@@ -177,26 +177,25 @@ async def agent():
     return make_response(jsonify(resp))
 
 
-@login_required
 @app.route('/index_products', methods=['POST'])
 def index_products():
     return semanticSearch.index_products()
 
 
-@login_required
-@app.route('/index_products', methods=['POST'])
+@app.route('/index_faqs')
 def index_faqs():
     return semanticSearch.index_faqs()
 
-@login_required
-@app.route('/faq', methods=['POST'])
+@app.route('/faq')
 def faq():
     question = request.args.get('question')
-    merchant_id = request.args.get('merchantId')
+    merchant_id = int(request.args.get('merchantId'))
 
-    site_id = get_merchant(merchant_id)
+    site_id = get_merchant(merchant_id)['site_id']
 
-    return semanticSearch.faq_search(site_id, question)[0]
+    suggestions = semanticSearch.faq_search(site_id, question)
+
+    return suggestions[0]
 
 
 def validate_req(req: dict) -> None:
