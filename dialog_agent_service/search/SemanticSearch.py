@@ -5,7 +5,7 @@ from dialog_agent_service.app_utils import logger
 
 from elasticsearch import Elasticsearch
 
-ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
+ENDPOINT_ID = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 class SemanticSearch():
@@ -182,16 +182,16 @@ class SemanticSearch():
   def suggest_spelling(self, term, idx):
     try:
       sem_sugg = self.client.search(index=idx, body={
-            "suggest" : {
+            "suggest": {
              "mytermsuggester" : {
-                "text" : term,
-                "term" : {
-                   "field" : "name"
+                "text": term,
+                "term": {
+                   "field": "name"
                  }
               }
             }
           })
-    except  Exception as e:
+    except Exception as e:
       logger.error('error suggesting spelling')
       return None
     return sem_sugg
