@@ -12,7 +12,7 @@ from dialog_agent_service.conversational_agent.conversation_utils import encode_
 from dialog_agent_service.db import get_mysql_cnx_cursor
 
 
-ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
+ENDPOINT_ID = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 openai.api_key = os.getenv('OPENAI_API_KEY')
