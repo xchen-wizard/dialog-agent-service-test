@@ -4,9 +4,6 @@ import json
 import logging
 import os
 import sys
-import json
-from dialog_agent_service.conversational_agent.conversation_utils import get_variants
-# from dialog_agent_service.search.SemanticSearch import semanticSearch
 
 import flask
 import requests
@@ -27,12 +24,13 @@ from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
 from dialog_agent_service.app_utils import get_google_provider_cfg
 from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
+from dialog_agent_service.conversational_agent.conversation_utils import get_variants
 from dialog_agent_service.db import get_user_contexts
 from dialog_agent_service.db import update_user_contexts
 from dialog_agent_service.df_utils import get_df_response
 from dialog_agent_service.df_utils import parse_df_response
 from dialog_agent_service.user import User
-from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
+# from dialog_agent_service.search.SemanticSearch import semanticSearch
 
 formatter = init_logger()
 logger = logging.getLogger(__name__)
@@ -129,15 +127,15 @@ def logout():
 async def conversation_response():
     req = request.get_json(force=True)
     logger.debug(f'request: {req}')
-    merchant_id = req.get('merchantId')
-    if merchant_id is None:
+    if req.get('merchantId') is None:
         raise Exception('missing merchant id')
-    user_id = int(req.get('userId'))
-    if user_id is None:
+    merchant_id = int(req.get('merchantId'))
+    if req.get('userId') is None:
         raise Exception('missing user id')
-    service_channel_id = int(req.get('serviceChannelId'))
-    if service_channel_id is None:
+    user_id = int(req.get('userId'))
+    if req.get('serviceChannelId') is None:
         raise Exception('missing service channel id')
+    service_channel_id = int(req.get('serviceChannelId'))
 
     response = await handle_conversation_response(
         merchant_id,
@@ -149,6 +147,7 @@ async def conversation_response():
     )
     logger.debug(f'response: {response}')
     return make_response(jsonify(response))
+
 
 @login_required
 @app.route('/agent', methods=['POST'])
