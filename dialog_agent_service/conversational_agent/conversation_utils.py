@@ -29,7 +29,8 @@ SPEAKER_TAGS = {'inbound': 'Buyer:', 'outbound': 'Seller:'}
 
 inference_obj = T5InferenceService('../test_data')
 ProductResponseUnion = namedtuple(
-    'ProductResponseUnion', ['products', 'response'])
+    'ProductResponseUnion', ['products', 'response'],
+)
 FUZZY_MATCH_THRESHOLD = 90
 
 
@@ -151,7 +152,8 @@ async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, p
             if response:
                 ret['response'] = response + '\n' + ret.get('response', '')
         ret['response'] = gen_cart_response(
-            resolved_cart) + '\n' + ret.get('response', '')
+            resolved_cart,
+        ) + '\n' + ret.get('response', '')
         ret['cart'] = [(name, qty) for (name, _, qty) in resolved_cart]
         return ret
     return ret
@@ -241,17 +243,22 @@ def get_variants(variant_ids: list):
     object_ids = list(map(ObjectId, variant_ids))
 
     variant_cursor = mongo_db['productVariants'].find(
-        {'_id': {'$in': object_ids}})
+        {'_id': {'$in': object_ids}},
+    )
 
     variants = []
 
     for variant in variant_cursor:
         product = mongo_db['productCatalog'].find_one(
-            {'_id': ObjectId(variant['productId'])})
+            {'_id': ObjectId(variant['productId'])},
+        )
         variant['product'] = product
 
-        listings = list(mongo_db['productListings'].find(
-            {'productVariantId': str(variant['_id'])}))
+        listings = list(
+            mongo_db['productListings'].find(
+                {'productVariantId': str(variant['_id'])},
+            ),
+        )
         variant['listings'] = listings
 
         variants.append(variant)
@@ -274,8 +281,11 @@ def get_all_variants_by_merchant_id():
             product = mongo_db['productCatalog'].find_one({'_id': product_id})
             variant['product'] = product
 
-            listings = list(mongo_db['productListings'].find(
-                {'productVariantId': str(variant['_id'])}))
+            listings = list(
+                mongo_db['productListings'].find(
+                    {'productVariantId': str(variant['_id'])},
+                ),
+            )
             variant['listings'] = listings
 
             # name = variant['product']['name'] + ' - ' + variant['name']
@@ -296,12 +306,14 @@ def get_all_variants():
 
     for product in products:
         variants = mongo_db['productVariants'].find(
-            {'productId': str(product['_id'])})
+            {'productId': str(product['_id'])},
+        )
 
         for variant in variants:
             name = product['name'] + ' - ' + variant['name']
             variant_names[variant['_id']] = {
-                'name': name, 'merchant_id': product['merchantId']}
+                'name': name, 'merchant_id': product['merchantId'],
+            }
 
     return variant_names
 
@@ -309,12 +321,16 @@ def get_all_variants():
 def match_product_variant(merchant_id: int, product_name: str) -> ProductResponseUnion:
     merchant_id = str(merchant_id)
     product_matches = process.extract(
-        product_name, match_product_variant.variants_obj[merchant_id].keys(), scorer=fuzz.token_set_ratio)
-    significant_matches = [tup[0]
-                           for tup in product_matches if tup[1] > FUZZY_MATCH_THRESHOLD]
+        product_name, match_product_variant.variants_obj[merchant_id].keys(), scorer=fuzz.token_set_ratio,
+    )
+    significant_matches = [
+        tup[0]
+        for tup in product_matches if tup[1] > FUZZY_MATCH_THRESHOLD
+    ]
     if len(significant_matches) > 2:
         logger.debug(
-            f'{product_name} matched to many product names: {significant_matches}. No match returned')
+            f'{product_name} matched to many product names: {significant_matches}. No match returned',
+        )
         return ProductResponseUnion(
             None, gen_non_specific_product_response(
                 product_name, significant_matches[0], significant_matches[1], significant_matches[2],
@@ -325,8 +341,10 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
         response = ''
         for product_match in significant_matches:
             variant_matches = [
-                (product_name + ' - ' +
-                 tup[0], match_product_variant.variants_obj[merchant_id][product_match][tup[0]])
+                (
+                    product_name + ' - ' +
+                    tup[0], match_product_variant.variants_obj[merchant_id][product_match][tup[0]],
+                )
                 for tup in process.extract(product_match, match_product_variant.variants_obj[merchant_id][product_match].keys(), scorer=fuzz.token_set_ratio)
                 if tup[1] > FUZZY_MATCH_THRESHOLD
             ]
@@ -334,7 +352,9 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
                 products.extend(variant_matches)
             else:
                 response += '\n' + gen_variant_selection_response(
-                    product_match, match_product_variant.variants_obj[merchant_id][product_match].keys())
+                    product_match, match_product_variant.variants_obj[merchant_id][product_match].keys(
+                    ),
+                )
 
         return ProductResponseUnion(products, response)
 
