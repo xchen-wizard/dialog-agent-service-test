@@ -211,10 +211,11 @@ def get_merchant(merchant_id: int):
   """
 
     with get_mysql_cnx_cursor() as cursor:
-        cursor.execute(query, (merchant_id))
+        cursor.execute(query, [merchant_id])
         data = cursor.fetchone()
 
     return {'id': data.get('id'), 'name': data.get('name'), 'site_id': data.get('siteId')}
+
 
 
 def get_merchant_site_ids():
@@ -363,3 +364,48 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
 VARIANTS_OBJ = get_all_variants_by_merchant_id(
 ) if os.getenv('UNITTEST') != 'true' else {}
 logger.info('loaded product variants!')
+
+def get_all_faqs():
+  faq_query = """
+  SELECT 
+    v.siteId AS siteId,
+    q.text AS question,
+    a.text AS answer
+  FROM
+    faqs q
+  JOIN
+    faqs a
+  ON 
+    q.answerId = a.id
+  JOIN
+    vendors v
+  ON
+    q.merchantId = v.id
+  WHERE
+    q.type = 'question' OR q.type = 'questionExpansion' OR q.type = 'questionExtraction'
+  """
+
+  with get_mysql_cnx_cursor() as cursor:
+      cursor.execute(faq_query)
+      data = cursor.fetchall()
+
+  faqs = {}
+
+  for faq in data:
+     if faq['siteId'] not in faqs:
+        faqs[faq['siteId']] = {}
+        
+     faqs[faq['siteId']][faq['question']] = faq['answer']
+
+  return faqs
+
+def encode_sentence(query: str, project_id: str, endpoint_id: str):
+
+  embeddings = predict_custom_trained_model_sample(
+      project=project_id,
+      endpoint_id=endpoint_id,
+      location=os.getenv('VERTEX_AI_LOCATION', 'us-central1'),
+      instances={"instances": [{"data": {"query": query}}]} 
+  )
+
+  return embeddings['predictions'][0]
