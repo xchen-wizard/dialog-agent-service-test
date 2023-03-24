@@ -4,6 +4,9 @@ import json
 import logging
 import os
 import sys
+import json
+from dialog_agent_service.conversational_agent.conversation_utils import get_all_faqs, get_merchant, get_variants
+from dialog_agent_service.search.SemanticSearch import semanticSearch
 
 import flask
 import requests
@@ -30,7 +33,7 @@ from dialog_agent_service.db import update_user_contexts
 from dialog_agent_service.df_utils import get_df_response
 from dialog_agent_service.df_utils import parse_df_response
 from dialog_agent_service.user import User
-# from dialog_agent_service.search.SemanticSearch import semanticSearch
+from dialog_agent_service.search.SemanticSearch import semanticSearch, demo_search
 
 formatter = init_logger()
 logger = logging.getLogger(__name__)
@@ -174,6 +177,37 @@ async def agent():
     return make_response(jsonify(resp))
 
 
+@app.route('/index_products', methods=['POST'])
+def index_products():
+    return semanticSearch.index_products()
+
+
+@app.route('/index_faqs')
+def index_faqs():
+    return semanticSearch.index_faqs()
+
+@app.route('/faq')
+def faq():
+    question = request.args.get('question')
+    merchant_id = int(request.args.get('merchantId'))
+
+    site_id = get_merchant(merchant_id)['site_id']
+
+    suggestions = semanticSearch.faq_search(site_id, question)
+
+    return suggestions[0]
+
+@app.route('/index_demo')
+def index_demo():
+    return demo_search.index_demo()
+
+@app.route('/faq_demo')
+def faq_demo():
+    question = request.args.get('question')
+
+    return demo_search.faq_demo(question)
+
+
 def validate_req(req: dict) -> None:
     if req.get('userId') is None \
             or req.get('serviceChannelId') is None \
@@ -205,7 +239,6 @@ async def handle_request(req: dict) -> dict:
     if df_resp and df_resp['query_result']['output_contexts']:
         await update_user_contexts(doc_id, df_resp['query_result']['output_contexts'])
     return resp
-
 
 if __name__ == '__main__':
     port = os.getenv('DIALOG_AGENT_SERVICE_PORT', 8080)
