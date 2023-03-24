@@ -363,3 +363,34 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
 VARIANTS_OBJ = get_all_variants_by_merchant_id(
 ) if os.getenv('UNITTEST') != 'true' else {}
 logger.info('loaded product variants!')
+
+def get_all_faqs():
+  faq_query = """
+  SELECT 
+    v.siteId AS siteId,
+    q.text AS question,
+    a.text AS answer
+  FROM
+    faqs q
+  JOIN
+    faqs a
+  ON 
+    q.answerId = a.id
+  JOIN
+    vendors v
+  ON
+    q.merchantId = v.id
+  WHERE
+    q.category = 'question' OR q.category = 'questionExpansion' OR q.category = 'questionExtraction'
+  """
+
+  with get_mysql_cnx_cursor() as cursor:
+      cursor.execute(faq_query)
+      data = cursor.fetchall()
+
+  faqs = {}
+
+  for faq in data:
+     faqs[faq['siteId']][faq['question']] = faq['answer']
+
+  return faqs
