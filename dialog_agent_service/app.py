@@ -33,7 +33,8 @@ from dialog_agent_service.db import update_user_contexts
 from dialog_agent_service.df_utils import get_df_response
 from dialog_agent_service.df_utils import parse_df_response
 from dialog_agent_service.user import User
-# from dialog_agent_service.search.SemanticSearch import semanticSearch
+from dialog_agent_service.search.SemanticSearch import semanticSearch
+from dialog_agent_service.demo.under_luna_demo_utils import demo_search
 
 formatter = init_logger()
 logger = logging.getLogger(__name__)
@@ -200,13 +201,9 @@ def faq():
 @app.route('/faq_demo')
 def faq_demo():
     question = request.args.get('question')
-    merchant_id = int(request.args.get('merchantId'))
 
-    site_id = get_merchant(merchant_id)['site_id']
+    return demo_search.faq_demo(question)
 
-    suggestions = semanticSearch.faq_search(site_id, question)
-
-    return suggestions[0]
 
 def validate_req(req: dict) -> None:
     if req.get('userId') is None \

@@ -13,10 +13,15 @@ ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 class SemanticSearch():
-  def __init__(self, dimensions = 768):
+  def __init__(self, dimensions = 768, is_demo = False):
     self.dimensions = dimensions
 
-    if os.environ.get('_ENV') == 'production':
+    if is_demo:
+      self.client = Elasticsearch(
+      cloud_id=os.environ.get('ES_DEMO_CLOUD_ID'),
+      basic_auth=(os.environ.get('ES_DEMO_USER'), os.environ.get('ES_DEMO_PASSWORD'))
+      )
+    elif os.environ.get('_ENV') == 'production':
       self.client = Elasticsearch(
       cloud_id=os.environ.get('ES_CLOUD_ID'),
       basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))

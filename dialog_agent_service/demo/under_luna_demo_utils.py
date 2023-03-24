@@ -11,10 +11,13 @@ from elasticsearch import Elasticsearch
 
 from dialog_agent_service.conversational_agent.conversation_utils import encode_sentence
 from dialog_agent_service.db import get_mysql_cnx_cursor
+from dialog_agent_service.search.SemanticSearch import SemanticSearch
 
 
 ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
+
+demo_search = SemanticSearch(dimensions=768, is_demo=True)
 
 
 def index_demo_helper(es_client, dimensions: int):
