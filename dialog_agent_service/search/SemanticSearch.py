@@ -5,12 +5,15 @@ from dialog_agent_service.app_utils import logger
 from dialog_agent_service.demo.under_luna_demo_utils import faq_demo, index_demo_helper
 
 from elasticsearch import Elasticsearch
+import logging
+
+logger = logging.getLogger(__name__)
 
 ENDPOINT_ID = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 
-class SemanticSearch():
+class SemanticSearch:
   def __init__(self, dimensions = 768, is_demo = False):
     self.dimensions = dimensions
 
@@ -30,7 +33,8 @@ class SemanticSearch():
         os.environ.get('ES_URL'),
         basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
         )
-    except:
+    except Exception as e:
+      logger.error(f"Running into error while initializing ES instances: {e}")
       self.client = None
 
   def index_faqs(self):
