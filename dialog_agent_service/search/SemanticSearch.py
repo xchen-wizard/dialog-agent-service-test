@@ -16,21 +16,24 @@ class SemanticSearch():
   def __init__(self, dimensions = 768, is_demo = False):
     self.dimensions = dimensions
 
-    if is_demo:
-      self.client = Elasticsearch(
-      cloud_id=os.environ.get('ES_DEMO_CLOUD_ID'),
-      basic_auth=(os.environ.get('ES_DEMO_USER'), os.environ.get('ES_DEMO_PASSWORD'))
-      )
-    elif os.environ.get('_ENV') == 'production':
-      self.client = Elasticsearch(
-      cloud_id=os.environ.get('ES_CLOUD_ID'),
-      basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
-      )
-    else:
-      self.client = Elasticsearch(
-      os.environ.get('ES_URL'),
-      basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
-      )
+    try: 
+      if is_demo:
+        self.client = Elasticsearch(
+        cloud_id=os.environ.get('ES_DEMO_CLOUD_ID'),
+        basic_auth=(os.environ.get('ES_DEMO_USER'), os.environ.get('ES_DEMO_PASSWORD'))
+        )
+      elif os.environ.get('_ENV') == 'production':
+        self.client = Elasticsearch(
+        cloud_id=os.environ.get('ES_CLOUD_ID'),
+        basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
+        )
+      else:
+        self.client = Elasticsearch(
+        os.environ.get('ES_URL'),
+        basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
+        )
+    except:
+      self.client = None
 
   def index_faqs(self):
     site_ids = get_merchant_site_ids()
