@@ -405,7 +405,7 @@ def encode_sentence(query: str, project_id: str, endpoint_id: str):
         project=project_id,
         endpoint_id=endpoint_id,
         location=os.getenv('VERTEX_AI_LOCATION', 'us-central1'),
-        instances={'instances': [{'data': {'query': query}}]},
+        instances=[{'data': {'query': query}}],
     )
 
     return embeddings['predictions'][0]
