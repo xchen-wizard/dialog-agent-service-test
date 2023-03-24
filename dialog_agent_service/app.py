@@ -197,6 +197,17 @@ def faq():
 
     return suggestions[0]
 
+@app.route('/faq_demo')
+def faq_demo():
+    question = request.args.get('question')
+    merchant_id = int(request.args.get('merchantId'))
+
+    site_id = get_merchant(merchant_id)['site_id']
+
+    suggestions = semanticSearch.faq_search(site_id, question)
+
+    return suggestions[0]
+
 
 def validate_req(req: dict) -> None:
     if req.get('userId') is None \
