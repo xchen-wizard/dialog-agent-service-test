@@ -208,7 +208,6 @@ def faq_demo():
 
     return suggestions[0]
 
-
 def validate_req(req: dict) -> None:
     if req.get('userId') is None \
             or req.get('serviceChannelId') is None \
