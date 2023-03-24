@@ -154,6 +154,7 @@ async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, p
             resolved_cart) + '\n' + ret.get('response', '')
         ret['cart'] = [(name, qty) for (name, _, qty) in resolved_cart]
         return ret
+    return ret
 
 
 def predict_custom_trained_model_sample(
