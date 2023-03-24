@@ -2,26 +2,38 @@ import os
 
 from dialog_agent_service.conversational_agent.conversation_utils import encode_sentence, get_all_faqs, get_merchant_site_ids, get_all_variants
 from dialog_agent_service.app_utils import logger
+from dialog_agent_service.demo.under_luna_demo_utils import faq_demo, index_demo_helper
 
 from elasticsearch import Elasticsearch
 
 ENDPOINT_ID = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
+ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
+PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
+
 class SemanticSearch():
-  def __init__(self, dimensions = 768):
+  def __init__(self, dimensions = 768, is_demo = False):
     self.dimensions = dimensions
 
-    if os.environ.get('_ENV') == 'production':
-      self.client = Elasticsearch(
-      cloud_id=os.environ.get('ES_CLOUD_ID'),
-      basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
-      )
-    else:
-      self.client = Elasticsearch(
-      os.environ.get('ES_URL'),
-      basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
-      )
+    try: 
+      if is_demo:
+        self.client = Elasticsearch(
+        cloud_id=os.environ.get('ES_DEMO_CLOUD_ID'),
+        basic_auth=(os.environ.get('ES_DEMO_USER'), os.environ.get('ES_DEMO_PASSWORD'))
+        )
+      elif os.environ.get('_ENV') == 'production':
+        self.client = Elasticsearch(
+        cloud_id=os.environ.get('ES_CLOUD_ID'),
+        basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
+        )
+      else:
+        self.client = Elasticsearch(
+        os.environ.get('ES_URL'),
+        basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
+        )
+    except:
+      self.client = None
 
   def index_faqs(self):
     site_ids = get_merchant_site_ids()
@@ -196,4 +208,14 @@ class SemanticSearch():
       return None
     return sem_sugg
   
+  def index_demo(self):
+    # pass everything to the demo helper function to avoid clutter in this file
+    index_demo_helper(self.client, self.dimensions)
+    return 'finished index'
+
+  def faq_demo(self, question):
+    # pass everything to the demo helper function to avoid clutter in this file
+    return faq_demo(self.client, question)
+  
 semanticSearch = SemanticSearch()
+demo_search = SemanticSearch(dimensions=768, is_demo=True)
