@@ -1,0 +1,6 @@
+{
+  "instances": [
+    { "data": { "query": "this is a test" } },
+    { "data": { "query": "this is a different test" } }
+  ]
+}

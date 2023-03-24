@@ -2,6 +2,7 @@ import os
 
 from dialog_agent_service.conversational_agent.conversation_utils import encode_sentence, get_all_faqs, get_merchant_site_ids, get_all_variants
 from dialog_agent_service.app_utils import logger
+from dialog_agent_service.demo.under_luna_demo_utils import index_demo_helper
 
 from elasticsearch import Elasticsearch
 
@@ -200,6 +201,7 @@ class SemanticSearch():
     return sem_sugg
   
   def index_demo(self):
-    pass
+    # pass everything to the demo helper function to avoid clutter in this file
+    index_demo_helper(self.client, self.dimensions)
   
 semanticSearch = SemanticSearch()
