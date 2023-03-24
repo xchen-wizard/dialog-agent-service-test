@@ -357,8 +357,9 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
 
         return ProductResponseUnion(products, response)
 
+
 # this is loaded during the start-up and will have to be restarted after a mongo product update
 # ToDo: not ideal, replace later
 VARIANTS_OBJ = get_all_variants_by_merchant_id(
 ) if os.getenv('UNITTEST') != 'true' else {}
-logger.info("loaded product variants!")
+logger.info('loaded product variants!')
