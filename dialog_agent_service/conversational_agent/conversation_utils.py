@@ -408,4 +408,4 @@ def encode_sentence(query: str, project_id: str, endpoint_id: str):
         instances=[{'data': {'query': query}}],
     )
 
-    return embeddings['predictions'][0]
+    return embeddings[0]
