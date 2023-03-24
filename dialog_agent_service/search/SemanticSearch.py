@@ -3,18 +3,25 @@ import os
 from dialog_agent_service.conversational_agent.conversation_utils import encode_sentence, get_all_faqs, get_merchant_site_ids, get_all_variants
 from dialog_agent_service.app_utils import logger
 
-from elasticsearch import Elasticsearch, helpers
+from elasticsearch import Elasticsearch
 
 ENDPOINT_ID = os.getenv('VERTEX_AI_ST_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 class SemanticSearch():
-  def __init__(self, dimensions = 768, model = 'sentence-transformers/all-mpnet-base-v2'):
-    self.client = Elasticsearch(
-    cloud_id=os.environ.get('ES_CLOUD_ID'),
-    basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
-    )
+  def __init__(self, dimensions = 768):
     self.dimensions = dimensions
+
+    if os.environ.get('_ENV') == 'production':
+      self.client = Elasticsearch(
+      cloud_id=os.environ.get('ES_CLOUD_ID'),
+      basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
+      )
+    else:
+      self.client = Elasticsearch(
+      os.environ.get('ES_URL'),
+      basic_auth=(os.environ.get('ES_USER'), os.environ.get('ES_PASSWORD'))
+      )
 
   def index_faqs(self):
     site_ids = get_merchant_site_ids()
