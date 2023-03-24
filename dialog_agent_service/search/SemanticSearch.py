@@ -199,4 +199,7 @@ class SemanticSearch():
       return None
     return sem_sugg
   
+  def index_demo(self):
+    pass
+  
 semanticSearch = SemanticSearch()

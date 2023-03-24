@@ -1,0 +1,270 @@
+Question: What is the size of the Unscented Shampoo bottle?
+Answer: The Unscented Shampoo bottle is 8 oz.
+Question: How much does the Unscented Shampoo cost?
+Answer: The Unscented Shampoo costs $36.00.
+Question: Is the Unscented Shampoo suitable for vegans?
+Answer: Yes, the Unscented Shampoo is vegan.
+Question: What type of people is the Unscented Shampoo good for?
+Answer: The Unscented Shampoo is good for people with sensitivities, babies, and children.
+Question: Is the Unscented Shampoo safe for pregnant and nursing women?
+Answer: Yes, the Unscented Shampoo is pregnancy and nursing safe.
+Question: What are the key ingredients in the Unscented Shampoo?
+Answer: The key ingredients in the Unscented Shampoo are Nettle Leaf Oil, Plantain Leaf Oil, and Organic Golden Jojoba Oil.
+Question: Does the Unscented Shampoo contain essential oils?
+Answer: No, the Unscented Shampoo is essential oil-free.
+Question: What benefits does Nettle Leaf Oil provide in the Unscented Shampoo?
+Answer: In the Unscented Shampoo, Nettle Leaf Oil is rich in minerals that protect the scalp and strengthen hair.
+Question: What benefits does Plantain Leaf Oil provide in the Unscented Shampoo?
+Answer: In the Unscented Shampoo, Plantain Leaf Oil has antiseptic and antibacterial properties.
+Question: What benefits does Organic Golden Jojoba Oil provide in the Unscented Shampoo?
+Answer: In the Unscented Shampoo, Organic Golden Jojoba Oil is moisturizing, soothing to the scalp, and hydrates hair from within the hair shaft.
+Question: Is the Unscented Shampoo made with organic ingredients?
+Answer: Yes, the Unscented Shampoo contains organic ingredients.
+Question: Is the Unscented Shampoo kid-friendly?
+Answer: Yes, the Unscented Shampoo is kid-friendly.
+Question: Can the Unscented Shampoo help soften hair?
+Answer: Yes, the Unscented Shampoo is formulated to soften hair.
+Question: Does the Unscented Shampoo provide hydration to hair?
+Answer: Yes, the Unscented Shampoo provides hydration to hair.
+Question: Is the Unscented Shampoo suitable for people who want clean and clear products?
+Answer: Yes, the Unscented Shampoo is suitable for people wanting clean and clear products.
+Question: Can the Unscented Shampoo help strengthen hair?
+Answer: Yes, the Unscented Shampoo can help strengthen hair.
+Question: Is the Unscented Shampoo soothing to the scalp?
+Answer: Yes, the Unscented Shampoo is soothing to the scalp.
+Question: Does the Unscented Shampoo have any scent?
+Answer: No, the Unscented Shampoo is essential oil-free and has no scent.
+Question: Are the ingredients in the Unscented Shampoo derived from plants?
+Answer: Yes, the ingredients in the Unscented Shampoo are plant-based.
+Question: What is the product title of this shampoo?
+Answer: Sweet Baby Orange Shampoo
+Question: Is Sweet Baby Orange Shampoo suitable for babies?
+Answer: Yes, it is suitable for babies aged 6 months and up.
+Question: What is the size of the Sweet Baby Orange Shampoo bottle?
+Answer: 8 oz
+Question: How much does a bottle of Sweet Baby Orange Shampoo cost?
+Answer: $36.00
+Question: Who can use Sweet Baby Orange Shampoo?
+Answer: It is good for the whole family.
+Question: What are the aromas in Sweet Baby Orange Shampoo?
+Answer: Sweet orange and lavender
+Question: Is Sweet Baby Orange Shampoo vegan?
+Answer: Yes, it contains vegan organic ingredients.
+Question: Is Sweet Baby Orange Shampoo paraben-free?
+Answer: Yes, it is paraben-free.
+Question: Can pregnant and nursing individuals use Sweet Baby Orange Shampoo?
+Answer: Yes, it is pregnancy and nursing safe.
+Question: Is Sweet Baby Orange Shampoo kid-friendly?
+Answer: Yes, it is kid-friendly.
+Question: What are the key ingredients in Sweet Baby Orange Shampoo?
+Answer: Organic Chamomile Flower Extract, Organic Lemon Balm Flowers, and Aloe Vera.
+Question: What are the benefits of Organic Chamomile Flower Extract in Sweet Baby Orange Shampoo?
+Answer: Cleansing, moisturizing, calming, healing minor wounds, and soothing irritated scalp or dandruff.
+Question: What are the benefits of Organic Lemon Balm Flowers in Sweet Baby Orange Shampoo?
+Answer: Cleansing hair, increasing shine and body, soothing, and preventing dandruff.
+Question: What are the benefits of Aloe Vera in Sweet Baby Orange Shampoo?
+Answer: Remedying skin and scalp wounds and providing hydration.
+Question: Is Sweet Baby Orange Shampoo suitable for grandparents?
+Answer: Yes, it is suitable for grandparents.
+Question: What is the main purpose of Sweet Baby Orange Shampoo?
+Answer: It is a gentle, safe, and tear-free shampoo for the whole family.
+Question: What kind of mood does the scent of Sweet Baby Orange Shampoo evoke?
+Answer: It boosts your mood and re-energizes your senses.
+Question: Can Sweet Baby Orange Shampoo help with dandruff?
+Answer: Yes, it helps soothe and prevent dandruff.
+Question: Is Sweet Baby Orange Shampoo formulated with synthetic fragrances?
+Answer: No, the aromas come from sweet orange and lavender.
+Question: What is the age recommendation for using Sweet Baby Orange Shampoo on babies?
+Answer: It is recommended for babies 6 months and up.
+Question: What is the product title of this shampoo?
+Answer: Warrior Shampoo
+Question: What is the main purpose of Warrior Shampoo?
+Answer: It is designed to restore and revitalize the scalp and add elasticity to hair.
+Question: What is the size of the Warrior Shampoo bottle?
+Answer: 8 oz
+Question: How much does a bottle of Warrior Shampoo cost?
+Answer: $36.00
+Question: What are the aromas in Warrior Shampoo?
+Answer: Sage and citrus
+Question: Is Warrior Shampoo vegan?
+Answer: Yes, it is vegan.
+Question: Is Warrior Shampoo chemical-free?
+Answer: Yes, it is chemical-free.
+Question: Is Warrior Shampoo paraben-free?
+Answer: Yes, it is paraben-free.
+Question: Is Warrior Shampoo sulfate-free?
+Answer: Yes, it is sulfate-free.
+Question: Is Warrior Shampoo cruelty-free?
+Answer: Yes, it is cruelty-free.
+Question: What are the key ingredients in Warrior Shampoo?
+Answer: Organic Horsetail, Organic Yarrow Flowers, and Organic White Willow Bark.
+Question: What are the benefits of Organic Horsetail in Warrior Shampoo?
+Answer: It strengthens hair and supports growth.
+Question: What are the benefits of Organic Yarrow Flowers in Warrior Shampoo?
+Answer: They help with dandruff, itchiness, irritation, and balance oil production.
+Question: What are the benefits of Organic White Willow Bark in Warrior Shampoo?
+Answer: It helps exfoliate the scalp, acts as a hair stimulant, and is great for oily or dandruff-prone hair.
+Question: Can Warrior Shampoo help with dandruff?
+Answer: Yes, it helps with dandruff, itchiness, and irritation.
+Question: Is Warrior Shampoo suitable for oily hair?
+Answer: Yes, it is suitable for oily hair and helps balance oil production.
+Question: Can Warrior Shampoo improve hair elasticity?
+Answer: Yes, it adds elasticity to hair.
+Question: What is the main analogy used in Warrior Shampoo's product description?
+Answer: Warrior Shampoo is compared to a rich fertilizer for the scalp.
+Question: What kind of scalp does Warrior Shampoo target?
+Answer: It targets scalps that need restoring and revitalizing.
+Question: Does Warrior Shampoo support hair growth?
+Answer: Yes, it supports hair growth with the help of Organic Horsetail.
+Question: What is the main purpose of Unscented Conditioner?
+Answer: It is a versatile conditioner that is hydrating and great for hair growth, dry ends, and tangled ends, suitable for all hair types.
+Question: What is the size of the Unscented Conditioner bottle?
+Answer: 8 oz
+Question: How much does a bottle of Unscented Conditioner cost?
+Answer: $34.00
+Question: Is Unscented Conditioner suitable for all ages?
+Answer: Yes, it is good for all ages and is kid-friendly.
+Question: What is the aroma of Unscented Conditioner?
+Answer: It is essential oil-free and unscented.
+Question: Is Unscented Conditioner vegan?
+Answer: Yes, it contains vegan organic ingredients.
+Question: Is Unscented Conditioner essential oil-free?
+Answer: Yes, it is essential oil-free.
+Question: Can pregnant and nursing individuals use Unscented Conditioner?
+Answer: Yes, it is pregnancy and nursing safe.
+Question: Is Unscented Conditioner kid-friendly?
+Answer: Yes, it is kid-friendly.
+Question: What are the key ingredients in Unscented Conditioner?
+Answer: Rosemary and Bay Hydrosol, Plantain Leaf Oil, and Nettle Leaf Oil.
+Question: What are the benefits of Rosemary and Bay Hydrosol in Unscented Conditioner?
+Answer: They are analgesic and anti-inflammatory.
+Question: What are the benefits of Plantain Leaf Oil in Unscented Conditioner?
+Answer: It is a natural remedy for healing an irritated scalp such as dandruff or cradle cap and has antiseptic and antibacterial properties.
+Question: What are the benefits of Nettle Leaf Oil in Unscented Conditioner?
+Answer: It is rich in minerals and provides a vitamin boost for the scalp and hair.
+Question: Can Unscented Conditioner help with dandruff?
+Answer: Yes, Plantain Leaf Oil in the conditioner helps with dandruff.
+Question: Is Unscented Conditioner suitable for those with sensitive skin?
+Answer: Yes, it is essential oil-free and suitable for sensitive skin.
+Question: Can Unscented Conditioner help with tangled hair?
+Answer: Yes, it is great for tangled ends.
+Question: Does Unscented Conditioner help with hair growth?
+Answer: Yes, it is great for hair growth.
+Question: Can Unscented Conditioner be used on dry hair ends?
+Answer: Yes, it is suitable for dry hair ends.
+Question: What does Luna Love Conditioner aim to do?
+Answer: Luna Love Conditioner aims to hydrate, soothe, seal up splitting ends, and protect the hair.
+Question: What is the size of Luna Love Conditioner?
+Answer: The size of Luna Love Conditioner is 8 oz.
+Question: How much does Luna Love Conditioner cost?
+Answer: Luna Love Conditioner costs $34.00.
+Question: What type of hair is Luna Love Conditioner good for?
+Answer: Luna Love Conditioner is good for fine-medium, normal-oily hair, and is kid-friendly.
+Question: What aromas are in Luna Love Conditioner?
+Answer: Luna Love Conditioner contains cypress and lavender aromas.
+Question: What are some attributes of Luna Love Conditioner?
+Answer: Luna Love Conditioner is vegan, organic, cruelty-free, pregnancy & nursing safe, and kid-friendly.
+Question: What are the main ingredients in Luna Love Conditioner?
+Answer: The main ingredients in Luna Love Conditioner are organic unrefined avocado oil, organic golden jojoba oil, and organic chamomile extract.
+Question: What are the benefits of organic unrefined avocado oil in Luna Love Conditioner?
+Answer: Organic unrefined avocado oil is moisturizing, provides strength to the hair fiber, and helps with hair growth.
+Question: What are the benefits of organic golden jojoba oil in Luna Love Conditioner?
+Answer: Organic golden jojoba oil is moisturizing, soothing to the scalp, and hydrates hair from within the hair shaft.
+Question: What are the benefits of organic chamomile extract in Luna Love Conditioner?
+Answer: Organic chamomile extract helps promote hair strength, prevent split ends, provides hydration, and is known to restore shine.
+Question: Is Luna Love Conditioner suitable for pregnant and nursing women?
+Answer: Yes, Luna Love Conditioner is pregnancy and nursing safe.
+Question: Is Luna Love Conditioner cruelty-free?
+Answer: Yes, Luna Love Conditioner is cruelty-free.
+Question: Is Luna Love Conditioner suitable for kids?
+Answer: Yes, Luna Love Conditioner is kid-friendly.
+Question: Does Luna Love Conditioner use vegan ingredients?
+Answer: Yes, Luna Love Conditioner uses vegan ingredients.
+Question: What is the effect of Luna Love Conditioner on split ends?
+Answer: Luna Love Conditioner helps seal up split ends.
+Question: Can Luna Love Conditioner be used on oily hair?
+Answer: Yes, Luna Love Conditioner is suitable for normal to oily hair.
+Question: Does Luna Love Conditioner help with hair growth?
+Answer: Yes, the organic unrefined avocado oil in Luna Love Conditioner helps with hair growth.
+Question: Does Luna Love Conditioner help restore shine to the hair?
+Answer: Yes, the organic chamomile extract in Luna Love Conditioner is known to restore shine.
+Question: Is Luna Love Conditioner suitable for fine hair?
+Answer: Yes, Luna Love Conditioner is suitable for fine to medium hair.
+Question: What is the product title?
+Answer: Serenity Conditioner
+Question: What is the purpose of Serenity Conditioner?
+Answer: Serenity Conditioner is for soothing, nourishing, and healing the hair.
+Question: What is the size of Serenity Conditioner?
+Answer: The size of Serenity Conditioner is 8 oz.
+Question: How much does Serenity Conditioner cost?
+Answer: Serenity Conditioner costs $34.00.
+Question: What type of hair is Serenity Conditioner good for?
+Answer: Serenity Conditioner is good for fine-medium, dry/damaged hair.
+Question: What aromas are in Serenity Conditioner?
+Answer: Serenity Conditioner contains siam wood, geranium, and bergamot aromas.
+Question: What are the attributes of Serenity Conditioner?
+Answer: Serenity Conditioner is made with organic ingredients, chemical-free, paraben-free, cruelty-free, and pregnancy & nursing safe.
+Question: What are the main ingredients in Serenity Conditioner?
+Answer: The main ingredients in Serenity Conditioner are honey, geranium hydrosol, and organic calendula flower extract.
+Question: What are the benefits of honey in Serenity Conditioner?
+Answer: Honey is a natural humectant that attracts moisture, is full of antioxidants and nutrients, and feeds hair follicles to encourage hair growth.
+Question: What are the benefits of geranium hydrosol in Serenity Conditioner?
+Answer: Geranium hydrosol has a rose-like aroma, is healing to the skin, and strengthens the hair.
+Question: What are the benefits of organic calendula flower extract in Serenity Conditioner?
+Answer: Organic calendula flower extract heals cuts and wounds due to its antibacterial and anti-inflammatory properties.
+Question: Is Serenity Conditioner suitable for pregnant and nursing women?
+Answer: Yes, Serenity Conditioner is pregnancy and nursing safe.
+Question: Is Serenity Conditioner cruelty-free?
+Answer: Yes, Serenity Conditioner is cruelty-free.
+Question: Is Serenity Conditioner chemical-free?
+Answer: Yes, Serenity Conditioner is chemical-free.
+Question: Is Serenity Conditioner paraben-free?
+Answer: Yes, Serenity Conditioner is paraben-free.
+Question: Can Serenity Conditioner help with hair growth?
+Answer: Yes, the honey in Serenity Conditioner feeds hair follicles and encourages hair growth.
+Question: Is Serenity Conditioner suitable for dry and damaged hair?
+Answer: Yes, Serenity Conditioner is suitable for fine to medium, dry/damaged hair.
+Question: Does Serenity Conditioner have any healing properties?
+Answer: Yes, Serenity Conditioner has healing properties from ingredients like geranium hydrosol and organic calendula flower extract.
+Question: What is the effect of Serenity Conditioner on hair follicles?
+Answer: Serenity Conditioner feeds hair follicles with nutrients from honey, encouraging hair growth.
+Question: What is the role of calendula in Serenity Conditioner?
+Answer: Calendula in Serenity Conditioner heals cuts and wounds with its antibacterial and anti-inflammatory properties.
+Question: What fragrance does the Revive Conditioner have?
+Answer: The fragrance of the Revive Conditioner is jasmine.
+Question: How much does a bottle of Revive Conditioner cost?
+Answer: A bottle of Revive Conditioner costs $34.00.
+Question: What is the volume of the Revive Conditioner bottle?
+Answer: The volume of the Revive Conditioner bottle is 8 oz.
+Question: Which hair types are suitable for using Revive Conditioner?
+Answer: Medium to thick hair types are suitable for using Revive Conditioner.
+Question: What are the benefits of using Revive Conditioner on your hair?
+Answer: The benefits of using Revive Conditioner on your hair include strengthening and stimulating growth.
+Question: Is the Revive Conditioner formulated to have a balanced pH?
+Answer: Yes, the Revive Conditioner is formulated to have a balanced pH.
+Question: What organic ingredients are present in the Revive Conditioner?
+Answer: The organic ingredients present in the Revive Conditioner are Organic Horsetail, Organic Yarrow Flowers, and Organic Chamomile Flowers.
+Question: How does Organic Horsetail contribute to the effectiveness of Revive Conditioner?
+Answer: In Revive Conditioner, Organic Horsetail contributes by strengthening hair and supporting growth.
+Question: What benefits do Organic Yarrow Flowers provide in the Revive Conditioner?
+Answer: In the Revive Conditioner, Organic Yarrow Flowers provide benefits such as helping with dandruff, itchiness, irritation, and balancing oil production.
+Question: How do Organic Chamomile Flowers enhance the performance of Revive Conditioner?
+Answer: Organic Chamomile Flowers enhance the performance of Revive Conditioner by cleansing, moisturizing, calming, healing minor wounds, and soothing irritated scalp or dandruff.
+Question: Does Revive Conditioner contain parabens?
+Answer: No, Revive Conditioner does not contain parabens.
+Question: Are there sulfates in the Revive Conditioner formula?
+Answer: No, the Revive Conditioner formula is sulfate-free.
+Question: Is Revive Conditioner tested on animals?
+Answer: No, Revive Conditioner is cruelty-free.
+Question: Are there any additives in the formulation of Revive Conditioner?
+Answer: No, the formulation of Revive Conditioner contains no additives.
+Question: What does Revive Conditioner shield the hair from?
+Answer: Revive Conditioner shields the hair from environmental toxins.
+Question: Can Revive Conditioner help in de-stressing and de-frizzing hair?
+Answer: Yes, Revive Conditioner can help in de-stressing and de-frizzing hair.
+Question: Are the ingredients in Revive Conditioner organic?
+Answer: Yes, the ingredients in Revive Conditioner are organic.
+Question: Can Revive Conditioner be used to alleviate an irritated scalp or dandruff?
+Answer: Yes, Revive Conditioner can be used to alleviate an irritated scalp or dandruff.
+Question: Does Revive Conditioner promote hair growth?
+Answer: Yes, Revive Conditioner promotes hair growth by stimulating it.
