@@ -7,6 +7,9 @@ import pytest
 from dialog_agent_service.app_utils import create_user_contexts
 from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
+from dialog_agent_service.conversational_agent.conversation_utils import get_all_variants_by_merchant_id
+from dialog_agent_service.conversational_agent.conversation_utils import match_product_variant
+from dialog_agent_service.conversational_agent.conversation_utils import ProductResponseUnion
 from dialog_agent_service.db import get_campaign_products
 from dialog_agent_service.db import get_campaign_variant_type
 from dialog_agent_service.db import get_user_contexts
@@ -51,3 +54,15 @@ async def test_get_user_contexts():
     contexts = await get_user_contexts(doc_id='ef115500-25a9-5d38-a715-ed51ceed656d')
     logger.info(contexts)
     assert len(contexts) == 3
+
+
+def test_get_all_variants_by_merchant_id():
+    rslt = get_all_variants_by_merchant_id()
+    logger.info(rslt)
+    assert rslt is not None
+
+
+def test_match_product_variant():
+    response = match_product_variant(21, 'Blackberry')
+    logger.info(response)
+    assert isinstance(response, ProductResponseUnion)
