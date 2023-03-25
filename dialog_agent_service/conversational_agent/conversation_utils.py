@@ -16,6 +16,7 @@ from fuzzywuzzy import process
 from google.cloud import aiplatform
 from google.protobuf import json_format
 from google.protobuf.struct_pb2 import Value
+from google.protobuf.json_format import MessageToDict
 from pymongo import ASCENDING
 
 from .infer import T5InferenceService
@@ -195,8 +196,10 @@ def predict_custom_trained_model_sample(
     response = client.predict(
         endpoint=endpoint, instances=instances, parameters=parameters,
     )
+    # convert protobuf to regular python object
+    response = MessageToDict(response._pb)
     # The predictions are a google.protobuf.Value representation of the model's predictions.
-    predictions = response.predictions
+    predictions = response.get('predictions')
     return predictions
 
 
