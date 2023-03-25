@@ -122,7 +122,7 @@ def get_txt_demo_faqs():
 def faq_demo_search(es_cleint, question: str):
   index = 'underluna-demo'
 
-  question_embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID)
+  question_embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID).tolist()
 
   sem_search = None
   sem_search = es_cleint.search(index=index, body={
