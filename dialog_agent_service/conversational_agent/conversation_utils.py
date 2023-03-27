@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import json
 from collections import defaultdict
 from collections import namedtuple
 from datetime import datetime
@@ -32,6 +33,10 @@ ProductResponseUnion = namedtuple(
     'ProductResponseUnion', ['products', 'response'],
 )
 FUZZY_MATCH_THRESHOLD = 90
+# ToDo: not ideal, replace later
+with open("../test_data/products_variants_prices.json") as f:
+    VARIANTS_OBJ = json.load(f)
+    logger.info('loaded product variants and prices!')
 
 
 async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int, k: int, window: int):
@@ -359,13 +364,6 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
                 )
 
         return ProductResponseUnion(products, response)
-
-
-# this is loaded during the start-up and will have to be restarted after a mongo product update
-# ToDo: not ideal, replace later
-# VARIANTS_OBJ = get_all_variants_by_merchant_id() if os.getenv('UNITTEST') != 'true' else {}
-VARIANTS_OBJ = {}
-logger.info('loaded product variants!')
 
 
 def get_all_faqs():
