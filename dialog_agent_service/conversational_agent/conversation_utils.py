@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import json
 import logging
 import os
-import json
 from collections import defaultdict
 from collections import namedtuple
 from datetime import datetime
@@ -16,9 +16,9 @@ from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
 from google.cloud import aiplatform
 from google.protobuf import json_format
-from google.protobuf.struct_pb2 import Value
 from google.protobuf.json_format import MessageToDict
-from pymongo import ASCENDING
+from google.protobuf.struct_pb2 import Value
+from pymongo import DESCENDING
 
 from .infer import T5InferenceService
 from dialog_agent_service.db import get_mysql_cnx_cursor
@@ -53,8 +53,8 @@ async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int
         'userNumber': data['userNumber'],
         'serviceNumber': data['serviceNumber'],
         'createdAt': {'$lt': endtime, '$gt': starttime},
-    }).sort('createdAt', ASCENDING).limit(k)
-    docs = process_past_k_turns(list(docs))
+    }).sort('createdAt', DESCENDING).limit(k)
+    docs = process_past_k_turns(list(docs)[::-1])
     return docs, data['vendorName']
 
 
