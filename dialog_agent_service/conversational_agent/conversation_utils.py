@@ -26,7 +26,6 @@ from dialog_agent_service.db import mongo_db
 
 logger = logging.getLogger(__name__)
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
-SPEAKER_TAGS = {'inbound': 'Buyer:', 'outbound': 'Seller:'}
 inference_obj = T5InferenceService('../test_data')
 
 
@@ -116,13 +115,6 @@ async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, p
     call the T5 model service endpoint and generate a response
     ToDo: implement the logic for making multiple calls to the model api here
     """
-    conversation = [
-        ' '.join([SPEAKER_TAGS[direction], message])
-        for direction, message in docs
-    ]
-    conversation = '\n'.join(conversation)  # type: ignore
-    logger.debug(f'conversation context: {conversation}')
-
     def predict_fn(text: str | list[str]):
         if isinstance(text, str):
             text = [text]
@@ -137,7 +129,7 @@ async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, p
             instances=[{'data': {'context': t}} for t in text],
         )
         return responses
-    return inference_obj.infer(conversation, vendor_name, merchant_id, predict_fn)
+    return inference_obj.infer(docs, vendor_name, merchant_id, predict_fn)
 
 
 def predict_custom_trained_model_sample(

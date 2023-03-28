@@ -7,7 +7,7 @@ import json
 from .response import *
 from fuzzywuzzy import process, fuzz
 from typing import List, Tuple
-
+from dialog_agent_service.search.SemanticSearch import SemanticSearch
 
 max_conversation_chars_task = 600
 max_conversation_chars_cart = 1500
@@ -23,6 +23,7 @@ with open("../test_data/products_variants_prices.json") as f:
     VARIANTS_OBJ = json.load(f)
     logger.info('loaded product variants and prices!')
 
+semantic_search_obj = SemanticSearch()
 
 class T5InferenceService:
     def __init__(self, data_dir, model_name=None, model_dir=None):
@@ -83,6 +84,8 @@ class T5InferenceService:
                         logger.error(f"Quantity {qty} predicted for product {product} not of the right type. Skipping.")
                 cart, response = resolve_cart(merchant_id, cart, response)
         if 'AnswerMiscellaneousQuestions' in task and vendor in self.response_prediction_prompt:
+            # First check FAQ: we give precedence to it
+            answer, score = semantic_search_obj.faq_search(merchant_id, )
             conversation += "Seller: "
             qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
             response += predict_fn(self.response_prediction_prompt[vendor] + qa_prompt + conversation[-MAX_CONVERSATION_CHARS:])[0]
