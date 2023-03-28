@@ -17,6 +17,7 @@ ProductResponseUnion = namedtuple(
     'ProductResponseUnion', ['products', 'response'],
 )
 FUZZY_MATCH_THRESHOLD = 85
+MAX_CONVERSATION_CHARS = 1000
 # ToDo: not ideal, replace later
 with open("../test_data/products_variants_prices.json") as f:
     VARIANTS_OBJ = json.load(f)
@@ -84,11 +85,11 @@ class T5InferenceService:
         if 'AnswerMiscellaneousQuestions' in task and vendor in self.response_prediction_prompt:
             conversation += "Seller: "
             qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
-            response += predict_fn(self.response_prediction_prompt[vendor] + qa_prompt + conversation)[0]
+            response += predict_fn(self.response_prediction_prompt[vendor] + qa_prompt + conversation[-MAX_CONVERSATION_CHARS:])[0]
         if 'RecommendProduct' in task and vendor in self.response_prediction_prompt:
             conversation += "Seller: "
             recommend_prompt = "You are the seller. Using only the data above, help the buyer below find a product. You can ask for more information if you don't have sufficient information to make a recommendation.\n"
-            response += predict_fn(self.response_prediction_prompt[vendor] + recommend_prompt + conversation)[0]
+            response += predict_fn(self.response_prediction_prompt[vendor] + recommend_prompt + conversation[-MAX_CONVERSATION_CHARS:])[0]
 
         ret_dict = {
             'task': task,
