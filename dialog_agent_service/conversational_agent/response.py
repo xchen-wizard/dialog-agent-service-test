@@ -14,7 +14,7 @@ def gen_non_specific_product_response(product, matches):
 def gen_variant_selection_response(product, variants):
     return f"""
     {product} is available as
-    {newline.join(f'{c}. {variant}' for c, variant in zip(string.ascii_uppercase, variants))}
+    {newline.join(f'{c}. {variant} (${price})' for c, (variant, price) in zip(string.ascii_uppercase, variants.items()))} 
     Which one did you want?
     """
 
