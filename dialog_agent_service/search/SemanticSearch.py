@@ -112,7 +112,7 @@ class SemanticSearch:
 
     return 'indexed products'
   
-  def create_product_indices(self, indices: dict):
+  def create_product_indices(self, indices: dict) -> tuple:
     es_index_body = {
       "mappings": {
         "properties": {
@@ -155,16 +155,17 @@ class SemanticSearch:
         }
       }
     })
+
+    answer = ""
+    score = 0
     
-    answers = []
+    if len(sem_search['hits']['hits']):
+      hit = sem_search['hits']['hits'][0]
+      answer = hit['_source']['answer']
+      score = hit['_score']
 
-    for hit in sem_search['hits']['hits']:
-      answers.append(hit['_source']['answer'])
 
-    if len(answers) == 0:
-      answers.append("Very sorry - this is a product FAQ. It doesn't know everything about everything!")
-
-    return answers
+    return (answer, score)
 
 
   def product_search(self, merchant_site_id: str, query: str):
