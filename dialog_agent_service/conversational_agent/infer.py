@@ -2,10 +2,25 @@ from __future__ import annotations
 
 import glob
 import logging
+from collections import namedtuple
+import json
+from .response import *
+from fuzzywuzzy import process, fuzz
+from typing import List, Tuple
+
 
 max_conversation_chars_task = 600
 max_conversation_chars_cart = 1500
 logger = logging.getLogger(__name__)
+
+ProductResponseUnion = namedtuple(
+    'ProductResponseUnion', ['products', 'response'],
+)
+FUZZY_MATCH_THRESHOLD = 85
+# ToDo: not ideal, replace later
+with open("../test_data/products_variants_prices.json") as f:
+    VARIANTS_OBJ = json.load(f)
+    logger.info('loaded product variants and prices!')
 
 
 class T5InferenceService:
@@ -37,7 +52,7 @@ class T5InferenceService:
         outputs = self.model.generate(**input, max_new_tokens=128)
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    def infer(self, conversation, vendor, predict_fn):
+    def infer(self, conversation, vendor, merchant_id, predict_fn):
         """
         :param conversation: Conversation formatted as follows:
         Seller: Are you interested in..
@@ -48,37 +63,44 @@ class T5InferenceService:
         :return: dict with different outputs of interest
         """
         # first predict task
-        input, _ = create_input_target_task(
-            conversation, '', task_descriptions=self.task_descriptions,
-        )
+        input, _ = create_input_target_task(conversation, "", task_descriptions=self.task_descriptions)
         task = predict_fn(input)[0]
-        logger.debug(f'predicted task {task}')
-        if any(x in task for x in ['RecommendProduct', 'AnswerMiscellaneousQuestions']) and vendor in self.response_prediction_prompt:
-            conversation += 'Seller: '
-            response = predict_fn(
-                self.response_prediction_prompt[vendor] + conversation,
-            )[0]
-            return {'task': task, 'response': response}
-        if task == 'FinalizeOrder':
-            return {'task': task}
-        if task == 'CreateOrUpdateOrderCart':
-            product_input, _ = create_input_target_cart(conversation, '')
+        response = ""
+        cart = []
+        model_predicted_cart = []
+        if 'CreateOrUpdateOrderCart' in task:
+            product_input, _ = create_input_target_cart(conversation, "")
             products = predict_fn(product_input)[0]
-            if products == 'None':
-                return {'task': task, 'cart': []}
-            else:
-                qty_input, _ = create_input_target_cart(
-                    conversation, products + ';', qty_infer=True,
-                )
+            if products != "None":
+                qty_input, _ = create_input_target_cart(conversation, products+";", qty_infer=True)
                 qty_list = predict_fn(qty_input)
-            try:
-                return {'task': task, 'cart': list(zip(products.split(','), map(int, qty_list)))}
-            except Exception as e:
-                logger.error(
-                    f'encountered the following error while parsing products and quantities:\n{e}',
-                )
-                return {'task': task}
-        return {'task': task}
+                model_predicted_cart = list(zip(products.split(","), qty_list))
+                for product, qty in model_predicted_cart:
+                    if qty.isdigit():
+                        cart.append((product, int(qty)))
+                    else:
+                        logger.error(f"Quantity {qty} predicted for product {product} not of the right type. Skipping.")
+                cart, response = resolve_cart(merchant_id, cart, response)
+        if 'AnswerMiscellaneousQuestions' in task and vendor in self.response_prediction_prompt:
+            conversation += "Seller: "
+            qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
+            response += predict_fn(self.response_prediction_prompt[vendor] + qa_prompt + conversation)[0]
+        if 'RecommendProduct' in task and vendor in self.response_prediction_prompt:
+            conversation += "Seller: "
+            recommend_prompt = "You are the seller. Using only the data above, help the buyer below find a product. You can ask for more information if you don't have sufficient information to make a recommendation.\n"
+            response += predict_fn(self.response_prediction_prompt[vendor] + recommend_prompt + conversation)[0]
+
+        ret_dict = {
+            'task': task,
+            "cart": cart,
+            "model_predicted_cart": model_predicted_cart,
+            "response": response
+        }
+        if not ret_dict["response"]:
+            del ret_dict["response"]
+        if not ret_dict["cart"]:
+            del ret_dict["cart"]
+        return ret_dict
 
 
 def create_input_target_task(conversation, target_str, **kwargs):
@@ -112,3 +134,63 @@ How many {product} does the buyer want?
                 """,
             )
     return inputs, targets
+
+
+def resolve_cart(merchant_id: int, cart: List[Tuple[str, int]], response: str):
+    resolved_cart = []
+    for product, qty in cart:
+        products, product_response = match_product_variant(merchant_id, product)
+        if products:
+            resolved_cart.extend([(p[0], p[1], qty) for p in products])
+        if product_response:
+            response = '\n' + product_response
+    response = gen_cart_response(
+        resolved_cart,
+    ) + '\n' + response
+    return [(name, qty) for (name, _, qty) in resolved_cart], response
+
+
+def match_product_variant(merchant_id: int, product_name: str) -> ProductResponseUnion:
+    merchant_id = str(merchant_id)
+    product_matches = process.extract(
+        product_name, VARIANTS_OBJ[merchant_id].keys(), scorer=fuzz.token_set_ratio,
+    )
+    significant_matches = [
+        tup[0]
+        for tup in product_matches if tup[1] > FUZZY_MATCH_THRESHOLD
+    ]
+    if len(significant_matches) > 2:
+        logger.debug(
+            f'{product_name} matched to many product names: {significant_matches}. No match returned',
+        )
+        return ProductResponseUnion(
+            None, gen_non_specific_product_response(
+                product_name, significant_matches,
+            ),
+        )
+    else:
+        products = []
+        response = ''
+        for product_match in significant_matches:
+            variants_dict = VARIANTS_OBJ[merchant_id][product_match]
+            if len(variants_dict) == 1:
+                products.append(
+                    (product_match + ' - ' + min(variants_dict.keys()), min(variants_dict.values()))
+                )
+            else:
+                variant_matches = [
+                    (
+                        product_match + ' - ' +
+                        tup[0], variants_dict[tup[0]],
+                    )
+                    for tup in process.extract(product_match, variants_dict.keys(), scorer=fuzz.token_set_ratio)
+                    if tup[1] > FUZZY_MATCH_THRESHOLD
+                ]
+                if len(variant_matches) > 0:
+                    products.extend(variant_matches)
+                else:
+                    response += '\n' + gen_variant_selection_response(
+                        product_match, variants_dict,
+                    )
+
+        return ProductResponseUnion(products, response)
