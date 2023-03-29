@@ -8,6 +8,7 @@ from .response import *
 from fuzzywuzzy import process, fuzz
 from typing import List, Tuple
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
+from .conversation_parser import Conversation
 
 max_conversation_chars_task = 600
 max_conversation_chars_cart = 1500
@@ -54,7 +55,7 @@ class T5InferenceService:
         outputs = self.model.generate(**input, max_new_tokens=128)
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    def infer(self, conversation, vendor, merchant_id, predict_fn):
+    def infer(self, docs, vendor, merchant_id, predict_fn):
         """
         :param conversation: Conversation formatted as follows:
         Seller: Are you interested in..
@@ -64,6 +65,16 @@ class T5InferenceService:
         Note that it should always end with Buyer
         :return: dict with different outputs of interest
         """
+        cnv_obj = Conversation(docs)
+        if cnv_obj.n_turns == 0:
+            logger.error("Infer called with empty conversation. Aborting.")
+            return dict()
+        last_turn = cnv_obj.turns[-1]
+        conversation = str(cnv_obj)
+        logger.debug(f"Conversation Context: {conversation}")
+        if last_turn.direction != "inbound":
+            logger.error("Infer called after an outbound. Aborting. Please only call when the latest turn is inbound")
+            return dict()
         # first predict task
         input, _ = create_input_target_task(conversation, "", task_descriptions=self.task_descriptions)
         task = predict_fn(input)[0]
@@ -85,7 +96,7 @@ class T5InferenceService:
                 cart, response = resolve_cart(merchant_id, cart, response)
         if 'AnswerMiscellaneousQuestions' in task and vendor in self.response_prediction_prompt:
             # First check FAQ: we give precedence to it
-            answer, score = semantic_search_obj.faq_search(merchant_id, )
+            answer, score = semantic_search_obj.faq_search(merchant_id, last_turn.text)
             conversation += "Seller: "
             qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
             response += predict_fn(self.response_prediction_prompt[vendor] + qa_prompt + conversation[-MAX_CONVERSATION_CHARS:])[0]
