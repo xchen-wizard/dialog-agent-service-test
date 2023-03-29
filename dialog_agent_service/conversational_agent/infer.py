@@ -96,12 +96,12 @@ class T5InferenceService:
                         logger.error(f"Quantity {qty} predicted for product {product} not of the right type. Skipping.")
                 cart, response = resolve_cart(merchant_id, cart, response)
         conversation += "Seller: "
-        if 'AnswerMiscellaneousQuestions' in task and vendor in self.response_prediction_prompt:
+        if 'AnswerMiscellaneousQuestions' in task:
             # First check FAQ: we give precedence to it
             answer, score = semantic_search_obj.faq_search(merchant_id, last_turn.text)
             if score > FAQ_THRESHOLD:
                 response += answer
-            else:
+            elif vendor in self.response_prediction_prompt:
                 qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
                 response += predict_fn(self.response_prediction_prompt[vendor] + qa_prompt + conversation[-MAX_CONVERSATION_CHARS:])[0]
         if 'RecommendProduct' in task and vendor in self.response_prediction_prompt:
