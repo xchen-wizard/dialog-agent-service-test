@@ -17,7 +17,7 @@ ProductResponseUnion = namedtuple(
     'ProductResponseUnion', ['products', 'response'],
 )
 FUZZY_MATCH_THRESHOLD = 85
-MAX_CONVERSATION_CHARS = 1000
+MAX_CONVERSATION_CHARS = 600
 # ToDo: not ideal, replace later
 with open("../test_data/products_variants_prices.json") as f:
     VARIANTS_OBJ = json.load(f)
