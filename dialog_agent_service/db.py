@@ -5,10 +5,12 @@ import json
 import logging
 import os
 import uuid
+from collections import defaultdict
 from contextlib import contextmanager
 from typing import Any
 
 import mysql
+from bson.objectid import ObjectId
 
 from dialog_agent_service import init_mongo_db
 from dialog_agent_service import init_mysql_db
@@ -105,3 +107,155 @@ async def get_campaign_variant_type(campaign_id: int) -> int | None:
         data = cursor.fetchone()
     logger.debug(f'fetched products for campaign {campaign_id}')
     return data.get('campaignFlowType')
+
+
+def get_merchant(merchant_id: int):
+    query = """
+  SELECT
+    id,
+    name,
+    siteId
+  FROM vendors
+  WHERE id = %s
+  """
+
+    with get_mysql_cnx_cursor() as cursor:
+        cursor.execute(query, [merchant_id])
+        data = cursor.fetchone()
+
+    return {'id': data.get('id'), 'name': data.get('name'), 'site_id': data.get('siteId')}
+
+
+def get_merchant_site_ids():
+    query = """
+  SELECT
+    id,
+    siteId
+  FROM vendors
+  """
+
+    with get_mysql_cnx_cursor() as cursor:
+        cursor.execute(query)
+        data = cursor.fetchall()
+
+    merchants = {}
+
+    for merchant in data:
+        merchants[str(merchant['id'])] = merchant['siteId']
+
+    return merchants
+
+
+def get_variants(variant_ids: list):
+
+    object_ids = list(map(ObjectId, variant_ids))
+
+    variant_cursor = mongo_db['productVariants'].find(
+        {'_id': {'$in': object_ids}},
+    )
+
+    variants = []
+
+    for variant in variant_cursor:
+        product = mongo_db['productCatalog'].find_one(
+            {'_id': ObjectId(variant['productId'])},
+        )
+        variant['product'] = product
+
+        listings = list(
+            mongo_db['productListings'].find(
+                {'productVariantId': str(variant['_id'])},
+            ),
+        )
+        variant['listings'] = listings
+
+        variants.append(variant)
+
+    return variants
+
+
+def get_all_variants_by_merchant_id():
+    """
+    queries the mongo products collections and compile a dict of {merchantId: {productName: {variantName: price}}}
+    """
+    ret_dict = defaultdict(lambda: defaultdict(dict))
+    variant_cursor = mongo_db['productVariants'].find()
+
+    variants = []
+
+    for variant in variant_cursor:
+        try:
+            product_id = ObjectId(variant['productId'])
+            product = mongo_db['productCatalog'].find_one({'_id': product_id})
+            variant['product'] = product
+
+            listings = list(
+                mongo_db['productListings'].find(
+                    {'productVariantId': str(variant['_id'])},
+                ),
+            )
+            variant['listings'] = listings
+
+            # name = variant['product']['name'] + ' - ' + variant['name']
+
+            # price =  variant['listings'][0]['price']
+            ret_dict[variant['merchantId']][variant['product']['name']][variant['name']] = variant['listings'][0][
+                'price'
+            ]
+        except Exception as e:
+            logger.error(f'no product id found in doc: {variant}')
+    return ret_dict
+
+
+def get_all_variants():
+    variant_names = {}
+
+    products = mongo_db['productCatalog'].find()
+
+    for product in products:
+        variants = mongo_db['productVariants'].find(
+            {'productId': str(product['_id'])},
+        )
+
+        for variant in variants:
+            name = product['name'] + ' - ' + variant['name']
+            variant_names[variant['_id']] = {
+                'name': name, 'merchant_id': product['merchantId'],
+            }
+
+    return variant_names
+
+
+def get_all_faqs():
+    faq_query = """
+  SELECT
+    v.siteId AS siteId,
+    q.text AS question,
+    a.text AS answer
+  FROM
+    faqs q
+  JOIN
+    faqs a
+  ON
+    q.answerId = a.id
+  JOIN
+    vendors v
+  ON
+    q.merchantId = v.id
+  WHERE
+    q.type = 'question' OR q.type = 'questionExpansion' OR q.type = 'questionExtraction'
+  """
+
+    with get_mysql_cnx_cursor() as cursor:
+        cursor.execute(faq_query)
+        data = cursor.fetchall()
+
+    faqs = {}
+
+    for faq in data:
+        if faq['siteId'] not in faqs:
+            faqs[faq['siteId']] = {}
+
+        faqs[faq['siteId']][faq['question']] = faq['answer']
+
+    return faqs

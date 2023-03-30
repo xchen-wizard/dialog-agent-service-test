@@ -4,20 +4,15 @@ import json
 import logging
 import os
 import sys
-import json
-from dialog_agent_service.conversational_agent.conversation_utils import get_all_faqs, get_merchant, get_variants
-from dialog_agent_service.search.SemanticSearch import semanticSearch
 
 import flask
 import requests
 from flask import jsonify
 from flask import make_response
 from flask import request
-from flask_login import current_user
 from flask_login import login_required
 from flask_login import login_user
 from flask_login import LoginManager
-from flask_login import logout_user
 from oauthlib.oauth2 import WebApplicationClient
 
 from dialog_agent_service import create_app
@@ -27,13 +22,14 @@ from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
 from dialog_agent_service.app_utils import get_google_provider_cfg
 from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
-from dialog_agent_service.conversational_agent.conversation_utils import get_variants
+from dialog_agent_service.db import get_merchant
 from dialog_agent_service.db import get_user_contexts
 from dialog_agent_service.db import update_user_contexts
 from dialog_agent_service.df_utils import get_df_response
 from dialog_agent_service.df_utils import parse_df_response
+from dialog_agent_service.search.SemanticSearch import demo_search
+from dialog_agent_service.search.SemanticSearch import semanticSearch
 from dialog_agent_service.user import User
-from dialog_agent_service.search.SemanticSearch import semanticSearch, demo_search
 
 formatter = init_logger()
 logger = logging.getLogger(__name__)
@@ -186,6 +182,7 @@ def index_products():
 def index_faqs():
     return semanticSearch.index_faqs()
 
+
 @app.route('/faq')
 def faq():
     question = request.args.get('question')
@@ -197,9 +194,11 @@ def faq():
 
     return suggestions[0]
 
+
 @app.route('/index_demo')
 def index_demo():
     return demo_search.index_demo()
+
 
 @app.route('/faq_demo')
 def faq_demo():

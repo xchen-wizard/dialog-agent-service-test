@@ -4,7 +4,12 @@ import asyncio
 import logging
 import os
 import uuid
+
 import requests
+from google.cloud import aiplatform
+from google.protobuf import json_format
+from google.protobuf.json_format import MessageToDict
+from google.protobuf.struct_pb2 import Value
 
 from dialog_agent_service.data_types import FlowType
 from dialog_agent_service.db import get_campaign_products
@@ -15,14 +20,15 @@ logger = logging.getLogger(__name__)
 NAMESPACE = uuid.UUID(os.getenv('MONGO_UUID_NAMESPACE'))
 DIALOGFLOW_SESSION_ID_CHAR_LIMIT = 36
 GOOGLE_DISCOVERY_URL = (
-    "https://accounts.google.com/.well-known/openid-configuration"
+    'https://accounts.google.com/.well-known/openid-configuration'
 )
+
 
 def get_google_provider_cfg():
     try:
-      return requests.get(GOOGLE_DISCOVERY_URL).json()
-    except:
-        logger.error('error connecting to Google provider')
+        return requests.get(GOOGLE_DISCOVERY_URL).json()
+    except Exception as e:
+        logger.error(f'error connecting to Google provider: {e}')
 
 
 def generate_session_id(req: dict) -> str:
@@ -103,3 +109,58 @@ async def create_user_contexts(req: dict, session_id: str, doc_id: str, variant_
         }
     else:
         raise NotImplementedError(f"{req['flowType']} is not yet supported!")
+
+
+def predict_custom_trained_model_sample(
+    project: str,
+    endpoint_id: str,
+    instances,
+    location: str = 'us-central1',
+    api_endpoint: str = 'us-central1-aiplatform.googleapis.com',
+):
+    """
+    `instances` can be either single instance of type dict or a list
+    of instances.
+    Returns:
+        list of strings containing the generated texts
+    """
+    # The AI Platform services require regional API endpoints.
+    client_options = {'api_endpoint': api_endpoint}
+    # Initialize client that will be used to create and send requests.
+    # This client only needs to be created once, and can be reused for multiple requests.
+    client = aiplatform.gapic.PredictionServiceClient(
+        client_options=client_options,
+    )
+    # The format of each instance should conform to the deployed model's prediction input schema.
+    instances = instances if type(instances) == list else [
+        instances,
+    ]
+    instances = [
+        json_format.ParseDict(
+            instance_dict, Value(),
+        ) for instance_dict in instances
+    ]
+    parameters_dict = {}  # type: ignore
+    parameters = json_format.ParseDict(parameters_dict, Value())
+    endpoint = client.endpoint_path(
+        project=project, location=location, endpoint=endpoint_id,
+    )
+    response = client.predict(
+        endpoint=endpoint, instances=instances, parameters=parameters,
+    )
+    # convert protobuf to regular python object
+    response = MessageToDict(response._pb)
+    # The predictions are a google.protobuf.Value representation of the model's predictions.
+    predictions = response.get('predictions')
+    return predictions
+
+
+def encode_sentence(query: str, project_id: str, endpoint_id: str):
+    embeddings = predict_custom_trained_model_sample(
+        project=project_id,
+        endpoint_id=endpoint_id,
+        location=os.getenv('VERTEX_AI_LOCATION', 'us-central1'),
+        instances=[{'data': {'query': query}}],
+    )
+
+    return embeddings[0]
