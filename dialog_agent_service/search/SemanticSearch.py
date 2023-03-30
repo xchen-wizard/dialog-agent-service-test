@@ -54,6 +54,7 @@ class SemanticSearch:
             self.client = None
 
     def index_faqs(self):
+        logger.info('starting indexing faqs...')
         site_ids = get_merchant_site_ids()
 
         for id in site_ids:
@@ -75,7 +76,7 @@ class SemanticSearch:
                 }
 
                 self.client.index(index=merchant + '-faqs', document=es_data)
-
+        logger.info('finished indexing faqs')
         return 'indexed faqs'
 
     def create_faq_indices(self, indices: dict):
@@ -98,8 +99,10 @@ class SemanticSearch:
 
         for idx in indices:
             self.client.indices.create(index=indices[idx], body=es_index_body)
+        logger.info('created FAQ indices in ES')
 
     def index_products(self):
+        logger.info('starting to index products...')
         site_ids = get_merchant_site_ids()
 
         for id in site_ids:
@@ -126,7 +129,7 @@ class SemanticSearch:
             }
 
             self.client.index(index=idx, document=es_data)
-
+        logger.info('finished indexing products')
         return 'indexed products'
 
     def create_product_indices(self, indices: dict) -> None:
@@ -150,9 +153,12 @@ class SemanticSearch:
         for idx in indices:
             self.client.indices.create(index=indices[idx], body=es_index_body)
 
+        logger.info('created product indices in ES')
+
     def remove_indices(self, indices: dict):
         for idx in indices:
             self.client.indices.delete(index=indices[idx], ignore=[404])
+        logger.info('indices removed')
 
     def faq_search(self, merchant_site_id: str, query: str):
         embedding = encode_sentence(query, PROJECT_ID, ENDPOINT_ID)
@@ -178,11 +184,12 @@ class SemanticSearch:
         answer = ''
         score = 0
 
-        if len(sem_search['hits']['hits']):
+        if len(sem_search['hits']['hits']) > 0:
             hit = sem_search['hits']['hits'][0]
             answer = hit['_source']['answer']
             score = hit['_score']
 
+        logger.info(f'found answer {answer} with score {score}')
         return (answer, score)
 
     def product_search(self, merchant_site_id: str, query: str):
@@ -210,7 +217,7 @@ class SemanticSearch:
 
         for hit in sem_search['hits']['hits']:
             product_ids.append(hit['_source']['id'])
-
+        logger.info(f'found products: {product_ids}')
         return product_ids
 
     def suggest_spelling(self, term, idx):
