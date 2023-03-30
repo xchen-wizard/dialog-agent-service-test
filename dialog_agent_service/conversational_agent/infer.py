@@ -82,6 +82,7 @@ class T5InferenceService:
         response = ""
         cart = []
         model_predicted_cart = []
+        faq_response = ""
         if 'CreateOrUpdateOrderCart' in task:
             product_input, _ = create_input_target_cart(conversation, "")
             products = predict_fn(product_input)[0]
@@ -101,6 +102,7 @@ class T5InferenceService:
             answer, score = semantic_search_obj.faq_search(merchant_id, last_turn.text)
             if score > FAQ_THRESHOLD:
                 response += answer
+                faq_response = answer
             elif vendor in self.response_prediction_prompt:
                 qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
                 response += predict_fn(self.response_prediction_prompt[vendor] + qa_prompt + conversation[-MAX_CONVERSATION_CHARS:])[0]
@@ -112,12 +114,16 @@ class T5InferenceService:
             'task': task,
             "cart": cart,
             "model_predicted_cart": model_predicted_cart,
-            "response": response
+            "response": response,
+            "faq_response": faq_response
         }
         if not ret_dict["response"]:
             del ret_dict["response"]
         if not ret_dict["cart"]:
             del ret_dict["cart"]
+        if not ret_dict["faq_response"]:
+            del ret_dict["faq_response"]
+        logger.debug(f"Returning json object: {ret_dict}")
         return ret_dict
 
 
