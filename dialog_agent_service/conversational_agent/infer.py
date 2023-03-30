@@ -145,9 +145,10 @@ def resolve_cart(merchant_id: int, cart: List[Tuple[str, int]], response: str):
             resolved_cart.extend([(p[0], p[1], qty) for p in products])
         if product_response:
             response = '\n' + product_response
-    response = gen_cart_response(
-        resolved_cart,
-    ) + '\n' + response
+    # TODO: Cart summary will be enabled only after backednd integration
+    # response = gen_cart_response(
+    #     resolved_cart,
+    # ) + '\n' + response
     return [(name, qty) for (name, _, qty) in resolved_cart], response
 
 
