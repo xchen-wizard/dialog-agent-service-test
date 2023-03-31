@@ -1,23 +1,31 @@
-from typing import List, Tuple
+from __future__ import annotations
+
+from typing import List
+from typing import Tuple
 
 
 class Turn:
 
-    def __init__(self, direction, text: List):
+    def __init__(self, direction, text: list):
         self.direction = direction
         self.text = text
 
     def __str__(self):
-        header = "Seller" if self.direction == "outbound" else "Buyer"
-        return ": ".join([header, self.formatted_text])
+        header = 'Seller' if self.direction == 'outbound' else 'Buyer'
+        return ': '.join([header, self.formatted_text])
 
     @property
     def formatted_text(self):
-        return "\n".join(self.text)
+        return '\n'.join(self.text)
 
 
 class Conversation:
-    def __init__(self, docs: List[Tuple[str, str]], skip_opt_out=True):
+    def __init__(self, docs: list[tuple[str, str]], skip_opt_out=False):
+        """
+        Args:
+            docs:
+            skip_opt_out: default to false. ToDo: We cannot assume the first two messages are opt in messages
+        """
         self.turns = []
         text = []
         last_direction = None
@@ -27,16 +35,16 @@ class Conversation:
             else:
                 if text:
                     self.turns.append(Turn(last_direction, text))
-                text.clear()
+                text = []   # initialize a new list obj instead of clear the original
                 text.append(body)
                 last_direction = direction
         if text:
-            self.turns.append(Turn(text))
+            self.turns.append(Turn(last_direction, text))
         if skip_opt_out:
             self.turns = self.turns[2:]
 
     def __str__(self):
-        return "\n".join(map(str, self.turns))
+        return '\n'.join(map(str, self.turns))
 
     @property
     def n_turns(self):

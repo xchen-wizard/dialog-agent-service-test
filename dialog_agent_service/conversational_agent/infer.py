@@ -114,10 +114,14 @@ class T5InferenceService:
         conversation += 'Seller: '
         if 'AnswerMiscellaneousQuestions' in task:
             # First check FAQ: we give precedence to it
-            answer, score = semantic_search_obj.faq_search(
-                merchant_id, last_turn.text,
-            )
-            if score > FAQ_THRESHOLD:
+            answer, score = None, 0.0
+            try:
+                answer, score = semantic_search_obj.faq_search(
+                    merchant_id, last_turn.text,
+                )
+            except Exception as e:
+                logger.error(f'Error querying ES: {e}')
+            if answer and score > FAQ_THRESHOLD:
                 logger.info('found answer through ES!')
                 response += answer
                 faq_response = answer
