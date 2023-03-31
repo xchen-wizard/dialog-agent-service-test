@@ -93,7 +93,7 @@ class T5InferenceService:
         response = ''
         cart = []
         model_predicted_cart = []
-        faq_response = ''
+        source = 'model'
         if 'CreateOrUpdateOrderCart' in task:
             product_input, _ = create_input_target_cart(conversation, '')
             products = predict_fn(product_input)[0]
@@ -124,7 +124,7 @@ class T5InferenceService:
             if answer and score > FAQ_THRESHOLD:
                 logger.info('found answer through ES!')
                 response += answer
-                faq_response = answer
+                source = 'faq'
             elif vendor in self.response_prediction_prompt:
                 logger.info('resort to T5 for answer!')
                 qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
@@ -144,7 +144,7 @@ class T5InferenceService:
             'cart': cart,
             'model_predicted_cart': model_predicted_cart,
             'response': response,
-            'faq_response': faq_response,
+            'source': source
         }
         if not ret_dict['response']:
             del ret_dict['response']
