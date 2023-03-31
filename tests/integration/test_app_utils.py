@@ -5,8 +5,10 @@ import logging
 import pytest
 
 from dialog_agent_service.app_utils import create_user_contexts
+from dialog_agent_service.app_utils import encode_sentence
 from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
+
 
 logger = logging.getLogger()
 
@@ -27,3 +29,10 @@ async def test_create_user_contexts(campaign_req):
         ],
     }
     assert new_contexts == expected_contexts
+
+
+def test_encode_sentence():
+    response = encode_sentence(
+        'this is a test', project_id='prod-us-333918', endpoint_id='1561716274',
+    )
+    assert len(response) == 768
