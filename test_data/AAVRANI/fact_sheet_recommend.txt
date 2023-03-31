@@ -1,0 +1,76 @@
+Without any specific condition, ask them what they are trying to address as follows:
+We have products for any skin concern you might have. Are you looking to address any of the below?
+A. Acne / Blemishes
+B. Pores
+C. Dark Spots
+D. Dullness
+E. Dryness
+F. Fine Lines & Wrinkles
+
+The following are the recommendations for specific conditions:
+
+clear complexion:
+A. Glow Activating Exfoliator - starts at $39 (1.7 oz)
+B. Balance Restoring Serum - $36 (50 ml)
+C. Purifying Oil Cleanser - $36
+
+reduce the appearance of pores:
+A. Glow Activating Exfoliator - starts at $29
+B. Balance Restoring Serum - $60 (50 ml)
+
+even and glowing skin:
+A. Glow Activating Exfoliator - starts at $39 (1.7 oz)
+B. Eye Rejuvenating Elixir - $49
+C. Healing Rose Clay Mask - $39
+
+tired skin:
+A. Glow Activating Exfoliator - starts at $29
+B. Firming Vitamin C Treatment - $48
+C. Eye Rejuvenating Elixir - $49
+
+nourish skin:
+A. Firming Vitamin C Treatment ($48)
+B. Purifying Oil Cleanser - $36
+C. Eye Rejuvenating Elixir - $49
+
+youthful and glowing skin:
+A. Eye Rejuvenating Elixir - $49
+B. Moisturizing Hydra-Cream - $38
+
+Just Acne: I think our Glow Activating Exfoliator (starts at $29 for 1 oz) would really help with that! It’s made with turmeric, neem and honey so it’ll clear the breakouts, exfoliate and nourish your skin.
+
+Sensitive Skin: Continue your routine with the Classic Ritual Set ($198 value for only $175) to nourish and hydrate the skin (:
+
+Oily Skin: Our Balance Restoring Serum (starts at $25) and Glow Activating Exfoliator (starts at $29 for 1 oz) helps to clarify your skin and remove toxins. It will exfoliate your skin and reduces pores 🤩
+
+Acne/Hyperpigmentation/Scarring: Our Glow Activating Exfoliator (starts at $29 for 1 oz) and Balance Restoring Serum (starts at $25) will work perfectly together to help target all those areas and it will leave your skin feeling calm and balanced. You have to try them!
+
+Dark Under Eye Circles: I have exactly what you need! Our Eye Rejuvenating Elixir ($49) will even out your skin tone naturally while hydrating your under eyes at the same time!
+
+Uneven Skin: The Glow Activating Exfoliator (starts at $29 for 1oz) and Softening Hydra Whip ($55) are a lightweight balancing act that will get purifying, anti-inflammatory ingredients like neem, organic turmeric, jojoba, and raw honey straight to your skin.
+
+Wrinkles/Anti-Aging/Fine Lines/ Crows feet: The Softening Hydra-Whip ($55) and Eye Rejuvenating Elixir ($49) are perfect for getting that fresh-faced look (: It has rejuvenating ingredients like almond oil, rose water, avocado oil, and vitamin E so your skin will feel great!
+
+Whiteheads: Our Balance Restoring Serum ($25) and Glow Activating Exfoliator (starts at $29 for 1oz) will turn those white heads into a thing of the past. They used to be the worst but the combination of turmeric, neem and honey really helps your skin clear the breakouts.
+
+Large Pores: Use the Glow Activating Exfoliator (starts at $29 for 1oz) 3-4 times a week as a cleanser! This will remove all toxins and leave your skin feeling soft and smooth. Our Balance Restoring Serum (starts at $25) will help to tighten the pores to keep your skin looking even (:
+
+Wrinkles+hydrations/ fine lines: You should try our Firming Vitamin C Treatment ($48)! Our products are super lightweight so your skin feels supple. It's going to feel like what I imagine touching a cloud feels like lol!
+
+Blackheads: our Balance Restoring Serum (starts at $25) and Glow Activating Exfoliator (starts at $29 for 1.7oz) will have the blackheads disappear because they work to clarify your skin and remove toxins. Your skin will thank you queen!
+
+Rough Skin: Our Glow Activating Exfoliator (starts at $29 for 1oz) will soften up your skin in no time, due to the removal of dead skin! Trust me it works wonders (:
+
+Dull: I know exactly what will make your skin glow! Our Glow Activating Exfoliator (starts at $29 for 1 oz) nourishes and brightens your skin naturally, giving you a refreshed glow 🤩 Seal off your glow with the Firming Vitamin C Treatment ($48) and you're good to go!
+
+Redness: Balance Restoring Serum	The Balance Restoring Serum (starts at $25) has calming ingredients like tea tree oil, cucumber extract, chamomile flowers and witch hazel to make sure your skin is feeling and looking its best.
+
+Textured Skin: Our Glow Activating Exfoliator (starts at $29 for 1oz) will soften up your skin in no time, due to the removal of dead skin! The Softening Hydra-Whip ($55) will hydrate after the exfoliation. Trust me it works wonders!
+
+Dry Skin: I know just what you need! The Glow Activating Exfoliator (starts at $29 for 1.7oz) and Moisturizing Hydra Cream ($38) will keep your skin refreshed and hydrated while also removing dead skin and toxins!
+
+Sun Damage: The Glow Activating Exfoliator (starts at $29 for 1oz) and Firming Vitamin C Treatment ($48) are formulated with clarifying, calming ingredients to restore your skin's natural glowing look.
+
+Puffy Under Eyes: The Eye Rejuvenating Elixir ($49) will depuff those bags in no time (:
+
+Melasma: Exfoliate to resurface and nourish the skin with our full Classic Ritual Set ($198 value for only $175).
