@@ -117,7 +117,7 @@ class T5InferenceService:
             answer, score = None, 0.0
             try:
                 answer, score = semantic_search_obj.faq_search(
-                    merchant_id, last_turn.text,
+                    merchant_id, last_turn.formatted_text,
                 )
             except Exception as e:
                 logger.error(f'Error querying ES: {e}')
