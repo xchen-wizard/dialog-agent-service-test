@@ -161,6 +161,7 @@ class SemanticSearch:
         logger.info('indices removed')
 
     def faq_search(self, merchant_site_id: str, query: str):
+        merchant_site_id = str(merchant_site_id)
         embedding = encode_sentence(query, PROJECT_ID, ENDPOINT_ID)
 
         sem_search = self.client.search(
@@ -193,6 +194,7 @@ class SemanticSearch:
         return (answer, score)
 
     def product_search(self, merchant_site_id: str, query: str):
+        merchant_site_id = str(merchant_site_id)
         embedding = encode_sentence(query, PROJECT_ID, ENDPOINT_ID)
 
         sem_search = self.client.search(
