@@ -52,7 +52,7 @@ class T5InferenceService:
             self.task_descriptions = f.read()
         self.response_prediction_prompt = dict()
         # TODO: temporary hack to circumvent OOM until we have something better in place
-        for suffix in ["recommend", "qa"]:
+        for suffix in ['recommend', 'qa']:
             d = dict()
             fact_sheets = glob.glob(f'{data_dir}/*/fact_sheet_{suffix}.txt')
             for fact_sheet in fact_sheets:
@@ -132,17 +132,17 @@ class T5InferenceService:
                 logger.info('found answer through ES!')
                 response += answer
                 source = 'faq'
-            elif vendor in self.response_prediction_prompt:
+            elif vendor in self.response_prediction_prompt['qa']:
                 logger.info('resort to T5 for answer!')
                 qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
                 response += predict_fn(
-                    self.response_prediction_prompt[vendor] +
+                    self.response_prediction_prompt['qa'][vendor] +
                     qa_prompt + conversation[-MAX_CONVERSATION_CHARS:],
                 )[0]
-        if 'RecommendProduct' in task and vendor in self.response_prediction_prompt:
+        if 'RecommendProduct' in task and vendor in self.response_prediction_prompt['recommend']:
             recommend_prompt = "You are the seller. Using only the data above, help the buyer below find a product. You can ask for more information if you don't have sufficient information to make a recommendation.\n"
             response += predict_fn(
-                self.response_prediction_prompt[vendor] +
+                self.response_prediction_prompt['recommend'][vendor] +
                 recommend_prompt + conversation[-MAX_CONVERSATION_CHARS:],
             )[0]
 
