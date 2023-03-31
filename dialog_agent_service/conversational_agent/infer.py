@@ -150,8 +150,6 @@ class T5InferenceService:
             del ret_dict['response']
         if not ret_dict['cart']:
             del ret_dict['cart']
-        if not ret_dict['faq_response']:
-            del ret_dict['faq_response']
         logger.debug(f'Returning json object: {ret_dict}')
         return ret_dict
 
