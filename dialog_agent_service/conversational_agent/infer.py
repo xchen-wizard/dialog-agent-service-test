@@ -14,6 +14,7 @@ from .conversation_parser import Conversation
 from .response import gen_cart_response
 from .response import gen_non_specific_product_response
 from .response import gen_variant_selection_response
+from dialog_agent_service.db import get_merchant
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
 
 max_conversation_chars_task = 600
@@ -93,7 +94,7 @@ class T5InferenceService:
         response = ''
         cart = []
         model_predicted_cart = []
-        faq_response = ''
+        source = 'model'
         if 'CreateOrUpdateOrderCart' in task:
             product_input, _ = create_input_target_cart(conversation, '')
             products = predict_fn(product_input)[0]
@@ -116,15 +117,16 @@ class T5InferenceService:
             # First check FAQ: we give precedence to it
             answer, score = None, 0.0
             try:
+                merchant_site_id = get_merchant(merchant_id)['site_id']
                 answer, score = semantic_search_obj.faq_search(
-                    merchant_id, last_turn.formatted_text,
+                    merchant_site_id, last_turn.formatted_text,
                 )
             except Exception as e:
                 logger.error(f'Error querying ES: {e}')
             if answer and score > FAQ_THRESHOLD:
                 logger.info('found answer through ES!')
                 response += answer
-                faq_response = answer
+                source = 'faq'
             elif vendor in self.response_prediction_prompt:
                 logger.info('resort to T5 for answer!')
                 qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
@@ -144,14 +146,12 @@ class T5InferenceService:
             'cart': cart,
             'model_predicted_cart': model_predicted_cart,
             'response': response,
-            'faq_response': faq_response,
+            'source': source,
         }
         if not ret_dict['response']:
             del ret_dict['response']
         if not ret_dict['cart']:
             del ret_dict['cart']
-        if not ret_dict['faq_response']:
-            del ret_dict['faq_response']
         logger.debug(f'Returning json object: {ret_dict}')
         return ret_dict
 
