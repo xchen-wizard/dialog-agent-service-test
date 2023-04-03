@@ -191,7 +191,7 @@ def get_all_variants_by_merchant_id():
 
             listings = list(
                 mongo_db['productListings'].find(
-                    {'productVariantId': str(variant['_id'])},
+                    {'productVariantId': str(variant['_id']), 'status': 'active'},
                 ),
             )
             variant['listings'] = listings
@@ -199,9 +199,10 @@ def get_all_variants_by_merchant_id():
             # name = variant['product']['name'] + ' - ' + variant['name']
 
             # price =  variant['listings'][0]['price']
-            ret_dict[variant['merchantId']][variant['product']['name']][variant['name']] = variant['listings'][0][
-                'price'
-            ]
+            if len(listings) > 0:
+              ret_dict[variant['merchantId']][variant['product']['name']][variant['name']] = variant['listings'][0][
+                  'price'
+              ]
         except Exception as e:
             logger.error(f'no product id found in doc: {variant}')
     return ret_dict
@@ -218,6 +219,15 @@ def get_all_variants():
         )
 
         for variant in variants:
+            listings = list(
+                mongo_db['productListings'].find(
+                    {'productVariantId': str(variant['_id']), 'status': 'active'},
+                ),
+            )
+
+            if len(listings) == 0:
+                continue
+
             name = product['name'] + ' - ' + variant['name']
             variant_names[variant['_id']] = {
                 'name': name, 'merchant_id': product['merchantId'],
