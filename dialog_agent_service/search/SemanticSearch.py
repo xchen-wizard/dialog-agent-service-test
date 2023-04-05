@@ -31,7 +31,7 @@ class SemanticSearch:
                         os.environ.get('ES_DEMO_PASSWORD'),
                     ),
                 )
-            elif os.environ.get('_ENV') == 'production':
+            elif os.environ.get('ES_CLOUD_ID'):
                 self.client = Elasticsearch(
                     cloud_id=os.environ.get('ES_CLOUD_ID'),
                     basic_auth=(
