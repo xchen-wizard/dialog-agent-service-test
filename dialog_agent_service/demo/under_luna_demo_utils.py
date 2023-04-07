@@ -252,6 +252,7 @@ def get_focus(filler):
 
 
 def faq_demo(es_client, question: str):
+    global messages
     prompt = 'combine this question/answer pair into a single clear consistent statement: <FILLERQ>, <FILLERA>.'
     q1 = question
     focus = None
@@ -434,7 +435,7 @@ product_data = [
 messages = [
     {
         'role': 'system',
-        'content': "You are a kind and helpful catalog product expert. Answer with specific product names and attributes from the catalog where possible. If a 'network error' happens, please revert and resume your answer. Use only the following catalog dataset to supply all answers:" + str(
+        'content': "You are a kind and helpful catalog product expert. Answer with specific product names and attributes from the catalog where possible. If a 'network error' happens, please revert and resume your answer. Try to use no more than 100 words in your response. Use only the following catalog dataset to supply all answers:" + str(
             product_data,
         ),
     },
