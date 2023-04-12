@@ -172,17 +172,17 @@ async def agent():
 
     return make_response(jsonify(resp))
 
-
+@login_required
 @app.route('/index_products', methods=['POST'])
 def index_products():
     return semanticSearch.index_products()
 
-
+@login_required
 @app.route('/index_faqs')
 def index_faqs():
     return semanticSearch.index_faqs()
 
-
+@login_required
 @app.route('/faq')
 def faq():
     question = request.args.get('question')
@@ -193,6 +193,16 @@ def faq():
     suggestions = semanticSearch.faq_search(site_id, question)
 
     return suggestions[0]
+
+@login_required
+@app.route('/encode_sentence', methods=['POST'])
+def encode_sentence():
+    query = request.args.get('query')
+
+    endpoint_id = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
+    project_id = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
+
+    return encode_sentence(query, project_id, endpoint_id)
 
 
 @app.route('/index_demo')
