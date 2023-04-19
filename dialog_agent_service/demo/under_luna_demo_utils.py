@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import configparser
+import logging
 import os
 import re
 import sys
@@ -13,6 +14,8 @@ from nltk.tokenize import sent_tokenize
 from dialog_agent_service.app_utils import encode_sentence
 from dialog_agent_service.db import get_mysql_cnx_cursor
 
+logger = logging.getLogger(__name__)
+
 
 ENDPOINT_ID = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
@@ -23,7 +26,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
 def index_demo_helper(es_client, dimensions: int):
-    index = 'faqz_underluna_all'
+    index = 'underluna-demo'
 
     es_client.indices.delete(index=index, ignore=[404])
 
@@ -51,22 +54,10 @@ def index_demo_helper(es_client, dimensions: int):
 
 def populate_demo_indices(es_client, index: str):
     faqs = get_demo_faqs()
-    txt_faqs = {}  # type: ignore
-    # get_txt_demo_faqs()
 
     for question in faqs:
         embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID)
-
-        es_data = {
-            'question': question,
-            'answer': faqs[question],
-            'question_vector': embedding,
-        }
-
-        es_client.index(index=index, document=es_data)
-
-    for question in txt_faqs:
-        embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID)
+        logger.debug('embedding type:', type(embedding))
 
         es_data = {
             'question': question,
@@ -180,7 +171,7 @@ def fill_msg_and_send(filler):
 
     try:
         chat = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo-0301', messages=messages,
+            model='gpt-3.5-turbo', messages=messages,
         )
         reply = chat.choices[0].message.content
     except Exception as e:
@@ -195,13 +186,13 @@ def fill_msg_and_send(filler):
     return reply
 
 
-def num_tokens_from_messages(messages, model='gpt-3.5-turbo-0301'):
+def num_tokens_from_messages(messages, model='gpt-3.5-turbo'):
     """Returns the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
         encoding = tiktoken.get_encoding('cl100k_base')
-    if model == 'gpt-3.5-turbo-0301':  # note: future models may deviate from this
+    if model == 'gpt-3.5-turbo':  # note: future models may deviate from this
         num_tokens = 0
         for message in messages:
             # every message follows <im_start>{role/name}\n{content}<im_end>\n
@@ -242,7 +233,7 @@ def get_focus(filler):
     )
     try:
         chat = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo-0301', messages=messages,
+            model='gpt-3.5-turbo', messages=messages,
         )
         reply = chat.choices[0].message.content
         topic = reply
@@ -275,7 +266,8 @@ def faq_demo(es_client, question: str):
     # print("Focus = {}".format(focus))
 
     sem_search = faq_demo_search(es_client, q1)
-    print(sem_search)
+
+    logger.debug('sem search score:', sem_search[3])
 
     if sem_search[3] < FAQ_THRESHOLD:
         answer = fill_msg_and_send(question)
