@@ -237,7 +237,7 @@ def get_focus(filler):
             'role': 'user',
             'content': 'Only if one of the named listed products is mentioned in this input: ' + filler + ", then update the current topic and reply only with the mentioned product's actual name from this list as the current topic of the conversation:" + str(
                 prods,
-            ) + ' otherwise reply with only the product name of the previous most recent topic, if any. Do not use any other words in your reply.',
+            ) + ' otherwise reply with only the product name of the previous most recent topic, if any. Do not use any other words in your reply. Limit your responses to 50 wrds or less',
         },
     )
     try:
