@@ -28,9 +28,9 @@ FUZZY_MATCH_THRESHOLD = 85
 MAX_CONVERSATION_CHARS = 600
 FAQ_THRESHOLD = 1.6
 # ToDo: not ideal, replace later
-'''with open('../test_data/products_variants_prices.json') as f:
+with open('../test_data/products_variants_prices.json') as f:
     VARIANTS_OBJ = json.load(f)
-    logger.info('loaded product variants and prices!')'''
+    logger.info('loaded product variants and prices!')
 
 semantic_search_obj = SemanticSearch()
 
@@ -47,9 +47,9 @@ class T5InferenceService:
             from transformers import T5Tokenizer, T5ForConditionalGeneration
             self.tokenizer = T5Tokenizer.from_pretrained(model_name)
             self.model = T5ForConditionalGeneration.from_pretrained(model_dir)
-        '''with open(f'{data_dir}/task_descriptions.txt') as f:
+        with open(f'{data_dir}/task_descriptions.txt') as f:
             logger.info(f'loading task_descriptions.txt from {data_dir}')
-            self.task_descriptions = f.read()'''
+            self.task_descriptions = f.read()
         self.response_prediction_prompt = dict()
         # TODO: temporary hack to circumvent OOM until we have something better in place
         for suffix in ['recommend', 'qa']:

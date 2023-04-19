@@ -155,19 +155,12 @@ def predict_custom_trained_model_sample(
     return predictions
 
 
-from sentence_transformers import SentenceTransformer
-
-transformer = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
-
-
 def encode_sentence(query: str, project_id: str, endpoint_id: str):
-    return transformer.encode(query, show_progress_bar=False)
-
-    """embeddings = predict_custom_trained_model_sample(
+    embeddings = predict_custom_trained_model_sample(
         project=project_id,
         endpoint_id=endpoint_id,
         location=os.getenv('VERTEX_AI_LOCATION', 'us-central1'),
         instances=[{'data': {'query': query}}],
     )
+
     return embeddings[0]
-    return embeddings[0]"""
