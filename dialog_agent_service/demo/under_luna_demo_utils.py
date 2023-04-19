@@ -17,6 +17,8 @@ from dialog_agent_service.db import get_mysql_cnx_cursor
 ENDPOINT_ID = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
+FAQ_THRESHOLD = 1.75
+
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
@@ -148,8 +150,10 @@ def faq_demo_search(es_cleint, question: str):
             for hit in sem_search['hits']['hits'][0:1]:
                 top_question = hit['_source']['question'].strip('\n')
                 top_answer = hit['_source']['answer'].strip('\n')
+                top_source = ''
+                top_score = sem_search['hits']['hits'][0]['_score']
                 break
-            sem_search = (top_question, top_answer)
+            sem_search = (top_question, top_answer, top_source, top_score)
         else:
             sem_search = None
     else:
@@ -176,7 +180,7 @@ def fill_msg_and_send(filler):
 
     try:
         chat = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo', messages=messages,
+            model='gpt-3.5-turbo-0301', messages=messages,
         )
         reply = chat.choices[0].message.content
     except Exception as e:
@@ -233,12 +237,12 @@ def get_focus(filler):
             'role': 'user',
             'content': 'Only if one of the named listed products is mentioned in this input: ' + filler + ", then update the current topic and reply only with the mentioned product's actual name from this list as the current topic of the conversation:" + str(
                 prods,
-            ) + ' otherwise reply with only the product name of the previous most recent topic, if any. Do not use any other words in your reply.',
+            ) + ' otherwise reply with only the product name of the previous most recent topic, if any. Do not use any other words in your reply. Limit your responses to 50 wrds or less',
         },
     )
     try:
         chat = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo', messages=messages,
+            model='gpt-3.5-turbo-0301', messages=messages,
         )
         reply = chat.choices[0].message.content
         topic = reply
@@ -250,12 +254,16 @@ def get_focus(filler):
 
     return topic
 
+focus = None
 
 def faq_demo(es_client, question: str):
-    global messages
+    global messages, focus
     prompt = 'combine this question/answer pair into a single clear consistent statement: <FILLERQ>, <FILLERA>.'
+
+    if question == 'reset':
+        focus = None
+
     q1 = question
-    focus = None
 
     if focus is not None:
         if ' it ' in q1.lower() and focus is not None:
@@ -266,15 +274,20 @@ def faq_demo(es_client, question: str):
             q1 = q1.replace(' that ', ' ' + focus + ' ')
     # print("Focus = {}".format(focus))
 
-    # sem_search = faq_demo_search(es_client, q1)
+    sem_search = faq_demo_search(es_client, q1)
+    print(sem_search)
+
+    if sem_search[3] < FAQ_THRESHOLD:
+        answer = fill_msg_and_send(question)
+    else:
+        answer = sem_search[1]
 
     # augmented_prompt = re.sub(r'<FILLERQ>',sem_search[0],prompt)
     # augmented_prompt = re.sub(r'<FILLERA>',sem_search[1],augmented_prompt)
 
-    answer = fill_msg_and_send(question)
 
     # print("{}\t{}".format(question,answer))
-    # focus = get_focus(question+answer)
+    focus = get_focus(question+answer)
 
     return answer
 
