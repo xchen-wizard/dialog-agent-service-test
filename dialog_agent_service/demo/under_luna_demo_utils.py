@@ -23,7 +23,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 
 def index_demo_helper(es_client, dimensions: int):
-    index = 'underluna-demo'
+    index = 'faqz_underluna_all'
 
     es_client.indices.delete(index=index, ignore=[404])
 
