@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import configparser
+import logging
 import os
 import re
 import sys
@@ -13,9 +14,13 @@ from nltk.tokenize import sent_tokenize
 from dialog_agent_service.app_utils import encode_sentence
 from dialog_agent_service.db import get_mysql_cnx_cursor
 
+logger = logging.getLogger(__name__)
+
 
 ENDPOINT_ID = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
+
+FAQ_THRESHOLD = 1.65
 
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
@@ -49,22 +54,10 @@ def index_demo_helper(es_client, dimensions: int):
 
 def populate_demo_indices(es_client, index: str):
     faqs = get_demo_faqs()
-    txt_faqs = {}  # type: ignore
-    # get_txt_demo_faqs()
 
     for question in faqs:
         embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID)
-
-        es_data = {
-            'question': question,
-            'answer': faqs[question],
-            'question_vector': embedding,
-        }
-
-        es_client.index(index=index, document=es_data)
-
-    for question in txt_faqs:
-        embedding = encode_sentence(question, PROJECT_ID, ENDPOINT_ID)
+        logger.debug('embedding type:', type(embedding))
 
         es_data = {
             'question': question,
@@ -148,8 +141,10 @@ def faq_demo_search(es_cleint, question: str):
             for hit in sem_search['hits']['hits'][0:1]:
                 top_question = hit['_source']['question'].strip('\n')
                 top_answer = hit['_source']['answer'].strip('\n')
+                top_source = ''
+                top_score = sem_search['hits']['hits'][0]['_score']
                 break
-            sem_search = (top_question, top_answer)
+            sem_search = (top_question, top_answer, top_source, top_score)
         else:
             sem_search = None
     else:
@@ -191,13 +186,13 @@ def fill_msg_and_send(filler):
     return reply
 
 
-def num_tokens_from_messages(messages, model='gpt-3.5-turbo-0301'):
+def num_tokens_from_messages(messages, model='gpt-3.5-turbo'):
     """Returns the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
     except KeyError:
         encoding = tiktoken.get_encoding('cl100k_base')
-    if model == 'gpt-3.5-turbo-0301':  # note: future models may deviate from this
+    if model == 'gpt-3.5-turbo':  # note: future models may deviate from this
         num_tokens = 0
         for message in messages:
             # every message follows <im_start>{role/name}\n{content}<im_end>\n
@@ -233,7 +228,7 @@ def get_focus(filler):
             'role': 'user',
             'content': 'Only if one of the named listed products is mentioned in this input: ' + filler + ", then update the current topic and reply only with the mentioned product's actual name from this list as the current topic of the conversation:" + str(
                 prods,
-            ) + ' otherwise reply with only the product name of the previous most recent topic, if any. Do not use any other words in your reply.',
+            ) + ' otherwise reply with only the product name of the previous most recent topic, if any. Do not use any other words in your reply. Limit your responses to 50 wrds or less',
         },
     )
     try:
@@ -250,12 +245,16 @@ def get_focus(filler):
 
     return topic
 
+focus = None
 
 def faq_demo(es_client, question: str):
-    global messages
+    global messages, focus
     prompt = 'combine this question/answer pair into a single clear consistent statement: <FILLERQ>, <FILLERA>.'
+
+    if question == 'reset':
+        focus = None
+
     q1 = question
-    focus = None
 
     if focus is not None:
         if ' it ' in q1.lower() and focus is not None:
@@ -266,15 +265,21 @@ def faq_demo(es_client, question: str):
             q1 = q1.replace(' that ', ' ' + focus + ' ')
     # print("Focus = {}".format(focus))
 
-    # sem_search = faq_demo_search(es_client, q1)
+    sem_search = faq_demo_search(es_client, q1)
+
+    logger.debug('sem search score:', sem_search[3])
+
+    if sem_search[3] < FAQ_THRESHOLD:
+        answer = fill_msg_and_send(question)
+    else:
+        answer = sem_search[1]
 
     # augmented_prompt = re.sub(r'<FILLERQ>',sem_search[0],prompt)
     # augmented_prompt = re.sub(r'<FILLERA>',sem_search[1],augmented_prompt)
 
-    answer = fill_msg_and_send(question)
 
     # print("{}\t{}".format(question,answer))
-    # focus = get_focus(question+answer)
+    focus = get_focus(question+answer)
 
     return answer
 

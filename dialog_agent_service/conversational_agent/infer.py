@@ -246,7 +246,7 @@ def match_product_variant(merchant_id: int, product_name: str) -> ProductRespons
                     (
                         product_match + ' - ' + tup[0], variants_dict[tup[0]],
                     )
-                    for tup in process.extract(product_match, variants_dict.keys(), scorer=fuzz.token_set_ratio)
+                    for tup in process.extract(product_name, variants_dict.keys(), scorer=fuzz.token_set_ratio)
                     if tup[1] > FUZZY_MATCH_THRESHOLD
                 ]
                 if len(variant_matches) > 0:

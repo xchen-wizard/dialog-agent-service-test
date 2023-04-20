@@ -135,7 +135,12 @@ async def conversation_response():
     if req.get('serviceChannelId') is None:
         raise Exception('missing service channel id')
     service_channel_id = int(req.get('serviceChannelId'))
-
+    # add the metadata to logs
+    formatter.extras = {
+        'userId': req.get('userId'),
+        'merchantId': req.get('merchantId'),
+        'serviceChannelId': req.get('serviceChannelId'),
+    }
     response = await handle_conversation_response(
         merchant_id,
         user_id,
