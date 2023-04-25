@@ -17,7 +17,7 @@ from oauthlib.oauth2 import WebApplicationClient
 
 from dialog_agent_service import create_app
 from dialog_agent_service import init_logger
-from dialog_agent_service.app_utils import create_user_contexts
+from dialog_agent_service.app_utils import create_user_contexts, encode_sentence
 from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
 from dialog_agent_service.app_utils import get_google_provider_cfg
@@ -195,8 +195,8 @@ def faq():
     return suggestions[0]
 
 @login_required
-@app.route('/encode_sentence', methods=['POST'])
-def encode_sentence():
+@app.route('/get_embedding', methods=['POST'])
+def get_embedding():
     query = request.args.get('query')
 
     endpoint_id = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
