@@ -194,8 +194,7 @@ def faq():
 
     return suggestions[0]
 
-@login_required
-@app.route('/get_embedding', methods=['POST'])
+@app.route('/get_embedding', methods=['GET'])
 def get_embedding():
     query = request.args.get('query')
 
