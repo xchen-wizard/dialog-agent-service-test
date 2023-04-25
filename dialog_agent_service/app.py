@@ -198,8 +198,8 @@ def faq():
 def get_embedding():
     query = request.args.get('query')
 
-    endpoint_id = os.getenv('ST_VERTEX_AI_ENDPOINT_ID', '3363709534576050176')
-    project_id = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
+    endpoint_id = os.getenv('ST_VERTEX_AI_ENDPOINT_ID')
+    project_id = os.getenv('VERTEX_AI_PROJECT_ID')
 
     return encode_sentence(query, project_id, endpoint_id)
 
