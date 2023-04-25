@@ -17,7 +17,7 @@ from oauthlib.oauth2 import WebApplicationClient
 
 from dialog_agent_service import create_app
 from dialog_agent_service import init_logger
-from dialog_agent_service.app_utils import create_user_contexts
+from dialog_agent_service.app_utils import create_user_contexts, encode_sentence
 from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
 from dialog_agent_service.app_utils import get_google_provider_cfg
@@ -177,17 +177,17 @@ async def agent():
 
     return make_response(jsonify(resp))
 
-
+@login_required
 @app.route('/index_products', methods=['POST'])
 def index_products():
     return semanticSearch.index_products()
 
-
+@login_required
 @app.route('/index_faqs')
 def index_faqs():
     return semanticSearch.index_faqs()
 
-
+@login_required
 @app.route('/faq')
 def faq():
     question = request.args.get('question')
@@ -198,6 +198,15 @@ def faq():
     suggestions = semanticSearch.faq_search(site_id, question)
 
     return suggestions[0]
+
+@app.route('/get_embedding', methods=['GET'])
+def get_embedding():
+    query = request.args.get('query')
+
+    endpoint_id = os.getenv('ST_VERTEX_AI_ENDPOINT_ID')
+    project_id = os.getenv('VERTEX_AI_PROJECT_ID')
+
+    return encode_sentence(query, project_id, endpoint_id)
 
 
 @app.route('/index_demo')
