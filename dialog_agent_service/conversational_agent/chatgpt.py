@@ -22,13 +22,13 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
 
 
 def answer_with_prompt(cnv_obj: Conversation, prompt):
-    response = openai.Completion.create(
+    response = openai.ChatCompletion.create(
         model=model,
         messages=[
             {"role": "system", "content": prompt}
         ] + conv_to_chatgpt_format(cnv_obj, 5)
     )
-    return response["choices"][0]["message"]["content"]
+    return response.choices[0].message.content
 
 
 def product_qa(cnv_obj: Conversation, data: str, vendor: str):
@@ -43,7 +43,7 @@ def product_qa(cnv_obj: Conversation, data: str, vendor: str):
 def merchant_qa(cnv_obj: Conversation, data: str, vendor: str):
     prompt = f"""
     You are a kind and helpful e-commerce customer support agent that works for {vendor}.
-    Answer the question based on the  context below, and if the question can't be answered based on the context, say "HANDOFF TO CX".
+    Answer the question based on the context below, and if the question can't be answered based on the context, say "HANDOFF TO CX".
     Limit responses to no more than 50 words. Use the Instruction sections to further refine your response.
     Context: {data}
     Instructions:
