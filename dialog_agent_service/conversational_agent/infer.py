@@ -16,9 +16,11 @@ from .response import gen_non_specific_product_response
 from .response import gen_variant_selection_response
 from dialog_agent_service.db import get_merchant
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
+from .chatgpt import product_qa, merchant_qa, recommend
 
 max_conversation_chars_task = 600
 max_conversation_chars_cart = 1500
+max_conversation_chars_products = 1000
 logger = logging.getLogger(__name__)
 
 ProductResponseUnion = namedtuple(
@@ -50,18 +52,6 @@ class T5InferenceService:
         with open(f'{data_dir}/task_descriptions.txt') as f:
             logger.info(f'loading task_descriptions.txt from {data_dir}')
             self.task_descriptions = f.read()
-        self.response_prediction_prompt = dict()
-        # TODO: temporary hack to circumvent OOM until we have something better in place
-        for suffix in ['recommend', 'qa']:
-            d = dict()
-            fact_sheets = glob.glob(f'{data_dir}/*/fact_sheet_{suffix}.txt')
-            for fact_sheet in fact_sheets:
-                vendor = fact_sheet.split('/')[2]
-                logger.info(f'loading fact sheets from {fact_sheet}')
-                with open(fact_sheet) as f:
-                    facts = f.read()
-                d[vendor] = f'{vendor} response: {facts}\n'
-            self.response_prediction_prompt[suffix] = d
 
     def predict(self, text):
         input = self.tokenizer(text, padding=True, return_tensors='pt')
@@ -118,7 +108,15 @@ class T5InferenceService:
                 cart, response = resolve_cart(merchant_id, cart, response)
 
         conversation += 'Seller: '
-        if 'AnswerMiscellaneousQuestions' in task:
+        if 'AnswerProductQuestions' in task:
+            product_input, _ = create_input_target_products(conversation, "")
+            products = predict_fn(product_input)[0]
+            # @devang/@preston: pull the data for the products like below
+            # data = "\n".join([self.vendor_index.query_product_info(vendor_id, product, 2) for product in products.split(",")])
+            conversation += "Seller: "
+            response += product_qa(cnv_obj, data, vendor)
+
+        if 'AnswerSellerQuestions' in task:
             # First check FAQ: we give precedence to it
             answer, score = None, 0.0
             try:
@@ -132,19 +130,10 @@ class T5InferenceService:
                 logger.info('found answer through ES!')
                 response += answer
                 source = 'faq'
-            elif vendor in self.response_prediction_prompt['qa']:
-                logger.info('resort to T5 for answer!')
-                qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
-                response += predict_fn(
-                    self.response_prediction_prompt['qa'][vendor] +
-                    qa_prompt + conversation[-MAX_CONVERSATION_CHARS:],
-                )[0]
-        if 'RecommendProduct' in task and vendor in self.response_prediction_prompt['recommend']:
-            recommend_prompt = "You are the seller. Using only the data above, help the buyer below find a product. You can ask for more information if you don't have sufficient information to make a recommendation.\n"
-            response += predict_fn(
-                self.response_prediction_prompt['recommend'][vendor] +
-                recommend_prompt + conversation[-MAX_CONVERSATION_CHARS:],
-            )[0]
+            else:
+                response += merchant_qa(cnv_obj, data, vendor) # @devang/@preston pull the data here. use last_turn.formatted_text as your query
+        if 'RecommendProduct' in task:
+            response += recommend(cnv_obj, data, vendor) # @devang/@preston ditto here
 
         ret_dict = {
             'task': task,
@@ -192,6 +181,17 @@ How many {product} does the buyer want?
                 """,
             )
     return inputs, targets
+
+
+def create_input_target_products(conversation, target_str, **kwargs):
+    return [
+        f"""
+        products the question is about:
+        The below is an interaction between buyer and seller at the end of which buyer has a question about some products.
+        {conversation[-max_conversation_chars_products:]}
+        Write a comma separated list of products that the buyer has question(s) on.
+        """
+    ], [target_str]
 
 
 def resolve_cart(merchant_id: int, cart: list[tuple[str, int]], response: str):
