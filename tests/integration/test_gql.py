@@ -19,14 +19,14 @@ def test_get_gql_access_token():
     assert resp.get('merchantUserLogin').get('accessToken') is not None
 
 
-def test_init_gql(gql_client):
+def test_init_gql():
     client = init_gql()
     assert client is not None
 
 
 def test_product_search():
     start = time.time()
-    resp = product_search('6', 'ancient dawn')
+    resp = product_search('6', 'large')
     end = time.time()
     logger.info(resp)
     logger.info(end - start)
