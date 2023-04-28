@@ -7,10 +7,10 @@ A python Flask service to handle backend integration with a dialog agent.
 poetry install
 ```
 2. Set env vars in a .env file. See `./config/.env`
-3. Run app locally
+3. Run app locally with the dev server
 ```commandline
 cd dialog_agent_service
-poetry run python app.py
+ENV_FILE=path_to_dot_env poetry run python app.py
 ```
 
 ## Tests
