@@ -9,7 +9,8 @@ poetry install
 2. Set env vars in a .env file. See `./config/.env`
 3. Run app locally
 ```commandline
-poetry run python dialog_agent_service/app.py
+cd dialog_agent_service
+poetry run python app.py
 ```
 
 ## Tests
