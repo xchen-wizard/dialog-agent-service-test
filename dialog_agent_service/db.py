@@ -11,7 +11,10 @@ from typing import Any
 
 import mysql
 from bson.objectid import ObjectId
+from gql import Client
+from gql import gql
 
+from dialog_agent_service import init_gql
 from dialog_agent_service import init_mongo_db
 from dialog_agent_service import init_mysql_db
 
@@ -19,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 mysql_pool = init_mysql_db()  # type: ignore
 mongo_db = init_mongo_db()  # type: ignore
+gql_client = init_gql()
 
 
 @contextmanager
@@ -191,7 +195,11 @@ def get_all_variants_by_merchant_id():
 
             listings = list(
                 mongo_db['productListings'].find(
-                    {'productVariantId': str(variant['_id']), 'status': 'active'},
+                    {
+                        'productVariantId': str(
+                            variant['_id'],
+                        ), 'status': 'active',
+                    },
                 ),
             )
             variant['listings'] = listings
@@ -200,9 +208,9 @@ def get_all_variants_by_merchant_id():
 
             # price =  variant['listings'][0]['price']
             if len(listings) > 0:
-              ret_dict[variant['merchantId']][variant['product']['name']][variant['name']] = variant['listings'][0][
-                  'price'
-              ]
+                ret_dict[variant['merchantId']][variant['product']['name']][variant['name']] = variant['listings'][0][
+                    'price'
+                ]
         except Exception as e:
             logger.error(f'no product id found in doc: {variant}')
     return ret_dict
@@ -221,7 +229,11 @@ def get_all_variants():
         for variant in variants:
             listings = list(
                 mongo_db['productListings'].find(
-                    {'productVariantId': str(variant['_id']), 'status': 'active'},
+                    {
+                        'productVariantId': str(
+                            variant['_id'],
+                        ), 'status': 'active',
+                    },
                 ),
             )
 
@@ -269,3 +281,25 @@ def get_all_faqs():
         faqs[faq['siteId']][faq['question']] = faq['answer']
 
     return faqs
+
+
+def product_search(merchant_id: str, product_mention: str):
+    """
+    Args:
+        merchant_id
+        product_mention: the product mention
+    """
+    query_str = gql("""
+        query ProductVariantLookup($merchantId: String!, $query: String!) {
+          productVariantLookup(merchantId: $merchantId, query: $query) {
+            name
+            productId
+          }
+        }
+        """)
+    vars = {
+        'merchantId': merchant_id,
+        'query': product_mention,
+    }
+    resp = gql_client.execute(document=query_str, variable_values=vars)
+    return resp
