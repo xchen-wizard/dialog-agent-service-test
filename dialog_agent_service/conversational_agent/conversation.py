@@ -13,8 +13,10 @@ ENDPOINT_ID = os.getenv('T5_VERTEX_AI_ENDPOINT_ID', '1012733772065406976')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 
-class Response(Enum):
-    SUGGESTION = 'suggestion'
+class ResponseType(Enum):
+    AI = 'ai'
+    CX = 'cx'
+    BOT = 'bot'
 
 
 async def handle_conversation_response(

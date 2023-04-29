@@ -14,7 +14,7 @@ from .conversation_parser import Conversation
 from .response import gen_cart_response
 from .response import gen_non_specific_product_response
 from .response import gen_variant_selection_response
-from dialog_agent_service.db import get_merchant
+from dialog_agent_service.db import get_merchant, merchant_semantic_search, product_semantic_search
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
 from .chatgpt import product_qa, merchant_qa, recommend
 
@@ -112,7 +112,9 @@ class T5InferenceService:
             product_input, _ = create_input_target_products(conversation, "")
             products = predict_fn(product_input)[0]
             # @devang/@preston: pull the data for the products like below
-            # data = "\n".join([self.vendor_index.query_product_info(vendor_id, product, 2) for product in products.split(",")])
+            # data = "\n".join([self.vendor_index.query_product_info(merchant_id, product, 2) for product in products.split(",")])
+            data = "\n".join([product_semantic_search(
+                merchant_id, product) for product in products.split(",")])
             conversation += "Seller: "
             response += product_qa(cnv_obj, data, vendor)
 
@@ -131,9 +133,15 @@ class T5InferenceService:
                 response += answer
                 source = 'faq'
             else:
-                response += merchant_qa(cnv_obj, data, vendor) # @devang/@preston pull the data here. use last_turn.formatted_text as your query
+                # @devang/@preston pull the data here. use last_turn.formatted_text as your query
+                merchant_data = merchant_semantic_search(
+                    merchant_id, last_turn.formatted_text)
+                response += merchant_qa(cnv_obj, merchant_data, vendor)
         if 'RecommendProduct' in task:
-            response += recommend(cnv_obj, data, vendor) # @devang/@preston ditto here
+            # @devang/@preston ditto here
+            product_data = product_semantic_search(
+                merchant_id, last_turn.formatted_text)
+            response += recommend(cnv_obj, product_data, vendor)
 
         ret_dict = {
             'task': task,
