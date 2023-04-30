@@ -14,7 +14,7 @@ from .conversation_parser import Conversation
 from .response import gen_cart_response
 from .response import gen_non_specific_product_response
 from .response import gen_variant_selection_response
-from dialog_agent_service.db import get_merchant, merchant_semantic_search, product_semantic_search
+from dialog_agent_service.db import get_merchant, merchant_semantic_search, product_search, product_semantic_search
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
 from .chatgpt import product_qa, merchant_qa, recommend
 
@@ -68,6 +68,8 @@ class T5InferenceService:
         Note that it should always end with Buyer
         :return: dict with different outputs of interest
         """
+
+        merchant_id = str(merchant_id)
         cnv_obj = Conversation(docs)
         if cnv_obj.n_turns == 0:
             logger.error('Infer called with empty conversation. Aborting.')
@@ -111,12 +113,24 @@ class T5InferenceService:
         if 'AnswerProductQuestions' in task:
             product_input, _ = create_input_target_products(conversation, "")
             products = predict_fn(product_input)[0]
-            # @devang/@preston: pull the data for the products like below
-            # data = "\n".join([self.vendor_index.query_product_info(merchant_id, product, 2) for product in products.split(",")])
-            data = "\n".join([product_semantic_search(
-                merchant_id, product) for product in products.split(",")])
+            logger.info(f"PRODUCT FUZZY-WUZZY SEARCH: {products}")
+            context = ""
+            for product in products.split(","):
+                product_results = product_semantic_search(merchant_id, product)['productVariantSemanticSearch'][0:1] #first result only
+                logger.info(f"PRODUCT:{product}: SEMANTIC SEARCH RESULTS: {product_results}")
+                for pr in product_results:
+                    context += format_product_result(pr)    
+                    context += "\n"
+            
+            logger.info(f"CONTEXT:{context}")
+            
             conversation += "Seller: "
-            response += product_qa(cnv_obj, data, vendor)
+            llm_response = product_qa(cnv_obj, context, vendor)
+
+            logger.info(f"LLM RESPONSE: {llm_response}")
+
+            #TODO - check llm_response
+            response += llm_response
 
         if 'AnswerSellerQuestions' in task:
             # First check FAQ: we give precedence to it
@@ -133,15 +147,29 @@ class T5InferenceService:
                 response += answer
                 source = 'faq'
             else:
-                # @devang/@preston pull the data here. use last_turn.formatted_text as your query
                 merchant_data = merchant_semantic_search(
                     merchant_id, last_turn.formatted_text)
                 response += merchant_qa(cnv_obj, merchant_data, vendor)
         if 'RecommendProduct' in task:
-            # @devang/@preston ditto here
-            product_data = product_semantic_search(
-                merchant_id, last_turn.formatted_text)
-            response += recommend(cnv_obj, product_data, vendor)
+            product_query = last_turn.formatted_text
+            product_results = product_semantic_search(merchant_id, product_query)['productVariantSemanticSearch'][0:3] #TODO: first 3 only
+            logger.info(f"QUERY:{product_query}: SEMANTIC SEARCH RESULTS: {product_results}")
+                      
+            context = ""
+            for pr in product_results:
+                context += format_product_result(pr)    
+                context += "\n"
+            
+            logger.info(f"CONTEXT:{context}")
+            
+            llm_response = recommend(cnv_obj, context, vendor)
+
+            logger.info(f"LLM RESPONSE: {llm_response}")
+            
+            #TODO - check llm_response
+            response += llm_response
+
+
 
         ret_dict = {
             'task': task,
@@ -157,6 +185,16 @@ class T5InferenceService:
         logger.debug(f'Returning json object: {ret_dict}')
         return ret_dict
 
+
+
+def format_product_result(pr):
+    output = ""
+    display_name = pr.get("product", {}).get("name") + " - " + pr.get("name")
+    desc = pr.get("description")
+    output += f"product name is {display_name},"
+    output += f"product description is {desc}"
+
+    return output
 
 def create_input_target_task(conversation, target_str, **kwargs):
     return [f"""

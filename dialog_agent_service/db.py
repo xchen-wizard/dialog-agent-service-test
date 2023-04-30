@@ -321,13 +321,6 @@ def product_semantic_search(merchant_id: str, product_question: str):
             product {
               _id
               name
-              metafieldEdges {
-                node {
-                  id
-                  key
-                  value
-                }
-              }
             }
           }
         }

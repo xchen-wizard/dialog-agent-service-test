@@ -128,12 +128,12 @@ async def conversation_response():
     logger.debug(f'request: {req}')
     if req.get('merchantId') is None:
         raise Exception('missing merchant id')
-    merchant_id = int(req.get('merchantId'))
+    merchant_id = str(req.get('merchantId'))
     if req.get('userId') is None:
-        raise Exception('missing user id')
+        raise Exception('missing userId')
     user_id = int(req.get('userId'))
     if req.get('serviceChannelId') is None:
-        raise Exception('missing service channel id')
+        raise Exception('missing serviceChannelId')
     service_channel_id = int(req.get('serviceChannelId'))
     # parameter optional for now
     task_routing_config = req.get('taskRoutingConfig')

@@ -110,23 +110,23 @@ def init_gql():
         return
     access_token = get_gql_access_token()
     if not access_token:
-        raise Exception('We cannot get the access token!')
+        raise Exception('Retrieving GQL-API access token failed!')
     headers = {
         'Authorization': f"Bearer {access_token['merchantUserLogin']['accessToken']}",
     }
     transport = RequestsHTTPTransport(
-        url=os.getenv('GQL_ENDPOINT'),
+        url=os.getenv('GQL_API_URL'),
         use_json=True,
         headers=headers,
     )
     # Create a GraphQL client using the defined transport
-    client = Client(transport=transport, fetch_schema_from_transport=True)
+    client = Client(transport=transport, fetch_schema_from_transport=False)
     return client
 
 
 def get_gql_access_token():
     transport = RequestsHTTPTransport(
-        url=os.getenv('GQL_ENDPOINT'),
+        url=os.getenv('GQL_API_URL'),
         use_json=True,
         verify=True,
         retries=3,
@@ -141,8 +141,8 @@ def get_gql_access_token():
     """)
     vars = {
         'input': {
-            'password': os.getenv('GQL_API_APP_SECRET'),
-            'userName': os.getenv('GQL_USER'),
+            'userName': os.getenv('GQL_API_APP_KEY', 'dialog-agent-service'),
+            'password': os.getenv('GQL_API_APP_SECRET')
         },
     }
     resp = client.execute(document=query, variable_values=vars)
