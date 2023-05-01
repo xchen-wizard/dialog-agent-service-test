@@ -20,7 +20,7 @@ class ResponseType(Enum):
 
 
 async def handle_conversation_response(
-    merchant_id: int, user_id: int, service_channel_id: int,
+    merchant_id: str, user_id: int, service_channel_id: int,
     k: int, window: int, test_merchant: str, task_routing_config: dict = {}
 ):
     """
