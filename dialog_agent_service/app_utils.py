@@ -116,7 +116,7 @@ def predict_custom_trained_model_sample(
     endpoint_id: str,
     instances,
     location: str = 'us-central1',
-    api_endpoint: str = 'us-central1-aiplatform.googleapis.com',
+    api_endpoint: str = 'us-central1-aiplatform.googleapis.com'
 ):
     """
     `instances` can be either single instance of type dict or a list

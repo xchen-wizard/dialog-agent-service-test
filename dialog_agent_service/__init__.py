@@ -10,7 +10,11 @@ import flask
 import mysql.connector.pooling
 import pymongo
 from dotenv import load_dotenv
+from gql import Client
+from gql import gql
+from gql.transport.requests import RequestsHTTPTransport
 from pythonjsonlogger import jsonlogger
+
 
 load_dotenv(os.getenv('ENV_FILE') or '.env')
 
@@ -99,3 +103,47 @@ def init_logger():
     handler.setFormatter(formatter)
     root.addHandler(handler)
     return formatter
+
+
+def init_gql():
+    if os.getenv('UNITTEST') and os.getenv('UNITTEST').lower() == 'true':
+        return
+    access_token = get_gql_access_token()
+    if not access_token:
+        raise Exception('Retrieving GQL-API access token failed!')
+    headers = {
+        'Authorization': f"Bearer {access_token['merchantUserLogin']['accessToken']}",
+    }
+    transport = RequestsHTTPTransport(
+        url=os.getenv('GQL_API_URL'),
+        use_json=True,
+        headers=headers,
+    )
+    # Create a GraphQL client using the defined transport
+    client = Client(transport=transport, fetch_schema_from_transport=False)
+    return client
+
+
+def get_gql_access_token():
+    transport = RequestsHTTPTransport(
+        url=os.getenv('GQL_API_URL'),
+        use_json=True,
+        verify=True,
+        retries=3,
+    )
+    client = Client(transport=transport, fetch_schema_from_transport=True)
+    query = gql("""
+    mutation MerchantUserLogin($input: MerchantUserLoginInput) {
+      merchantUserLogin(input: $input) {
+        accessToken
+      }
+    }
+    """)
+    vars = {
+        'input': {
+            'userName': os.getenv('GQL_API_APP_KEY', 'dialog-agent-service'),
+            'password': os.getenv('GQL_API_APP_SECRET')
+        },
+    }
+    resp = client.execute(document=query, variable_values=vars)
+    return resp

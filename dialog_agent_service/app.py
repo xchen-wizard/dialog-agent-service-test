@@ -21,7 +21,7 @@ from dialog_agent_service.app_utils import create_user_contexts, encode_sentence
 from dialog_agent_service.app_utils import generate_session_id
 from dialog_agent_service.app_utils import generate_uuid
 from dialog_agent_service.app_utils import get_google_provider_cfg
-from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
+from dialog_agent_service.conversational_agent.conversation import ResponseType, handle_conversation_response
 from dialog_agent_service.db import get_merchant
 from dialog_agent_service.db import get_user_contexts
 from dialog_agent_service.db import update_user_contexts
@@ -121,20 +121,21 @@ def logout():
     return flask.redirect(flask.url_for('index'))
 
 
-@login_required
 @app.route('/conversation_response', methods=['POST'])
 async def conversation_response():
     req = request.get_json(force=True)
     logger.debug(f'request: {req}')
     if req.get('merchantId') is None:
         raise Exception('missing merchant id')
-    merchant_id = int(req.get('merchantId'))
+    merchant_id = str(req.get('merchantId'))
     if req.get('userId') is None:
-        raise Exception('missing user id')
+        raise Exception('missing userId')
     user_id = int(req.get('userId'))
     if req.get('serviceChannelId') is None:
-        raise Exception('missing service channel id')
+        raise Exception('missing serviceChannelId')
     service_channel_id = int(req.get('serviceChannelId'))
+    # parameter optional for now
+    task_routing_config = req.get('taskRoutingConfig', {})
     # add the metadata to logs
     formatter.extras = {
         'userId': req.get('userId'),
@@ -148,6 +149,7 @@ async def conversation_response():
         k=int(req.get('k', 5)),
         window=int(req.get('window', 12)),
         test_merchant=req.get('testMerchant', ''),
+        task_routing_config=task_routing_config
     )
     logger.debug(f'response: {response}')
     return make_response(jsonify(response))
@@ -177,15 +179,18 @@ async def agent():
 
     return make_response(jsonify(resp))
 
+
 @login_required
 @app.route('/index_products', methods=['POST'])
 def index_products():
     return semanticSearch.index_products()
 
+
 @login_required
 @app.route('/index_faqs')
 def index_faqs():
     return semanticSearch.index_faqs()
+
 
 @login_required
 @app.route('/faq')
@@ -198,6 +203,7 @@ def faq():
     suggestions = semanticSearch.faq_search(site_id, question)
 
     return suggestions[0]
+
 
 @app.route('/get_embedding', methods=['GET'])
 def get_embedding():

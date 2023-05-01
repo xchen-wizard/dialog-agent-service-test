@@ -13,13 +13,15 @@ ENDPOINT_ID = os.getenv('T5_VERTEX_AI_ENDPOINT_ID', '1012733772065406976')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 
-class Response(Enum):
-    SUGGESTION = 'suggestion'
+class ResponseType(Enum):
+    CX = 'cx'
+    ASSISTED = 'assisted'
+    AUTOMATED = 'automated'
 
 
 async def handle_conversation_response(
-    merchant_id: int, user_id: int, service_channel_id: int,
-    k: int, window: int, test_merchant: str,
+    merchant_id: str, user_id: int, service_channel_id: int,
+    k: int, window: int, test_merchant: str, task_routing_config: dict = {}
 ):
     """
     Handler to retrieve, process messages and obtain response from Vertex AI endpoint
@@ -43,11 +45,12 @@ async def handle_conversation_response(
         vendor_name = test_merchant
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
-        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID)
+        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID, task_routing_config=task_routing_config)
         return {
             'task': response.get('task', ''),
             'cart': response.get('cart', []),
             'response': response.get('response', ''),
+            'suggested': response.get('suggested', True)
         }
     logger.warning(f"""
         no messages retrieved for userId {user_id}, serviceChannelId {service_channel_id}, vendorId {merchant_id}.

@@ -21,7 +21,7 @@ MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 inference_obj = T5InferenceService('../test_data')
 
 
-async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int, k: int, window: int):
+async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: str, k: int, window: int):
     """
     ToDo: We need to filter out messages based on timedelta. say only < 12 hrs
     Args:
@@ -49,7 +49,7 @@ async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: int
     return docs, data['vendorName']
 
 
-async def get_user_and_service_number(user_id: int, service_channel_id: int, vendor_id: int):
+async def get_user_and_service_number(user_id: int, service_channel_id: int, merchant_id: str):
     """
     retrieve the user phone number and service channel phone number from mysql db
     Returns:
@@ -70,11 +70,11 @@ async def get_user_and_service_number(user_id: int, service_channel_id: int, ven
     WHERE pn.userId = %s AND pn.isPrimary = 1 AND sc.id = %s AND v.id = %s
     """
     with get_mysql_cnx_cursor() as cursor:
-        cursor.execute(query, (user_id, service_channel_id, vendor_id))
+        cursor.execute(query, (user_id, service_channel_id, int(merchant_id)))
         data = cursor.fetchone()
     if not data:
         raise Exception(f"""cannot retrieve user and service phone numbers for
-            userId {user_id}, serviceChannelId {service_channel_id}, and vendorId {vendor_id}
+            userId {user_id}, serviceChannelId {service_channel_id}, and vendorId {merchant_id}
             """)
     logger.debug(f'retrieved user, service numbers and vendor name: {data}')
     return data
@@ -102,7 +102,7 @@ def process_past_k_turns(docs):
     return docs
 
 
-async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, project_id: str, endpoint_id: str):
+async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, project_id: str, endpoint_id: str, task_routing_config: dict = {}):
     """
     call the T5 model service endpoint and generate a response
     ToDo: implement the logic for making multiple calls to the model api here
@@ -118,7 +118,7 @@ async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, p
                 'VERTEX_AI_ENDPOINT',
                 'us-central1-aiplatform.googleapis.com',
             ),
-            instances=[{'data': {'context': t}} for t in text],
+            instances=[{'data': {'context': t}} for t in text]
         )
         return responses
-    return inference_obj.infer(docs, vendor_name, merchant_id, predict_fn)
+    return inference_obj.infer(docs, vendor_name, merchant_id, predict_fn, task_routing_config=task_routing_config)

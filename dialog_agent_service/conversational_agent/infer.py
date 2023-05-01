@@ -4,6 +4,7 @@ import glob
 import json
 import logging
 from collections import namedtuple
+import os
 from typing import List
 from typing import Tuple
 
@@ -14,11 +15,13 @@ from .conversation_parser import Conversation
 from .response import gen_cart_response
 from .response import gen_non_specific_product_response
 from .response import gen_variant_selection_response
-from dialog_agent_service.db import get_merchant
+from dialog_agent_service.db import get_merchant, merchant_semantic_search, product_search, product_semantic_search
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
+from .chatgpt import product_qa, merchant_qa, recommend
 
 max_conversation_chars_task = 600
 max_conversation_chars_cart = 1500
+max_conversation_chars_products = 1000
 logger = logging.getLogger(__name__)
 
 ProductResponseUnion = namedtuple(
@@ -50,25 +53,13 @@ class T5InferenceService:
         with open(f'{data_dir}/task_descriptions.txt') as f:
             logger.info(f'loading task_descriptions.txt from {data_dir}')
             self.task_descriptions = f.read()
-        self.response_prediction_prompt = dict()
-        # TODO: temporary hack to circumvent OOM until we have something better in place
-        for suffix in ['recommend', 'qa']:
-            d = dict()
-            fact_sheets = glob.glob(f'{data_dir}/*/fact_sheet_{suffix}.txt')
-            for fact_sheet in fact_sheets:
-                vendor = fact_sheet.split('/')[2]
-                logger.info(f'loading fact sheets from {fact_sheet}')
-                with open(fact_sheet) as f:
-                    facts = f.read()
-                d[vendor] = f'{vendor} response: {facts}\n'
-            self.response_prediction_prompt[suffix] = d
 
     def predict(self, text):
         input = self.tokenizer(text, padding=True, return_tensors='pt')
         outputs = self.model.generate(**input, max_new_tokens=128)
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    def infer(self, docs, vendor, merchant_id, predict_fn):
+    def infer(self, docs, vendor, merchant_id, predict_fn, task_routing_config: dict = {}):
         """
         :param conversation: Conversation formatted as follows:
         Seller: Are you interested in..
@@ -78,6 +69,14 @@ class T5InferenceService:
         Note that it should always end with Buyer
         :return: dict with different outputs of interest
         """
+
+        TASKS = ['CreateOrUpdateOrderCart', 'AnswerProductQuestions', 'AnswerSellerQuestions', 'RecommendProduct']
+    
+        for t in TASKS:
+            if not task_routing_config.get(t):
+                task_routing_config[t] = {'responseType': 'assisted'}
+
+        merchant_id = str(merchant_id)
         cnv_obj = Conversation(docs)
         if cnv_obj.n_turns == 0:
             logger.error('Infer called with empty conversation. Aborting.')
@@ -95,10 +94,17 @@ class T5InferenceService:
             conversation, '', task_descriptions=self.task_descriptions,
         )
         task = predict_fn(input)[0]
+        logger.info(f"DETECTED TASK:{task}")
+        logger.info(f"TASK ROUTING CONFIG:{task_routing_config}")
         response = ''
         cart = []
         model_predicted_cart = []
         source = 'model'
+        is_suggested = True
+
+        if task_routing_config[task]['responseType'] == 'cx':
+            return {'task': task, 'suggested': False}
+
         if 'CreateOrUpdateOrderCart' in task:
             product_input, _ = create_input_target_cart(conversation, '')
             products = predict_fn(product_input)[0]
@@ -118,7 +124,31 @@ class T5InferenceService:
                 cart, response = resolve_cart(merchant_id, cart, response)
 
         conversation += 'Seller: '
-        if 'AnswerMiscellaneousQuestions' in task:
+        if 'AnswerProductQuestions' in task:
+            product_input, _ = create_input_target_products(conversation, "")
+            products = predict_fn(product_input)[0]
+            logger.info(f"PRODUCT FUZZY-WUZZY SEARCH: {products}")
+            context = ""
+            for product in products.split(","):
+                product_results = product_semantic_search(merchant_id, product)[
+                    'productVariantSemanticSearch'][0:1]  # first result only
+                logger.info(
+                    f"PRODUCT:{product}: SEMANTIC SEARCH RESULTS: {product_results}")
+                for pr in product_results:
+                    context += format_product_result(pr)
+                    context += "\n"
+
+            logger.info(f"CONTEXT:{context}")
+
+            conversation += "Seller: "
+            llm_response = product_qa(cnv_obj, context, vendor)
+
+            logger.info(f"LLM RESPONSE: {llm_response}")
+
+            # TODO - check llm_response
+            response += llm_response
+
+        if 'AnswerSellerQuestions' in task:
             # First check FAQ: we give precedence to it
             answer, score = None, 0.0
             try:
@@ -132,19 +162,29 @@ class T5InferenceService:
                 logger.info('found answer through ES!')
                 response += answer
                 source = 'faq'
-            elif vendor in self.response_prediction_prompt['qa']:
-                logger.info('resort to T5 for answer!')
-                qa_prompt = "You are the seller. Using only the data above, answer the buyer question below. If you are not very sure of your answer, just say you don't know.\n"
-                response += predict_fn(
-                    self.response_prediction_prompt['qa'][vendor] +
-                    qa_prompt + conversation[-MAX_CONVERSATION_CHARS:],
-                )[0]
-        if 'RecommendProduct' in task and vendor in self.response_prediction_prompt['recommend']:
-            recommend_prompt = "You are the seller. Using only the data above, help the buyer below find a product. You can ask for more information if you don't have sufficient information to make a recommendation.\n"
-            response += predict_fn(
-                self.response_prediction_prompt['recommend'][vendor] +
-                recommend_prompt + conversation[-MAX_CONVERSATION_CHARS:],
-            )[0]
+            else:
+                merchant_data = merchant_semantic_search(
+                    merchant_id, last_turn.formatted_text)
+                response += merchant_qa(cnv_obj, merchant_data, vendor)
+        if 'RecommendProduct' in task:
+            product_query = last_turn.formatted_text
+            product_results = product_semantic_search(merchant_id, product_query)[
+                'productVariantSemanticSearch'][0:3]  # TODO: first 3 only
+            logger.info(
+                f"QUERY:{product_query}: SEMANTIC SEARCH RESULTS: {product_results}")
+
+            context = ""
+            for pr in product_results:
+                context += format_product_result(pr)
+                context += '\n'
+
+            logger.info(f"CONTEXT:{context}")
+
+            llm_response = recommend(cnv_obj, context, vendor)
+            logger.info(f"LLM RESPONSE: {llm_response}")
+
+            # TODO - check llm_response
+            response += llm_response
 
         ret_dict = {
             'task': task,
@@ -152,6 +192,7 @@ class T5InferenceService:
             'model_predicted_cart': model_predicted_cart,
             'response': response,
             'source': source,
+            'suggested': task_routing_config[task]['responseType'] == 'assisted'
         }
         if not ret_dict['response']:
             del ret_dict['response']
@@ -159,6 +200,16 @@ class T5InferenceService:
             del ret_dict['cart']
         logger.debug(f'Returning json object: {ret_dict}')
         return ret_dict
+
+
+def format_product_result(pr):
+    output = ""
+    display_name = pr.get("product", {}).get("name") + " - " + pr.get("name")
+    desc = pr.get("description")
+    output += f"product name is {display_name},"
+    output += f"product description is {desc}"
+
+    return output
 
 
 def create_input_target_task(conversation, target_str, **kwargs):
@@ -194,7 +245,18 @@ How many {product} does the buyer want?
     return inputs, targets
 
 
-def resolve_cart(merchant_id: int, cart: list[tuple[str, int]], response: str):
+def create_input_target_products(conversation, target_str, **kwargs):
+    return [
+        f"""
+        products the question is about:
+        The below is an interaction between buyer and seller at the end of which buyer has a question about some products.
+        {conversation[-max_conversation_chars_products:]}
+        Write a comma separated list of products that the buyer has question(s) on.
+        """
+    ], [target_str]
+
+
+def resolve_cart(merchant_id: str, cart: list[tuple[str, int]], response: str):
     resolved_cart = []
     for product, qty in cart:
         products, product_response = match_product_variant(
@@ -205,13 +267,13 @@ def resolve_cart(merchant_id: int, cart: list[tuple[str, int]], response: str):
         if product_response:
             response = '\n' + product_response
     # TODO: Cart summary will be enabled only after backednd integration
-    # response = gen_cart_response(
-    #     resolved_cart,
-    # ) + '\n' + response
+    response = gen_cart_response(
+        resolved_cart,
+    ) + '\n' + response
     return [(name, qty) for (name, _, qty) in resolved_cart], response
 
 
-def match_product_variant(merchant_id: int, product_name: str) -> ProductResponseUnion:
+def match_product_variant(merchant_id: str, product_name: str) -> ProductResponseUnion:
     merchant_id = str(merchant_id)  # type: ignore
     product_matches = process.extract(
         product_name, VARIANTS_OBJ[merchant_id].keys(), scorer=fuzz.token_set_ratio,
