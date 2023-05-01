@@ -72,7 +72,7 @@ async def get_df_response(req: dict, user_contexts: dict):
     return None
 
 
-def parse_df_response(df_response: dict | None, vendor_id: int) -> dict:
+def parse_df_response(df_response: dict | None, vendor_id: str) -> dict:
     if not df_response:
         response = DASResponse(
             vendorId=vendor_id,
