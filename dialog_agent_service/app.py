@@ -121,7 +121,6 @@ def logout():
     return flask.redirect(flask.url_for('index'))
 
 
-@login_required
 @app.route('/conversation_response', methods=['POST'])
 async def conversation_response():
     req = request.get_json(force=True)
@@ -136,7 +135,7 @@ async def conversation_response():
         raise Exception('missing serviceChannelId')
     service_channel_id = int(req.get('serviceChannelId'))
     # parameter optional for now
-    task_routing_config = req.get_json('taskRoutingConfiguration')
+    task_routing_config = req.get('taskRoutingConfiguration')
     # add the metadata to logs
     formatter.extras = {
         'userId': req.get('userId'),
