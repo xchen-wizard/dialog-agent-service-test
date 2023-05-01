@@ -135,7 +135,7 @@ async def conversation_response():
         raise Exception('missing serviceChannelId')
     service_channel_id = int(req.get('serviceChannelId'))
     # parameter optional for now
-    task_routing_config = req.get('taskRoutingConfig')
+    task_routing_config = req.get('taskRoutingConfig', {})
     # add the metadata to logs
     formatter.extras = {
         'userId': req.get('userId'),

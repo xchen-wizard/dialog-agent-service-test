@@ -70,6 +70,12 @@ class T5InferenceService:
         :return: dict with different outputs of interest
         """
 
+        TASKS = ['CreateOrUpdateOrderCart', 'AnswerProductQuestions', 'AnswerSellerQuestions', 'RecommendProduct']
+    
+        for t in TASKS:
+            if not task_routing_config.get(t):
+                task_routing_config[t] = {'responseType': 'assisted'}
+
         merchant_id = str(merchant_id)
         cnv_obj = Conversation(docs)
         if cnv_obj.n_turns == 0:
@@ -88,18 +94,18 @@ class T5InferenceService:
             conversation, '', task_descriptions=self.task_descriptions,
         )
         task = predict_fn(input)[0]
+        logger.info(f"DETECTED TASK:{task}")
+        logger.info(f"TASK ROUTING CONFIG:{task_routing_config}")
         response = ''
         cart = []
         model_predicted_cart = []
         source = 'model'
         is_suggested = True
+
+        if task_routing_config[task]['responseType'] == 'cx':
+            return {'task': task, 'suggested': False}
+
         if 'CreateOrUpdateOrderCart' in task:
-            if 'CreateAndUpdateCart' not in task_routing_config:
-                task_routing_config['CreateAndUpdateCart'] = 'assisted'
-            if task_routing_config['CreateAndUpdateCart'] == 'cx':
-                return {'task': task, 'suggested': False}
-            if task_routing_config['CreateAndUpdateCart'] == 'automated':
-                is_suggested = False
             product_input, _ = create_input_target_cart(conversation, '')
             products = predict_fn(product_input)[0]
             if products != 'None':
@@ -119,12 +125,6 @@ class T5InferenceService:
 
         conversation += 'Seller: '
         if 'AnswerProductQuestions' in task:
-            if 'AnswerProductQuestion' not in task_routing_config:
-                task_routing_config['AnswerProductQuestion'] = 'assisted'
-            if task_routing_config['AnswerProductQuestion'] == 'cx':
-                return {'task': task, 'suggested': False}
-            if task_routing_config['AnswerProductQuestion'] == 'automated':
-                is_suggested = False
             product_input, _ = create_input_target_products(conversation, "")
             products = predict_fn(product_input)[0]
             logger.info(f"PRODUCT FUZZY-WUZZY SEARCH: {products}")
@@ -149,12 +149,6 @@ class T5InferenceService:
             response += llm_response
 
         if 'AnswerSellerQuestions' in task:
-            if 'AnswerSellerQuestion' not in task_routing_config:
-                task_routing_config['AnswerSellerQuestion'] = 'assisted'
-            if task_routing_config['AnswerSellerQuestion'] == 'cx':
-                return {'task': task, 'suggested': False}
-            if task_routing_config['AnswerSellerQuestion'] == 'automated':
-                is_suggested = False
             # First check FAQ: we give precedence to it
             answer, score = None, 0.0
             try:
@@ -173,12 +167,6 @@ class T5InferenceService:
                     merchant_id, last_turn.formatted_text)
                 response += merchant_qa(cnv_obj, merchant_data, vendor)
         if 'RecommendProduct' in task:
-            if 'AnswerProductQuestion' not in task_routing_config:
-                task_routing_config['AnswerProductQuestion'] = 'assisted'
-            if task_routing_config['AnswerProductQuestion'] == 'cx':
-                return {'task': task, 'suggested': False}
-            if task_routing_config['AnswerProductQuestion'] == 'automated':
-                is_suggested = False
             product_query = last_turn.formatted_text
             product_results = product_semantic_search(merchant_id, product_query)[
                 'productVariantSemanticSearch'][0:3]  # TODO: first 3 only
@@ -188,12 +176,11 @@ class T5InferenceService:
             context = ""
             for pr in product_results:
                 context += format_product_result(pr)
-                context += "\n"
+                context += '\n'
 
             logger.info(f"CONTEXT:{context}")
 
             llm_response = recommend(cnv_obj, context, vendor)
-
             logger.info(f"LLM RESPONSE: {llm_response}")
 
             # TODO - check llm_response
@@ -205,7 +192,7 @@ class T5InferenceService:
             'model_predicted_cart': model_predicted_cart,
             'response': response,
             'source': source,
-            'suggested': is_suggested
+            'suggested': task_routing_config[task]['responseType'] == 'assisted'
         }
         if not ret_dict['response']:
             del ret_dict['response']
