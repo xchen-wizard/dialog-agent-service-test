@@ -1,8 +1,10 @@
+import os
 import openai
 from .conversation_parser import Conversation, Turn
 
 model = "gpt-3.5-turbo"
 
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 def turn_to_chatgpt_format(turn: Turn):
     return {

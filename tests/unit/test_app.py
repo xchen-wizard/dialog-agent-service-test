@@ -59,7 +59,7 @@ async def test_handle_conversation_response(mocker: MockerFixture):
         'dialog_agent_service.conversational_agent.conversation.run_inference',
         return_value={
             'response': 'test response',
-            'responseType': 'suggestion',
+            'responseType': 'assisted',
         },
     )
     response = await handle_conversation_response(

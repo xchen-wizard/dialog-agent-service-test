@@ -14,14 +14,14 @@ PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
 
 
 class ResponseType(Enum):
-    AI = 'ai'
     CX = 'cx'
-    BOT = 'bot'
+    ASSISTED = 'assisted'
+    AUTOMATED = 'automated'
 
 
 async def handle_conversation_response(
     merchant_id: int, user_id: int, service_channel_id: int,
-    k: int, window: int, test_merchant: str,
+    k: int, window: int, test_merchant: str, task_routing_config: dict = {}
 ):
     """
     Handler to retrieve, process messages and obtain response from Vertex AI endpoint
@@ -45,7 +45,7 @@ async def handle_conversation_response(
         vendor_name = test_merchant
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
-        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID)
+        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID, task_routing_config=task_routing_config)
         return {
             'task': response.get('task', ''),
             'cart': response.get('cart', []),
