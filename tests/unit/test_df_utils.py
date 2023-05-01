@@ -116,7 +116,7 @@ def test_parse_df_response_none():
     response = parse_df_response(None, vendor_id='3')
     logger.info(response)
     expected_response = {
-        'vendorId': 3, 'templateMessages': [
+        'vendorId': '3', 'templateMessages': [
             {'templateTypeId': 'autoresponder', 'templateVariables': {}},
         ], 'message': 'template', 'autoResponse': False,
     }
@@ -131,7 +131,7 @@ def test_parse_df_response(df_response_webhook_success):
     )
     logger.info(response)
     expected_response = {
-        'vendorId': 1, 'templateMessages': [{
+        'vendorId': '1', 'templateMessages': [{
             'templateTypeId': 'autoresponder', 'templateVariables': {
             },
         }], 'message': 'Thank you for your text! Someone from our support team will be with you shortly.', 'autoResponse': False,
