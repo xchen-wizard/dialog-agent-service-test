@@ -186,13 +186,16 @@ class T5InferenceService:
             # TODO - check llm_response
             response += llm_response
 
+        primary_task = task.split(",")[0]
+        logger.info(f"PRIMARY TASK:{primary_task}")
+        is_suggested = task_routing_config[primary_task]['responseType'] == 'assisted'
         ret_dict = {
             'task': task,
             'cart': cart,
             'model_predicted_cart': model_predicted_cart,
             'response': response,
             'source': source,
-            'suggested': task_routing_config[task]['responseType'] == 'assisted'
+            'suggested': is_suggested
         }
         if not ret_dict['response']:
             del ret_dict['response']
