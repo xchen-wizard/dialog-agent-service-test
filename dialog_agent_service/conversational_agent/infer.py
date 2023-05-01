@@ -269,7 +269,7 @@ def create_input_target_products(conversation, target_str, **kwargs):
     ], [target_str]
 
 
-def resolve_cart(merchant_id: int, cart: list[tuple[str, int]], response: str):
+def resolve_cart(merchant_id: str, cart: list[tuple[str, int]], response: str):
     resolved_cart = []
     for product, qty in cart:
         products, product_response = match_product_variant(
@@ -286,7 +286,7 @@ def resolve_cart(merchant_id: int, cart: list[tuple[str, int]], response: str):
     return [(name, qty) for (name, _, qty) in resolved_cart], response
 
 
-def match_product_variant(merchant_id: int, product_name: str) -> ProductResponseUnion:
+def match_product_variant(merchant_id: str, product_name: str) -> ProductResponseUnion:
     merchant_id = str(merchant_id)  # type: ignore
     product_matches = process.extract(
         product_name, VARIANTS_OBJ[merchant_id].keys(), scorer=fuzz.token_set_ratio,

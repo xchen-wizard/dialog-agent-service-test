@@ -113,7 +113,7 @@ async def get_campaign_variant_type(campaign_id: int) -> int | None:
     return data.get('campaignFlowType')
 
 
-def get_merchant(merchant_id: int):
+def get_merchant(merchant_id: str):
     query = """
   SELECT
     id,
@@ -124,7 +124,7 @@ def get_merchant(merchant_id: int):
   """
 
     with get_mysql_cnx_cursor() as cursor:
-        cursor.execute(query, [merchant_id])
+        cursor.execute(query, [int(merchant_id)])
         data = cursor.fetchone()
 
     return {'id': data.get('id'), 'name': data.get('name'), 'site_id': data.get('siteId')}
