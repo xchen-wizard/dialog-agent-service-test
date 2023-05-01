@@ -18,7 +18,7 @@ from dialog_agent_service.db import mongo_db
 
 logger = logging.getLogger(__name__)
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
-inference_obj = T5InferenceService(os.getcwd() + '/test_data')
+inference_obj = T5InferenceService('../test_data')
 
 
 async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: str, k: int, window: int):

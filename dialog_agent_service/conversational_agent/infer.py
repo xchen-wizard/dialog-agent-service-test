@@ -31,7 +31,7 @@ FUZZY_MATCH_THRESHOLD = 85
 MAX_CONVERSATION_CHARS = 600
 FAQ_THRESHOLD = 1.6
 # ToDo: not ideal, replace later
-with open(os.getcwd() + '/test_data/products_variants_prices.json') as f:
+with open('../test_data/products_variants_prices.json') as f:
     VARIANTS_OBJ = json.load(f)
     logger.info('loaded product variants and prices!')
 
