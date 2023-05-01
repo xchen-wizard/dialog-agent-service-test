@@ -266,7 +266,7 @@ def df_response_webhook_success():
                 },
             }],
             'webhook_payload': {
-                'vendorId': 6.0,
+                'vendorId': '6.0',
                 'autoResponse': False,
                 'templateMessages': [{'templateTypeId': 'autoresponder'}],
             },
