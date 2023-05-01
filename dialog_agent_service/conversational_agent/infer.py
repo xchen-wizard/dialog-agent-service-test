@@ -95,10 +95,10 @@ class T5InferenceService:
         is_suggested = True
         if 'CreateOrUpdateOrderCart' in task:
             if 'CreateAndUpdateCart' not in task_routing_config:
-                task_routing_config['CreateAandUpdateCart'] = 'assisted'
-            if task_routing_config['CreateAandUpdateCart'] == 'cx':
+                task_routing_config['CreateAndUpdateCart'] = 'assisted'
+            if task_routing_config['CreateAndUpdateCart'] == 'cx':
                 return {'task': task, 'suggested': False}
-            if task_routing_config['CreateAandUpdateCart'] == 'automated':
+            if task_routing_config['CreateAndUpdateCart'] == 'automated':
                 is_suggested = False
             product_input, _ = create_input_target_cart(conversation, '')
             products = predict_fn(product_input)[0]
@@ -149,11 +149,11 @@ class T5InferenceService:
             response += llm_response
 
         if 'AnswerSellerQuestions' in task:
-            if 'AnswerMiscQuestion' not in task_routing_config:
-                task_routing_config['AnswerMiscQuestion'] = 'assisted'
-            if task_routing_config['AnswerMiscQuestion'] == 'cx':
+            if 'AnswerSellerQuestion' not in task_routing_config:
+                task_routing_config['AnswerSellerQuestion'] = 'assisted'
+            if task_routing_config['AnswerSellerQuestion'] == 'cx':
                 return {'task': task, 'suggested': False}
-            if task_routing_config['AnswerMiscQuestion'] == 'automated':
+            if task_routing_config['AnswerSellerQuestion'] == 'automated':
                 is_suggested = False
             # First check FAQ: we give precedence to it
             answer, score = None, 0.0
