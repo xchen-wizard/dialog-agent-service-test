@@ -127,7 +127,7 @@ logger = logging.getLogger()
 #     response = parse_df_response(
 #         MessageToDict(
 #             df_response_webhook_success._pb, preserving_proto_field_name=True,
-#         ), vendor_id=1,
+#         ), vendor_id='1',
 #     )
 #     logger.info(response)
 #     expected_response = {
