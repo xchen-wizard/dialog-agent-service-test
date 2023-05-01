@@ -4,6 +4,7 @@ import glob
 import json
 import logging
 from collections import namedtuple
+import os
 from typing import List
 from typing import Tuple
 
@@ -148,6 +149,12 @@ class T5InferenceService:
             response += llm_response
 
         if 'AnswerSellerQuestions' in task:
+            if 'AnswerMiscQuestion' not in task_routing_config:
+                task_routing_config['AnswerMiscQuestion'] = 'assisted'
+            if task_routing_config['AnswerMiscQuestion'] == 'cx':
+                return {'task': task, 'suggested': False}
+            if task_routing_config['AnswerMiscQuestion'] == 'automated':
+                is_suggested = False
             # First check FAQ: we give precedence to it
             answer, score = None, 0.0
             try:
