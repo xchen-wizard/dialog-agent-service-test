@@ -50,6 +50,7 @@ async def handle_conversation_response(
             'task': response.get('task', ''),
             'cart': response.get('cart', []),
             'response': response.get('response', ''),
+            'suggested': response.get('suggested', True)
         }
     logger.warning(f"""
         no messages retrieved for userId {user_id}, serviceChannelId {service_channel_id}, vendorId {merchant_id}.
