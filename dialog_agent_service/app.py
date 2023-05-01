@@ -136,9 +136,7 @@ async def conversation_response():
         raise Exception('missing serviceChannelId')
     service_channel_id = int(req.get('serviceChannelId'))
     # parameter optional for now
-    task_routing_config = req.get('taskRoutingConfig')
-    if task_routing_config == ResponseType('cx'):
-        return {}
+    task_routing_config = req.get_json('taskRoutingConfiguration')
     # add the metadata to logs
     formatter.extras = {
         'userId': req.get('userId'),
@@ -152,6 +150,7 @@ async def conversation_response():
         k=int(req.get('k', 5)),
         window=int(req.get('window', 12)),
         test_merchant=req.get('testMerchant', ''),
+        task_routing_config=task_routing_config
     )
     logger.debug(f'response: {response}')
     return make_response(jsonify(response))

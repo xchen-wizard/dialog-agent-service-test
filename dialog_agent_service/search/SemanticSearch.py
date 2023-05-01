@@ -22,36 +22,36 @@ class SemanticSearch:
     def __init__(self, dimensions=768, is_demo=False):
         self.dimensions = dimensions
 
-        # try:
-        #     if is_demo:
-        #         self.client = Elasticsearch(
-        #             cloud_id=os.environ.get('ES_DEMO_CLOUD_ID'),
-        #             basic_auth=(
-        #                 os.environ.get('ES_DEMO_USER'),
-        #                 os.environ.get('ES_DEMO_PASSWORD'),
-        #             ),
-        #         )
-        #     elif os.environ.get('ES_CLOUD_ID'):
-        #         self.client = Elasticsearch(
-        #             cloud_id=os.environ.get('ES_CLOUD_ID'),
-        #             basic_auth=(
-        #                 os.environ.get('ES_USER'),
-        #                 os.environ.get('ES_PASSWORD'),
-        #             ),
-        #         )
-        #     else:
-        #         self.client = Elasticsearch(
-        #             os.environ.get('ES_URL'),
-        #             basic_auth=(
-        #                 os.environ.get('ES_USER'),
-        #                 os.environ.get('ES_PASSWORD'),
-        #             ),
-        #         )
-        # except Exception as e:
-        #     logger.error(
-        #         f'Running into error while initializing ES instances: {e}',
-        #     )
-        #     self.client = None
+        try:
+            if is_demo:
+                self.client = Elasticsearch(
+                    cloud_id=os.environ.get('ES_DEMO_CLOUD_ID'),
+                    basic_auth=(
+                        os.environ.get('ES_DEMO_USER'),
+                        os.environ.get('ES_DEMO_PASSWORD'),
+                    ),
+                )
+            elif os.environ.get('ES_CLOUD_ID'):
+                self.client = Elasticsearch(
+                    cloud_id=os.environ.get('ES_CLOUD_ID'),
+                    basic_auth=(
+                        os.environ.get('ES_USER'),
+                        os.environ.get('ES_PASSWORD'),
+                    ),
+                )
+            else:
+                self.client = Elasticsearch(
+                    os.environ.get('ES_URL'),
+                    basic_auth=(
+                        os.environ.get('ES_USER'),
+                        os.environ.get('ES_PASSWORD'),
+                    ),
+                )
+        except Exception as e:
+            logger.error(
+                f'Running into error while initializing ES instances: {e}',
+            )
+            self.client = None
 
     def index_faqs(self):
         logger.info('starting indexing faqs...')

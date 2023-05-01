@@ -102,7 +102,7 @@ def process_past_k_turns(docs):
     return docs
 
 
-async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, project_id: str, endpoint_id: str):
+async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, project_id: str, endpoint_id: str, task_routing_config: dict = {}):
     """
     call the T5 model service endpoint and generate a response
     ToDo: implement the logic for making multiple calls to the model api here
@@ -118,7 +118,7 @@ async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, p
                 'VERTEX_AI_ENDPOINT',
                 'us-central1-aiplatform.googleapis.com',
             ),
-            instances=[{'data': {'context': t}} for t in text],
+            instances=[{'data': {'context': t}} for t in text]
         )
         return responses
-    return inference_obj.infer(docs, vendor_name, merchant_id, predict_fn)
+    return inference_obj.infer(docs, vendor_name, merchant_id, predict_fn, task_routing_config=task_routing_config)

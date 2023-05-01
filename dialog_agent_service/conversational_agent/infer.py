@@ -58,7 +58,7 @@ class T5InferenceService:
         outputs = self.model.generate(**input, max_new_tokens=128)
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    def infer(self, docs, vendor, merchant_id, predict_fn):
+    def infer(self, docs, vendor, merchant_id, predict_fn, task_routing_config: dict = {}):
         """
         :param conversation: Conversation formatted as follows:
         Seller: Are you interested in..
@@ -91,7 +91,14 @@ class T5InferenceService:
         cart = []
         model_predicted_cart = []
         source = 'model'
+        is_suggested = True
         if 'CreateOrUpdateOrderCart' in task:
+            if 'CreateAndUpdateCart' not in task_routing_config:
+                task_routing_config['CreateAandUpdateCart'] = 'assisted'
+            if task_routing_config['CreateAandUpdateCart'] == 'cx':
+                return {'task': task, 'suggested': False}
+            if task_routing_config['CreateAandUpdateCart'] == 'automated':
+                is_suggested = False
             product_input, _ = create_input_target_cart(conversation, '')
             products = predict_fn(product_input)[0]
             if products != 'None':
@@ -111,25 +118,33 @@ class T5InferenceService:
 
         conversation += 'Seller: '
         if 'AnswerProductQuestions' in task:
+            if 'AnswerProductQuestion' not in task_routing_config:
+                task_routing_config['AnswerProductQuestion'] = 'assisted'
+            if task_routing_config['AnswerProductQuestion'] == 'cx':
+                return {'task': task, 'suggested': False}
+            if task_routing_config['AnswerProductQuestion'] == 'automated':
+                is_suggested = False
             product_input, _ = create_input_target_products(conversation, "")
             products = predict_fn(product_input)[0]
             logger.info(f"PRODUCT FUZZY-WUZZY SEARCH: {products}")
             context = ""
             for product in products.split(","):
-                product_results = product_semantic_search(merchant_id, product)['productVariantSemanticSearch'][0:1] #first result only
-                logger.info(f"PRODUCT:{product}: SEMANTIC SEARCH RESULTS: {product_results}")
+                product_results = product_semantic_search(merchant_id, product)[
+                    'productVariantSemanticSearch'][0:1]  # first result only
+                logger.info(
+                    f"PRODUCT:{product}: SEMANTIC SEARCH RESULTS: {product_results}")
                 for pr in product_results:
-                    context += format_product_result(pr)    
+                    context += format_product_result(pr)
                     context += "\n"
-            
+
             logger.info(f"CONTEXT:{context}")
-            
+
             conversation += "Seller: "
             llm_response = product_qa(cnv_obj, context, vendor)
 
             logger.info(f"LLM RESPONSE: {llm_response}")
 
-            #TODO - check llm_response
+            # TODO - check llm_response
             response += llm_response
 
         if 'AnswerSellerQuestions' in task:
@@ -151,25 +166,31 @@ class T5InferenceService:
                     merchant_id, last_turn.formatted_text)
                 response += merchant_qa(cnv_obj, merchant_data, vendor)
         if 'RecommendProduct' in task:
+            if 'AnswerProductQuestion' not in task_routing_config:
+                task_routing_config['AnswerProductQuestion'] = 'assisted'
+            if task_routing_config['AnswerProductQuestion'] == 'cx':
+                return {'task': task, 'suggested': False}
+            if task_routing_config['AnswerProductQuestion'] == 'automated':
+                is_suggested = False
             product_query = last_turn.formatted_text
-            product_results = product_semantic_search(merchant_id, product_query)['productVariantSemanticSearch'][0:3] #TODO: first 3 only
-            logger.info(f"QUERY:{product_query}: SEMANTIC SEARCH RESULTS: {product_results}")
-                      
+            product_results = product_semantic_search(merchant_id, product_query)[
+                'productVariantSemanticSearch'][0:3]  # TODO: first 3 only
+            logger.info(
+                f"QUERY:{product_query}: SEMANTIC SEARCH RESULTS: {product_results}")
+
             context = ""
             for pr in product_results:
-                context += format_product_result(pr)    
+                context += format_product_result(pr)
                 context += "\n"
-            
+
             logger.info(f"CONTEXT:{context}")
-            
+
             llm_response = recommend(cnv_obj, context, vendor)
 
             logger.info(f"LLM RESPONSE: {llm_response}")
-            
-            #TODO - check llm_response
+
+            # TODO - check llm_response
             response += llm_response
-
-
 
         ret_dict = {
             'task': task,
@@ -177,6 +198,7 @@ class T5InferenceService:
             'model_predicted_cart': model_predicted_cart,
             'response': response,
             'source': source,
+            'suggested': is_suggested
         }
         if not ret_dict['response']:
             del ret_dict['response']
@@ -184,7 +206,6 @@ class T5InferenceService:
             del ret_dict['cart']
         logger.debug(f'Returning json object: {ret_dict}')
         return ret_dict
-
 
 
 def format_product_result(pr):
@@ -195,6 +216,7 @@ def format_product_result(pr):
     output += f"product description is {desc}"
 
     return output
+
 
 def create_input_target_task(conversation, target_str, **kwargs):
     return [f"""
