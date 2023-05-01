@@ -113,7 +113,7 @@ async def test_get_df_response_welcome(
 
 
 def test_parse_df_response_none():
-    response = parse_df_response(None, vendor_id=3)
+    response = parse_df_response(None, vendor_id='3')
     logger.info(response)
     expected_response = {
         'vendorId': 3, 'templateMessages': [
