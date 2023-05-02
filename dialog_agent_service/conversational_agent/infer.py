@@ -5,6 +5,7 @@ import json
 import logging
 from collections import namedtuple
 import os
+import re
 from typing import List
 from typing import Tuple
 
@@ -30,6 +31,8 @@ ProductResponseUnion = namedtuple(
 FUZZY_MATCH_THRESHOLD = 85
 MAX_CONVERSATION_CHARS = 600
 FAQ_THRESHOLD = 1.6
+HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI'
+
 # ToDo: not ideal, replace later
 with open('../test_data/products_variants_prices.json') as f:
     VARIANTS_OBJ = json.load(f)
@@ -70,7 +73,7 @@ class T5InferenceService:
         :return: dict with different outputs of interest
         """
 
-        TASKS = ['CreateOrUpdateOrderCart', 'AnswerProductQuestions', 'AnswerSellerQuestions', 'RecommendProduct']
+        TASKS = ['CreateOrUpdateOrderCart', 'AnswerProductQuestions', 'AnswerSellerQuestions', 'RecommendProduct', 'Unknown']
     
         for t in TASKS:
             if not task_routing_config.get(t):
@@ -103,7 +106,7 @@ class T5InferenceService:
         is_suggested = True
 
         if task_routing_config[task]['responseType'] == 'cx':
-            return {'task': task, 'suggested': False}
+            return {'task': task, 'suggested': True, 'response': None}
 
         if 'CreateOrUpdateOrderCart' in task:
             product_input, _ = create_input_target_cart(conversation, '')
@@ -144,8 +147,10 @@ class T5InferenceService:
             llm_response = product_qa(cnv_obj, context, vendor)
 
             logger.info(f"LLM Response: {llm_response}")
+            if re.search(HANDOFF_TO_CX, llm_response):
+                logger.info("Handing off to CX")
+                return {'task': task, 'suggested': True, 'response': None}
 
-            # TODO - check llm_response
             response += llm_response
 
         if 'AnswerSellerQuestions' in task:
@@ -178,8 +183,10 @@ class T5InferenceService:
             
             llm_response = merchant_qa(cnv_obj, context, vendor)
             logger.info(f"LLM Response: {llm_response}")
+            if re.search(HANDOFF_TO_CX, llm_response):
+                logger.info("Handing off to CX")
+                return {'task': task, 'suggested': True, 'response': None}
 
-            # TODO - check llm_response
             response += llm_response
 
         if 'RecommendProduct' in task:
@@ -198,9 +205,15 @@ class T5InferenceService:
 
             llm_response = recommend(cnv_obj, context, vendor)
             logger.info(f"LLM Response: {llm_response}")
+            if re.search(HANDOFF_TO_CX, llm_response):
+                logger.info("Handing off to CX")
+                return {'task': task, 'suggested': True, 'response': None}
 
-            # TODO - check llm_response
             response += llm_response
+
+        if 'Unknown' in task:
+            logger.info("Handing off to CX")
+            return {'task': task, 'suggested': True, 'response': None}    
 
         primary_task = task.split(",")[0]
         logger.info(f"Primary Task:{primary_task}")
