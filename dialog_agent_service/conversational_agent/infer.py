@@ -320,6 +320,13 @@ def match_product_variant(merchant_id: str, product_name: str) -> ProductRespons
             ),
         )
     else:
+        high_score_matches = [
+            tup[0]
+            for tup in process.extract(product_name, significant_matches, scorer=fuzz.token_sort_ratio)
+            if tup[1] > 95
+        ]
+        if high_score_matches:
+            significant_matches = high_score_matches
         products = []
         response = ''
         for product_match in significant_matches:
