@@ -94,8 +94,8 @@ class T5InferenceService:
             conversation, '', task_descriptions=self.task_descriptions,
         )
         task = predict_fn(input)[0]
-        logger.info(f"DETECTED TASK:{task}")
-        logger.info(f"TASK ROUTING CONFIG:{task_routing_config}")
+        logger.info(f"Task Detected:{task}")
+        logger.info(f"Task Routing Config:{task_routing_config}")
         response = ''
         cart = []
         model_predicted_cart = []
@@ -138,56 +138,72 @@ class T5InferenceService:
                     context += format_product_result(pr)
                     context += "\n"
 
-            logger.info(f"CONTEXT:{context}")
+            logger.info(f"Prompt Context:{context}")
 
             conversation += "Seller: "
             llm_response = product_qa(cnv_obj, context, vendor)
 
-            logger.info(f"LLM RESPONSE: {llm_response}")
+            logger.info(f"LLM Response: {llm_response}")
 
             # TODO - check llm_response
             response += llm_response
 
         if 'AnswerSellerQuestions' in task:
             # First check FAQ: we give precedence to it
-            answer, score = None, 0.0
-            try:
-                merchant_site_id = get_merchant(merchant_id)['site_id']
-                answer, score = semantic_search_obj.faq_search(
-                    merchant_site_id, last_turn.formatted_text,
-                )
-            except Exception as e:
-                logger.error(f'Error querying ES: {e}')
-            if answer and score > FAQ_THRESHOLD:
-                logger.info('found answer through ES!')
-                response += answer
-                source = 'faq'
-            else:
-                merchant_data = merchant_semantic_search(
-                    merchant_id, last_turn.formatted_text)
-                response += merchant_qa(cnv_obj, merchant_data, vendor)
+            # TODO: Disable FAQs for now, convert to policies
+            # answer, score = None, 0.0
+            # try:
+            #     merchant_site_id = get_merchant(merchant_id)['site_id']
+            #     answer, score = semantic_search_obj.faq_search(
+            #         merchant_site_id, last_turn.formatted_text,
+            #     )
+            # except Exception as e:
+            #     logger.error(f'Error querying ES: {e}')
+            # if answer and score > FAQ_THRESHOLD:
+            #     logger.info('FAQ DETECTED')
+            #     response += answer
+            #     source = 'faq'
+            # else:
+            merchant_query = last_turn.formatted_text
+            merchant_results = merchant_semantic_search(merchant_id, merchant_query)[
+                'merchantSemanticSearch'][0:10] #TODO - first 10 only
+            logger.info(f"Query: {merchant_query}, merchantSemanticSearch results: {merchant_results}")
+            
+            context = ""
+            for mr in merchant_results:
+                context += format_merchant_results(mr)
+                context += '\n'
+
+            logger.info(f"Prompt Context:{context}")
+            
+            llm_response = merchant_qa(cnv_obj, context, vendor)
+            logger.info(f"LLM Response: {llm_response}")
+
+            # TODO - check llm_response
+            response += llm_response
+
         if 'RecommendProduct' in task:
             product_query = last_turn.formatted_text
             product_results = product_semantic_search(merchant_id, product_query)[
                 'productVariantSemanticSearch'][0:3]  # TODO: first 3 only
             logger.info(
-                f"QUERY:{product_query}: SEMANTIC SEARCH RESULTS: {product_results}")
+                f"Query:{product_query}, productSemanticSearch results: {product_results}")
 
             context = ""
             for pr in product_results:
                 context += format_product_result(pr)
                 context += '\n'
 
-            logger.info(f"CONTEXT:{context}")
+            logger.info(f"Prompt Context:{context}")
 
             llm_response = recommend(cnv_obj, context, vendor)
-            logger.info(f"LLM RESPONSE: {llm_response}")
+            logger.info(f"LLM Response: {llm_response}")
 
             # TODO - check llm_response
             response += llm_response
 
         primary_task = task.split(",")[0]
-        logger.info(f"PRIMARY TASK:{primary_task}")
+        logger.info(f"Primary Task:{primary_task}")
         is_suggested = task_routing_config[primary_task]['responseType'] == 'assisted'
         ret_dict = {
             'task': task,
@@ -211,6 +227,15 @@ def format_product_result(pr):
     desc = pr.get("description")
     output += f"product name is {display_name},"
     output += f"product description is {desc}"
+
+    return output
+
+def format_merchant_results(mr):
+    output = ""
+    policy_type = mr.get("policyType")
+    policy_contents = mr.get("policyContents")
+    output += policy_type + "\n"
+    output += policy_contents + "\n"
 
     return output
 
