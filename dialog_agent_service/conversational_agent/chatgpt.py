@@ -5,6 +5,7 @@ import openai
 from .conversation_parser import Conversation, Turn
 
 MODEL = "gpt-3.5-turbo"
+TEMPERATURE = 0.2
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -29,7 +30,7 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
 def answer_with_prompt(cnv_obj: Conversation, prompt):
     response = openai.ChatCompletion.create(
         model=MODEL,
-        temperature=0.2,
+        temperature=TEMPERATURE,
         messages=[
             {"role": "system", "content": prompt}
         ] + conv_to_chatgpt_format(cnv_obj, 5)
