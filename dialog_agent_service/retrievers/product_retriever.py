@@ -48,7 +48,7 @@ def product_lookup(merchant_id: str, query: str):
         logger.error(f"productVariantLookup failed, no results:{query}")
         return None
 
-    results = results[0:1]  #TODO: too restrictive?
+    results = results[0:10]
     logger.info(f"Query:{query}, productVariantLookup results: {results}")
 
     context = ""
