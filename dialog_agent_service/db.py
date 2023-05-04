@@ -11,10 +11,7 @@ from typing import Any
 
 import mysql
 from bson.objectid import ObjectId
-from gql import Client
-from gql import gql
 
-from dialog_agent_service import init_gql
 from dialog_agent_service import init_mongo_db
 from dialog_agent_service import init_mysql_db
 
@@ -22,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 mysql_pool = init_mysql_db()  # type: ignore
 mongo_db = init_mongo_db()  # type: ignore
-gql_client = init_gql()
-
 
 @contextmanager
 def get_mysql_cnx_cursor():
@@ -281,76 +276,3 @@ def get_all_faqs():
         faqs[faq['siteId']][faq['question']] = faq['answer']
 
     return faqs
-
-
-def product_search(merchant_id: str, product_mention: str):
-    """
-    Args:
-        merchant_id
-        product_mention: the product mention
-    """
-    query_str = gql("""
-        query ProductVariantLookup($merchantId: String!, $query: String!) {
-          productVariantLookup(merchantId: $merchantId, query: $query) {
-            name
-            productId
-          }
-        }
-        """)
-    vars = {
-        'merchantId': merchant_id,
-        'query': product_mention,
-    }
-    resp = gql_client.execute(document=query_str, variable_values=vars)
-    return resp
-
-
-def product_semantic_search(merchant_id: str, product_question: str):
-    """
-    Args:
-        merchant_id
-        product_question: the product question
-    """
-
-    query_str = gql("""
-        query ProductVariantSemanticSearch($merchantId: String!, $query: String!, $limit: Int, $offset: Int, $minSearchScore: Float) {
-          productVariantSemanticSearch(merchantId: $merchantId, query: $query, limit: $limit, offset: $offset, minSearchScore: $minSearchScore) {
-            _id
-            name
-            description
-            product {
-              _id
-              name
-            }
-          }
-        }
-        """)
-    vars = {
-        'merchantId': merchant_id,
-        'query': product_question,
-    }
-    resp = gql_client.execute(document=query_str, variable_values=vars)
-    return resp
-
-
-def merchant_semantic_search(merchant_id: str, merchant_question: str):
-    """
-    Args:
-        merchant_id
-        merchant_question: the merchant question
-    """
-
-    query_str = gql("""
-        query MerchantSemanticSearch($merchantId: String!, $query: String!, $minSearchScore: Float) {
-          merchantSemanticSearch(merchantId: $merchantId, query: $query, minSearchScore: $minSearchScore) {
-            policyContents
-            policyType
-          }
-        }
-        """)
-    vars = {
-        'merchantId': merchant_id,
-        'query': merchant_question,
-    }
-    resp = gql_client.execute(document=query_str, variable_values=vars)
-    return resp
