@@ -130,21 +130,22 @@ class T5InferenceService:
         
         if 'AnswerProductQuestions' in task:
             product_input, _ = create_input_target_products(conversation, "")
-            results = predict_fn(product_input)[0]
-            if not results:
-                logger.error("No product found, handing off:{product_input}")
+            product_mentions = predict_fn(product_input)[0]
+            if not product_mentions:
+                logger.error("No product mention found, handing off:{product_input}")
                 return {'task': task, 'suggested': True, 'response': None}
             
-            logger.info(f"Product fuzzy wuzzy results: {results}")
-            query = results.split(",")[0] #TODO - pick first one
-            context = product_lookup(merchant_id, query)
-            if not context:
-                logger.info("Can't retrieve context, handing off")
-                return {'task': task, 'suggested': True, 'response': None}
-            logger.info(f"Prompt Context:{context}")
+            logger.info(f"Product mentions: {product_mentions}")
+            context = ""
+            for pr in product_mentions.split(","):
+                product_context = product_lookup(merchant_id, pr)
+                if not product_context:
+                    logger.info("Can't retrieve context, handing off")
+                    return {'task': task, 'suggested': True, 'response': None}
+                logger.info(f"Prompt Context:{product_context}")
+                context += product_context + '\n'
 
             llm_response = product_qa(cnv_obj, context, vendor)
-
             logger.info(f"LLM Response: {llm_response}")
             if re.search(HANDOFF_TO_CX, llm_response):
                 logger.info("Handing off to CX")
