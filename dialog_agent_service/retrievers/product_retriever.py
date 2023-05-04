@@ -115,7 +115,10 @@ def product_semantic_search(merchant_id: str, query: str):
 def format_product_result(pr):
     BLACKLIST = ['widget']
     product = pr.get('product')
+    logger.info(f"PRODUCT:{product}")
     metafields = product.get('metafieldEdges', [])
+    if metafields == None:
+        metafields = []
     desc = pr.get('description')
     listing = pr.get('listings')[0] #TODO - first one only for now
     price = listing.get('price')
@@ -125,8 +128,9 @@ def format_product_result(pr):
     output = ""
     output += f"product name is {display_name},"
     output += f"description is {desc}"
-    output += f"price is {price}"
+    output += f"price is {price:.2f}"
 
+    logger.info(f"METAFIELDS:{metafields}")
     for mf in metafields:
         node = mf['node']
         namespace = node.get('namespace')
