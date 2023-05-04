@@ -16,7 +16,9 @@ from .conversation_parser import Conversation
 from .response import gen_cart_response
 from .response import gen_non_specific_product_response
 from .response import gen_variant_selection_response
-from dialog_agent_service.db import get_merchant, merchant_semantic_search, product_search, product_semantic_search
+from dialog_agent_service.db import get_merchant
+from retrievers.product_retriever import product_lookup, product_semantic_search
+from retrievers.merchant_retriever import merchant_semantic_search
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
 from .chatgpt import product_qa, merchant_qa, recommend
 
@@ -31,7 +33,7 @@ ProductResponseUnion = namedtuple(
 FUZZY_MATCH_THRESHOLD = 85
 MAX_CONVERSATION_CHARS = 600
 FAQ_THRESHOLD = 1.6
-HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI'
+HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI|AI language model'
 
 # ToDo: not ideal, replace later
 with open('../test_data/products_variants_prices.json') as f:
@@ -125,25 +127,22 @@ class T5InferenceService:
                             f'Quantity {qty} predicted for product {product} not of the right type. Skipping.',
                         )
                 cart, response = resolve_cart(merchant_id, cart, response)
-
-        conversation += 'Seller: '
+        
         if 'AnswerProductQuestions' in task:
             product_input, _ = create_input_target_products(conversation, "")
-            products = predict_fn(product_input)[0]
-            logger.info(f"PRODUCT FUZZY-WUZZY SEARCH: {products}")
-            context = ""
-            for product in products.split(","):
-                product_results = product_semantic_search(merchant_id, product)[
-                    'productVariantSemanticSearch'][0:1]  # first result only
-                logger.info(
-                    f"PRODUCT:{product}: SEMANTIC SEARCH RESULTS: {product_results}")
-                for pr in product_results:
-                    context += format_product_result(pr)
-                    context += "\n"
-
+            results = predict_fn(product_input)[0]
+            if not results:
+                logger.error("No product found, handing off:{product_input}")
+                return {'task': task, 'suggested': True, 'response': None}
+            
+            logger.info(f"Product fuzzy wuzzy results: {results}")
+            query = results.split(",")[0] #TODO - pick first one
+            context = product_lookup(merchant_id, query)
+            if not context:
+                logger.info("Can't retrieve context, handing off")
+                return {'task': task, 'suggested': True, 'response': None}
             logger.info(f"Prompt Context:{context}")
 
-            conversation += "Seller: "
             llm_response = product_qa(cnv_obj, context, vendor)
 
             logger.info(f"LLM Response: {llm_response}")
@@ -151,34 +150,15 @@ class T5InferenceService:
                 logger.info("Handing off to CX")
                 return {'task': task, 'suggested': True, 'response': None}
 
+            conversation += 'Seller: '
             response += llm_response
 
         if 'AnswerSellerQuestions' in task:
-            # First check FAQ: we give precedence to it
-            # TODO: Disable FAQs for now, convert to policies
-            # answer, score = None, 0.0
-            # try:
-            #     merchant_site_id = get_merchant(merchant_id)['site_id']
-            #     answer, score = semantic_search_obj.faq_search(
-            #         merchant_site_id, last_turn.formatted_text,
-            #     )
-            # except Exception as e:
-            #     logger.error(f'Error querying ES: {e}')
-            # if answer and score > FAQ_THRESHOLD:
-            #     logger.info('FAQ DETECTED')
-            #     response += answer
-            #     source = 'faq'
-            # else:
-            merchant_query = last_turn.formatted_text
-            merchant_results = merchant_semantic_search(merchant_id, merchant_query)[
-                'merchantSemanticSearch'][0:10] #TODO - first 10 only
-            logger.info(f"Query: {merchant_query}, merchantSemanticSearch results: {merchant_results}")
-            
-            context = ""
-            for mr in merchant_results:
-                context += format_merchant_results(mr)
-                context += '\n'
-
+            query = last_turn.formatted_text
+            context = merchant_semantic_search(merchant_id, query)
+            if not context:
+                logger.info("Can't retrieve context, handing off")
+                return {'task': task, 'suggested': True, 'response': None}
             logger.info(f"Prompt Context:{context}")
             
             llm_response = merchant_qa(cnv_obj, context, vendor)
@@ -187,20 +167,14 @@ class T5InferenceService:
                 logger.info("Handing off to CX")
                 return {'task': task, 'suggested': True, 'response': None}
 
+            conversation += 'Seller: '
             response += llm_response
 
         if 'RecommendProduct' in task:
-            product_query = last_turn.formatted_text
-            product_results = product_semantic_search(merchant_id, product_query)[
-                'productVariantSemanticSearch'][0:3]  # TODO: first 3 only
-            logger.info(
-                f"Query:{product_query}, productSemanticSearch results: {product_results}")
-
-            context = ""
-            for pr in product_results:
-                context += format_product_result(pr)
-                context += '\n'
-
+            query = last_turn.formatted_text
+            context = product_semantic_search(merchant_id, query)
+            if not context:
+                logger.info("Can't retrieve context, handing off")
             logger.info(f"Prompt Context:{context}")
 
             llm_response = recommend(cnv_obj, context, vendor)
@@ -209,10 +183,11 @@ class T5InferenceService:
                 logger.info("Handing off to CX")
                 return {'task': task, 'suggested': True, 'response': None}
 
+            conversation += 'Seller: '
             response += llm_response
 
         if 'Unknown' in task:
-            logger.info("Handing off to CX")
+            logger.info("Unknown task, handing off")
             return {'task': task, 'suggested': True, 'response': None}    
 
         primary_task = task.split(",")[0]
@@ -232,26 +207,6 @@ class T5InferenceService:
             del ret_dict['cart']
         logger.debug(f'Returning json object: {ret_dict}')
         return ret_dict
-
-
-def format_product_result(pr):
-    output = ""
-    display_name = pr.get("product", {}).get("name") + " - " + pr.get("name")
-    desc = pr.get("description")
-    output += f"product name is {display_name},"
-    output += f"product description is {desc}"
-
-    return output
-
-def format_merchant_results(mr):
-    output = ""
-    policy_type = mr.get("policyType")
-    policy_contents = mr.get("policyContents")
-    output += policy_type + "\n"
-    output += policy_contents + "\n"
-
-    return output
-
 
 def create_input_target_task(conversation, target_str, **kwargs):
     return [f"""
