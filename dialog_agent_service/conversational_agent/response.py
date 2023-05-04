@@ -1,7 +1,9 @@
 import string
+from textwrap import dedent
+import logging
+logger = logging.getLogger(__name__)
 
 newline = '\n'
-
 
 def gen_non_specific_product_response(product, matches):
     if matches:
@@ -26,10 +28,13 @@ def gen_variant_selection_response(product, variants):
 
 
 def gen_cart_response(cart):
-    return f"""
-    Your current cart has:
-    {newline.join([f'- {name}  ${price} X {qty}' for name, price, qty in cart])}
-    """ if cart else ""
+    cart_display = ""
+    if cart:
+        cart_display = dedent(f"""
+            Your current cart has:
+            {newline.join([f'- {name}: ${price} x {qty}' for name, price, qty in cart])}
+        """).strip("\n")
+    return cart_display
 
 
 def gen_opening_response():
