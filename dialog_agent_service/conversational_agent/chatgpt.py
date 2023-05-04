@@ -35,8 +35,10 @@ def answer_with_prompt(cnv_obj: Conversation, prompt):
 
 def product_qa(cnv_obj: Conversation, data: str, vendor: str):
     prompt = f"""
-    You are a helpful salesperson for {vendor} and are trying to help the user find the right product.
-    Use the given product data below to answer user's question. If the question can't be answered based on the data given, say "HANDOFF TO CX". Limit responses to no more than 50 words.
+    You are a helpful salesperson for {vendor} and are trying to answer questions about products.
+    Use the given Product Data below to answer user's question.
+    If the question can't be answered based on the Context alone, say "HANDOFF TO CX".
+    Limit responses to no more than 50 words.
     Product Data: {data}
     """
     return answer_with_prompt(cnv_obj, prompt)
@@ -45,8 +47,10 @@ def product_qa(cnv_obj: Conversation, data: str, vendor: str):
 def merchant_qa(cnv_obj: Conversation, data: str, vendor: str):
     prompt = f"""
     You are a kind and helpful e-commerce customer support agent that works for {vendor}.
-    Answer the question based on the context below, and if the question can't be answered based on the context, say "HANDOFF TO CX".
-    Limit responses to no more than 50 words. Use the Instruction sections to further refine your response.
+    Answer the question based on the Context below.
+    If the question can't be answered based on the Context alone, say "HANDOFF TO CX".
+    Limit responses to no more than 50 words.
+    Use the provided Instruction sections to further refine your response.
     Context: {data}
     Instructions:
 - if we are responding to an inbound for the first time, start with a greeting like "Hi there!" or "Thanks for your question!" before answering the question. Otherwise if we're in the middle of a conversation answer the question directly.

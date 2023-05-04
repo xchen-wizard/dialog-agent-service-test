@@ -113,6 +113,7 @@ def product_semantic_search(merchant_id: str, query: str):
     return context
 
 def format_product_result(pr):
+    BLACKLIST = ['widget']
     product = pr.get('product')
     metafields = product.get('metafieldEdges', [])
     desc = pr.get('description')
@@ -130,12 +131,13 @@ def format_product_result(pr):
         node = mf['node']
         namespace = node.get('namespace')
         key = node.get('key')
-        value = node.get('value')
-        field = namespace + '.' + key
-        #TODO - filter nodes by retailer whitelist
-        if value and value != "":
-            clean_value = parse_html(value) #TODO - temporary, data eng will do this
-            output += f"{key} is {clean_value}"
+        if key not in BLACKLIST:
+            value = node.get('value')
+            field = namespace + '.' + key
+            #TODO - filter nodes by retailer whitelist
+            if value and value != "":
+                clean_value = parse_html(value) #TODO - temporary, data eng will do this
+                output += f"{key} is {clean_value}"
 
     return output
 
