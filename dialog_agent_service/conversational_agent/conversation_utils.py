@@ -108,16 +108,16 @@ def process_past_k_turns(docs, vendor_id):
             logger.info(f"LAST INBOUND MESSAGE:{last_message}")
             
             #used for testing
-            
             if last_message.get('body') == CLEAR_HISTORY_COMMAND:
                 logger.info("COMMAND:CLEAR_HISTORY, ignoring history")
                 return []
             
-            previous_inbound = docs[-2]
-            if previous_inbound and previous_inbound.get('body') == CLEAR_HISTORY_COMMAND:
-                #only return last message
-                logger.info("History cleared")
-                docs = docs[-1:]
+            if len(docs) > 1:
+                previous_inbound = docs[-2]
+                if previous_inbound.get('body') == CLEAR_HISTORY_COMMAND:
+                    #only return last message
+                    logger.info("History cleared")
+                    docs = docs[-1:]
     
     #TODO - return dict with a subset of keys {k:d[k] for k in l if k in d}
     docs = [(doc.get('direction'), doc.get('body')) for doc in docs]
