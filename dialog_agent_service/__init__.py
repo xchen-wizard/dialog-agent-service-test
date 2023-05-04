@@ -13,13 +13,12 @@ from dotenv import load_dotenv
 from gql import Client
 from gql import gql
 from gql.transport.requests import RequestsHTTPTransport
+from gql.transport.requests import log as requests_logger
 from pythonjsonlogger import jsonlogger
 
-
 load_dotenv(os.getenv('ENV_FILE') or '.env')
-
 logger = logging.getLogger(__name__)
-
+requests_logger.setLevel(logging.WARNING)
 
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def __init__(self, fmt: str, extras: dict = None):
@@ -131,7 +130,7 @@ def get_gql_access_token():
         verify=True,
         retries=3,
     )
-    client = Client(transport=transport, fetch_schema_from_transport=True)
+    client = Client(transport=transport, fetch_schema_from_transport=False)
     query = gql("""
     mutation MerchantUserLogin($input: MerchantUserLoginInput) {
       merchantUserLogin(input: $input) {
