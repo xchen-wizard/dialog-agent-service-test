@@ -104,9 +104,7 @@ def process_past_k_turns(docs, vendor_id):
                 # ToDo: more advanced processing to remove the last n (> 1) auto messages
                 docs = docs[:-1]
         else:
-            #TODO - check if last_message.vendor_id matches current vendor_id, otherwise ignore history
-            logger.info(f"LAST INBOUND MESSAGE:{last_message}")
-            
+            #TODO - check if last_message.vendor_id matches current vendor_id, otherwise ignore history           
             #used for testing
             if last_message.get('body') == CLEAR_HISTORY_COMMAND:
                 logger.info("COMMAND:CLEAR_HISTORY, ignoring history")

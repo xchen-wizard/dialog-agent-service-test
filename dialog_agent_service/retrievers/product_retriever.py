@@ -114,34 +114,34 @@ def product_semantic_search(merchant_id: str, query: str):
 
 def format_product_result(pr):
     BLACKLIST = ['widget']
+    output = ""
+
     product = pr.get('product')
-    logger.info(f"PRODUCT:{product}")
-    metafields = product.get('metafieldEdges', [])
-    if metafields == None:
-        metafields = []
+    display_name = product.get('name') + ' - ' + pr.get('name')
+    output += f"product name is {display_name}, "
+
     desc = pr.get('description')
+    if desc:
+      output += f"description is {desc}, "
+
     listing = pr.get('listings')[0] #TODO - first one only for now
     price = listing.get('price')
+    if price:
+      output += f"price is ${price:.2f}"
 
-    display_name = product.get('name') + ' - ' + pr.get('name')
-
-    output = ""
-    output += f"product name is {display_name},"
-    output += f"description is {desc}"
-    output += f"price is {price:.2f}"
-
-    logger.info(f"METAFIELDS:{metafields}")
-    for mf in metafields:
-        node = mf['node']
-        namespace = node.get('namespace')
-        key = node.get('key')
-        if key not in BLACKLIST:
-            value = node.get('value')
-            field = namespace + '.' + key
-            #TODO - filter nodes by retailer whitelist
-            if value and value != "":
-                clean_value = parse_html(value) #TODO - temporary, data eng will do this
-                output += f"{key} is {clean_value}"
+    metafields = product.get('metafieldEdges', [])
+    if metafields:
+      for mf in metafields:
+          node = mf['node']
+          namespace = node.get('namespace')
+          key = node.get('key')
+          if key not in BLACKLIST:
+              value = node.get('value')
+              field = namespace + '.' + key
+              #TODO - filter nodes by retailer whitelist
+              if value and value != "":
+                  clean_value = parse_html(value) #TODO - temporary, data eng will do this
+                  output += f"{key} is {clean_value}"
 
     return output
 
