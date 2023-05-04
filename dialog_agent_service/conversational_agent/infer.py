@@ -137,8 +137,8 @@ class T5InferenceService:
             
             logger.info(f"Product mentions: {product_mentions}")
             context = ""
-            for pr in product_mentions.split(","):
-                product_context = product_lookup(merchant_id, pr)
+            for product_mention in product_mentions.split(','):
+                product_context = product_lookup(merchant_id, product_mention)
                 if not product_context:
                     logger.info("Can't retrieve context, handing off")
                     return {'task': task, 'suggested': True, 'response': None}
