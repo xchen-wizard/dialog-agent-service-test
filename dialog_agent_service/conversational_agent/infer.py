@@ -384,7 +384,7 @@ def match_product_variant(merchant_id: str, product_name: str) -> ProductRespons
 
 def handoff_response(tasks, task_routing_config, response=None):
     primary_task = tasks.split(',')
-    handoff_message = 'Handing off to an expert'
+    handoff_message = "Thank you for your text! Someone from our support team will be with you shortly. [Reason: can't generate response]"
     logger.info(f"Task: {primary_task}: Can't generate response, handing off")
 
     if task_routing_config[primary_task]['responseType'] == 'automated':
