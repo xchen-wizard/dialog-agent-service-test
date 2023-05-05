@@ -31,8 +31,7 @@ def gen_cart_response(cart):
     cart_display = ""
     if cart:
         cart_display = dedent(f"""
-            Your current cart has:
-            {newline.join([f'- {name}: ${price} x {qty}' for name, price, qty in cart])}
+            Your current cart has:\n{newline.join([f'- {name}: ${price} x {qty}' for name, price, qty in cart])}
         """).strip("\n")
     return cart_display
 

@@ -5,7 +5,6 @@ import json
 import logging
 from collections import namedtuple
 import os
-import re
 from typing import List
 from typing import Tuple
 
@@ -18,6 +17,7 @@ from .conversation_parser import Conversation
 from .response import gen_cart_response
 from .response import gen_non_specific_product_response
 from .response import gen_variant_selection_response
+from .response import gen_opening_response
 from dialog_agent_service.db import get_merchant
 from retrievers.product_retriever import product_lookup, product_semantic_search
 from retrievers.merchant_retriever import merchant_semantic_search
@@ -57,7 +57,7 @@ def custom_sim(s1, s2):
 
 def get_matches(query, string_list, sim_fn, threshold, prefer_exact=False):
     matches = process.extract(query, string_list, scorer=sim_fn)
-    print(f"query: {query}, matches: {matches}")
+    logger.info(f"query: {query}, matches: {matches}")
     exact_matches = [tup[0] for tup in matches if tup[1]==100]
     if exact_matches and len(exact_matches) == 1:
         return exact_matches
@@ -107,7 +107,22 @@ class T5InferenceService:
         :return: dict with different outputs of interest
         """
 
-        TASKS = ['CreateOrUpdateOrderCart', 'AnswerProductQuestions', 'AnswerSellerQuestions', 'RecommendProduct', 'Unknown']
+        TASKS = [
+            'CreateOrUpdateOrderCart', 
+            'FinalizeOrder', 
+            'RecommendProduct',
+            'UpdateAccountDetails',
+            'AnswerQuestionAboutOrder',
+            'AnswerProductQuestions',
+            'AnswerSellerQuestions',
+            'AnswerServiceQuestions',
+            'ResolveOrderIssue',
+            'GiveOrderStatus',
+            'CancelOrder',
+            'ReturnOrder',
+            'None',
+            'Unknown'
+        ]
     
         for t in TASKS:
             if not task_routing_config.get(t):
@@ -130,19 +145,21 @@ class T5InferenceService:
         input, _ = create_input_target_task(
             conversation, '', task_descriptions=self.task_descriptions,
         )
-        task = predict_fn(input)[0]
-        logger.info(f"Task Detected:{task}")
-        logger.info(f"Task Routing Config:{task_routing_config}")
+        tasks = predict_fn(input)[0].split(",")
+        logger.info(f"Tasks Detected:{tasks}")
+        logger.debug(f"Task Routing Config:{task_routing_config}")
         response = ''
         cart = []
         model_predicted_cart = []
         source = 'model'
         is_suggested = True
 
-        if task_routing_config[task]['responseType'] == 'cx':
-            return {'task': task, 'suggested': True, 'response': None}
+        primary_task = tasks[0]
+        logger.info(f"Primary Task:{primary_task}")
+        if task_routing_config[primary_task]['responseType'] == 'cx':
+            return handoff_response(tasks, task_routing_config, response)
 
-        if 'CreateOrUpdateOrderCart' in task:
+        if 'CreateOrUpdateOrderCart' in tasks:
             product_input, _ = create_input_target_cart(conversation, '')
             products = predict_fn(product_input)[0]
             if products != 'None':
@@ -160,74 +177,86 @@ class T5InferenceService:
                         )
                 cart, response = resolve_cart(merchant_id, cart, response)
         
-        if 'AnswerProductQuestions' in task:
+        if 'AnswerProductQuestions' in tasks:
             product_input, _ = create_input_target_products(conversation, "")
             product_mentions = predict_fn(product_input)[0]
             if not product_mentions:
                 logger.error("No product mention found, handing off:{product_input}")
-                return {'task': task, 'suggested': True, 'response': None}
+                return handoff_response(tasks, task_routing_config, response)
             
             logger.info(f"Product mentions: {product_mentions}")
             context = ""
             for product_mention in product_mentions.split(','):
                 product_context = product_lookup(merchant_id, product_mention)
                 if not product_context:
-                    logger.info("Can't retrieve context, handing off")
-                    return {'task': task, 'suggested': True, 'response': None}
-                logger.info(f"Prompt Context:{product_context}")
+                    logger.warn("Can't retrieve context, handing off")
+                    return handoff_response(tasks, task_routing_config, response)
                 context += product_context + '\n'
+            logger.info(f"Prompt Context:{context}")
 
             llm_response = product_qa(cnv_obj, context, vendor)
-            logger.info(f"LLM Response: {llm_response}")
-            if re.search(HANDOFF_TO_CX, llm_response):
-                logger.info("Handing off to CX")
-                return {'task': task, 'suggested': True, 'response': None}
+            if llm_response['handoff']:
+                return handoff_response(tasks, task_routing_config, response)               
+            response += llm_response['response']
 
-            conversation += 'Seller: '
-            response += llm_response
-
-        if 'AnswerSellerQuestions' in task:
+        if 'AnswerSellerQuestions' in tasks:
             query = last_turn.formatted_text
             context = merchant_semantic_search(merchant_id, query)
             if not context:
-                logger.info("Can't retrieve context, handing off")
-                return {'task': task, 'suggested': True, 'response': None}
+                logger.warn("Can't retrieve context, handing off")
+                return handoff_response(tasks, task_routing_config, response)
             logger.info(f"Prompt Context:{context}")
             
             llm_response = merchant_qa(cnv_obj, context, vendor)
-            logger.info(f"LLM Response: {llm_response}")
-            if re.search(HANDOFF_TO_CX, llm_response):
-                logger.info("Handing off to CX")
-                return {'task': task, 'suggested': True, 'response': None}
+            if llm_response['handoff']:
+                return handoff_response(tasks, task_routing_config, response)               
+            response += llm_response['response']
 
-            conversation += 'Seller: '
-            response += llm_response
-
-        if 'RecommendProduct' in task:
+        if 'RecommendProduct' in tasks:
             query = last_turn.formatted_text
             context = product_semantic_search(merchant_id, query)
             if not context:
-                logger.info("Can't retrieve context, handing off")
+                logger.warn("Can't retrieve context, handing off")
             logger.info(f"Prompt Context:{context}")
 
             llm_response = recommend(cnv_obj, context, vendor)
-            logger.info(f"LLM Response: {llm_response}")
-            if re.search(HANDOFF_TO_CX, llm_response):
-                logger.info("Handing off to CX")
-                return {'task': task, 'suggested': True, 'response': None}
+            if llm_response['handoff']:
+                return handoff_response(tasks, task_routing_config, response)               
+            response += llm_response['response']
 
-            conversation += 'Seller: '
-            response += llm_response
+        if 'FinalizeOrder' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
-        if 'Unknown' in task:
-            logger.info("Unknown task, handing off")
-            return {'task': task, 'suggested': True, 'response': None}    
+        if 'UpdateAccountDetails' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')    
 
-        primary_task = task.split(",")[0]
-        logger.info(f"Primary Task:{primary_task}")
+        if 'AnswerQuestionAboutOrder' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')
+
+        if 'AnswerServiceQuestions' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')
+
+        if 'ResolveOrderIssue' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')
+
+        if 'GiveOrderStatus' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')
+
+        if 'CancelOrder' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')
+
+        if 'ReturnOrder' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')
+
+        if 'Unknown' in tasks:
+            return handoff_response(tasks, task_routing_config, 'not implemented')
+
+        if 'None' in tasks:
+            return handoff_response(tasks, task_routing_config, response)    
+
         is_suggested = task_routing_config[primary_task]['responseType'] == 'assisted'
         ret_dict = {
-            'task': task,
+            'task': ','.join(tasks),
             'cart': cart,
             'model_predicted_cart': model_predicted_cart,
             'response': response,
@@ -351,3 +380,16 @@ def match_product_variant(merchant_id: str, product_name: str) -> ProductRespons
                     )
 
         return ProductResponseUnion(products, response)
+
+
+def handoff_response(tasks, task_routing_config, response=None):
+    primary_task = tasks[0]
+    if not response:
+        "can't generate response"
+    handoff_message = f"Handing off: tasks detected: {tasks}; {response}"
+    logger.warn(f"Tasks Detected: {tasks}: Can't generate response, handing off")
+
+    if task_routing_config[primary_task]['responseType'] == 'automated':
+        return {'task': tasks, 'suggested': False, 'response': handoff_message}
+    else:
+        return {'task': tasks, 'suggested': True, 'response': handoff_message}
