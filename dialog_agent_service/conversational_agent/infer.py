@@ -225,31 +225,31 @@ class T5InferenceService:
             response += llm_response['response']
 
         if 'FinalizeOrder' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
         if 'UpdateAccountDetails' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')    
 
         if 'AnswerQuestionAboutOrder' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
         if 'AnswerServiceQuestions' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
         if 'ResolveOrderIssue' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
         if 'GiveOrderStatus' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
         if 'CancelOrder' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
         if 'ReturnOrder' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
         if 'Unknown' in tasks:
-            return handoff_response(tasks, task_routing_config, response)    
+            return handoff_response(tasks, task_routing_config, 'not implemented')
 
         if 'None' in tasks:
             return handoff_response(tasks, task_routing_config, response)    
@@ -383,11 +383,13 @@ def match_product_variant(merchant_id: str, product_name: str) -> ProductRespons
 
 
 def handoff_response(tasks, task_routing_config, response=None):
-    primary_task = tasks.split(',')
-    handoff_message = "Thank you for your text! Someone from our support team will be with you shortly. [Reason: can't generate response]"
-    logger.info(f"Task: {primary_task}: Can't generate response, handing off")
+    primary_task = tasks[0]
+    if not response:
+        "can't generate response"
+    handoff_message = f"Handing off: tasks detected: {tasks}; {response}"
+    logger.warn(f"Tasks Detected: {tasks}: Can't generate response, handing off")
 
     if task_routing_config[primary_task]['responseType'] == 'automated':
         return {'task': tasks, 'suggested': False, 'response': handoff_message}
     else:
-        return {'task': tasks, 'suggested': True, 'response': response}
+        return {'task': tasks, 'suggested': True, 'response': handoff_message}
