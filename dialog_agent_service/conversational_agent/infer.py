@@ -155,7 +155,6 @@ class T5InferenceService:
         is_suggested = True
 
         primary_task = tasks[0]
-        logger.info(f"Primary Task:{primary_task}")
         if task_routing_config[primary_task]['responseType'] == 'cx':
             return handoff_response(tasks, task_routing_config, response)
 
@@ -192,7 +191,7 @@ class T5InferenceService:
                     logger.warn("Can't retrieve context, handing off")
                     return handoff_response(tasks, task_routing_config, response)
                 context += product_context + '\n'
-            logger.info(f"Prompt Context:{context}")
+            logger.debug(f"Prompt Context:{context}")
 
             llm_response = product_qa(cnv_obj, context, vendor)
             if llm_response['handoff']:
@@ -205,7 +204,7 @@ class T5InferenceService:
             if not context:
                 logger.warn("Can't retrieve context, handing off")
                 return handoff_response(tasks, task_routing_config, response)
-            logger.info(f"Prompt Context:{context}")
+            logger.debug(f"Prompt Context:{context}")
             
             llm_response = merchant_qa(cnv_obj, context, vendor)
             if llm_response['handoff']:
@@ -217,7 +216,7 @@ class T5InferenceService:
             context = product_semantic_search(merchant_id, query)
             if not context:
                 logger.warn("Can't retrieve context, handing off")
-            logger.info(f"Prompt Context:{context}")
+            logger.debug(f"Prompt Context:{context}")
 
             llm_response = recommend(cnv_obj, context, vendor)
             if llm_response['handoff']:
@@ -385,7 +384,7 @@ def match_product_variant(merchant_id: str, product_name: str) -> ProductRespons
 def handoff_response(tasks, task_routing_config, response=None):
     primary_task = tasks[0]
     if not response:
-        "can't generate response"
+        response = "can't generate response"
     handoff_message = f"Handing off: tasks detected: {tasks}; {response}"
     logger.warn(f"Tasks Detected: {tasks}: Can't generate response, handing off")
 
