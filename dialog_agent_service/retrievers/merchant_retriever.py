@@ -27,13 +27,13 @@ def merchant_semantic_search(merchant_id: str, query: str):
     resp = gql_client.execute(document=query_str, variable_values=vars)
     results = resp['merchantSemanticSearch']
     if not results:
-        logger.error(f"merchantSemanticSearch failed, no results:{query}")
+        logger.warn(f"merchantSemanticSearch failed, no results:{query}")
         return None
 
     results = results[0:10] #TODO - use prompt stuffing strategy
-    logger.info(f"Query: {query}, merchantSemanticSearch results: {results}")
+    logger.debug(f"Query: {query}, merchantSemanticSearch results: {results}")
             
-    context = ""
+    context = "\n"
     for mr in results:
         context += format_merchant_results(mr)
         context += '\n'
@@ -44,8 +44,8 @@ def format_merchant_results(mr):
     output = ""
     policy_type = mr.get("policyType")
     policy_contents = mr.get("policyContents")
-    output += policy_type + "\n"
-    output += policy_contents + "\n"
+    output += f"policy name is {policy_type}\n"
+    output += f"policy is {policy_contents}\n\n"
 
     return output
 

@@ -28,13 +28,12 @@ def gen_variant_selection_response(product, variants):
 
 
 def gen_cart_response(cart):
-    cart_display = ""
+    cart_display = "Your cart is empty"
     if cart:
-        cart_display = dedent(f"""
-            Your current cart has:\n{newline.join([f'- {name}: ${price} x {qty}' for name, price, qty in cart])}
-        """).strip("\n")
+        cart_display = "Your current cart has:"
+        for name, price, qty in cart:
+            cart_display += f"\n- {name}: ${price} x {qty}"
     return cart_display
-
 
 def gen_opening_response():
     return """
