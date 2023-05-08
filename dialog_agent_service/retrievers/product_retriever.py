@@ -45,7 +45,7 @@ def product_lookup(merchant_id: str, query: str):
     resp = gql_client.execute(document=query_str, variable_values=vars)
     results = resp['productVariantLookup']
     if not results:
-        logger.error(f"productVariantLookup failed, no results:{query}")
+        logger.warn(f"productVariantLookup failed, no results:{query}")
         return None
 
     results = results[0:10]
@@ -99,13 +99,13 @@ def product_semantic_search(merchant_id: str, query: str):
     resp = gql_client.execute(document=query_str, variable_values=vars)
     results = resp['productVariantSemanticSearch']
     if not results:
-        logger.error(f"productVariantSemanticSearch failed, no results:{query}")
+        logger.warn(f"productVariantSemanticSearch failed, no results:{query}")
         return None
 
     results = results[0:10]  #TODO: prompt stuffing strategy?
-    logger.info(f"Query:{query}, productVariantSemanticSearch results: {results}")
+    logger.debug(f"Query:{query}, productVariantSemanticSearch results: {results}")
 
-    context = ""
+    context = "\n"
     for pr in results:
         context += format_product_result(pr)
         context += '\n'
@@ -118,16 +118,16 @@ def format_product_result(pr):
 
     product = pr.get('product')
     display_name = product.get('name') + ' - ' + pr.get('name')
-    output += f"product name is {display_name}, "
+    output += f"- product name is {display_name}\n"
 
     desc = pr.get('description')
     if desc:
-      output += f"description is {desc}, "
+      output += f"- description is {desc}\n"
 
     listing = pr.get('listings')[0] #TODO - first one only for now
     price = listing.get('price')
     if price:
-      output += f"price is ${price:.2f}"
+      output += f"- price is ${price:.2f}\n"
 
     metafields = product.get('metafieldEdges', [])
     if metafields:
@@ -141,7 +141,7 @@ def format_product_result(pr):
               #TODO - filter nodes by retailer whitelist
               if value and value != "":
                   clean_value = parse_html(value) #TODO - temporary, data eng will do this
-                  output += f"{key} is {clean_value}"
+                  output += f"- {key} is {clean_value}\n"
 
     return output
 

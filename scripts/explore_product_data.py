@@ -35,7 +35,7 @@ BLACKLIST = [
     'stamped.badge', 'stamped.reviews'
 ]
 merchant_keys = {}
-with open('product_data_20230430.jsonl', 'r') as reader:
+with open('product_data_20230505.jsonl', 'r') as reader:
     line = reader.readline()
     count = 0
     while line != '':
@@ -44,8 +44,9 @@ with open('product_data_20230430.jsonl', 'r') as reader:
         count += 1
         try:
             rec = json.loads(line)
+            rec = rec['data']
         except:
-            print(f"FAILED JSON PARSING:{line}")
+            print(f"FAILED JSON PARSING:{line}{rec}")
         data = rec['data']
         metadata = rec['metadata']
         #print(json.dumps(rec, indent=2))
@@ -74,10 +75,11 @@ with open('product_data_20230430.jsonl', 'r') as reader:
             print(f"MERCHANT:{shop}")
             print(f"NAMESPACE: {namespace}")
             print(f"KEY: {key}")
-            # print(f"VALUE: {value}")
-            # print(f"CLEAN VALUE: {clean_value}")
+            print(f"VALUE: {value}")
+            print(f"CLEAN VALUE: {clean_value}")
             print(f"TOKENS: {tokens}")
-            if tokens > 1500:
+            if tokens > 512:
                 print("TOO LARGE!")
 
+    print(f"TOTAL RECORDS: {count}")
     print(json.dumps(merchant_keys, indent=2))
