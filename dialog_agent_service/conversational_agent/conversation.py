@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 import os
 from enum import Enum
-
+from collections import defaultdict
 from .conversation_utils import get_past_k_turns
 from .conversation_utils import run_inference
 
@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 ENDPOINT_ID = os.getenv('T5_VERTEX_AI_ENDPOINT_ID', '1012733772065406976')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID', '105526547909')
+cached_cart = defaultdict(dict)
 
 
 class ResponseType(Enum):
@@ -45,10 +46,16 @@ async def handle_conversation_response(
         vendor_name = test_merchant
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
-        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID, task_routing_config=task_routing_config)
+        current_cart = cached_cart[merchant_id][user_id] if merchant_id in cached_cart and user_id in cached_cart[merchant_id] else []
+        response = await run_inference(
+            docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
+            current_cart=current_cart, task_routing_config=task_routing_config)
+        cart = response.get('cart', [])
+        if cart:
+            cached_cart[merchant_id][user_id] = cart
         return {
             'task': response.get('task', ''),
-            'cart': response.get('cart', []),
+            'cart': cart,
             'response': response.get('response', ''),
             'suggested': response.get('suggested', True)
         }

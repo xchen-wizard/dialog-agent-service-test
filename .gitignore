@@ -1,3 +1,4 @@
+error_log
 mprofile*
 .python-version
 .pre-commit*

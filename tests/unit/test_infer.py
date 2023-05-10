@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from dialog_agent_service.conversational_agent.infer import match_product_variant
+from dialog_agent_service.conversational_agent.resolve_cart import match_product_variant
 
 
 logger = logging.getLogger()

@@ -14,12 +14,12 @@ A python Flask service to handle backend integration with a dialog agent.
 poetry install
 ```
 2. Copy and set the required ENV vars in the .env file
-```commandline 
+```commandline
 cd config
 cp .env.example .env
 ```
 3. Google Auth
-```commandline 
+```commandline
 gcloud auth application-default login
 ```
 4. Run app locally with the dev server
@@ -49,16 +49,12 @@ mongorestore -h localhost:27017 -d spt dump/spt
 
 ## Tests
 ### Unit Tests
-First, set the path to the .env file.
 ```commandline
-export ENV_FILE=./config/.env
-```
-Then
-```commandline
-poetry run python -m pytest tests/unit
+cd dialog_agent_service
+ENV_FILE=../config/.env poetry run python -m pytest tests/unit
 ```
 ### Integration Tests
-Set the path to the .env file.
 ```commandline
-poetry run python -m pytest tests/integration
+cd dialog_agent_service
+ENV_FILE=../config/.env poetry run python -m pytest tests/integration
 ```

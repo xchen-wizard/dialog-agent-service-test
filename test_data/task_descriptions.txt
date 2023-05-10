@@ -3,13 +3,12 @@ The following is the list of tasks and their descriptions.
 - FinalizeOrder: If the buyer is done adding things to their cart and has affirmed the offer to proceed with purchase. We first send them a signup link to provide us with their shipping and billing information. Once they have filled the form online, we ask for a confirmation again based on the total price of their cart including shipping. If they affirm, we place the order and the task is finished.
 - RecommendProduct: When the buyer is asking us for a recommendation on products. Sometimes they are just not sure what to buy and are looking to us for guidance.
 - UpdateAccountDetails: The buyer wants to update their address or just the address for delivery or credit card details.
-- AnswerQuestionAboutOrder: The buyer has a question about the order about to be placed or being placed.
 - AnswerProductQuestions: The buyer has a question about a product or few products: could be their price or other attributes.
-- AnswerSellerQuestions: questions that are about the seller policies, like shipping cost. some general question about their products that is not specific to one or a few.
-- AnswerServiceQuestions:  the buyer is confused about how to place order or get the discount.
+- AnswerMiscellaneousQuestions: questions that are about the seller policies, like shipping cost. or about the order. or about discounts/promotions. how to use the service.
 - ResolveOrderIssue: The buyer has an issue withe their recent order.
 - GiveOrderStatus: The buyer wants to know the status of their most recent order.
 - CancelOrder: The buyer wants to cancel the order. This is only applicable if they have already placed the order. Changing an existing order is covered by CreateOrUpdateOrderCart.
 - ReturnOrder: The buyer wants to return the order.
 - None: The buyer is not really expecting us to do anything or say anything in response.
 - Unknown: We cannot map the task buyer wants us to do to any of the above.
+

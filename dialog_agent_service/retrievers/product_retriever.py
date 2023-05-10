@@ -118,16 +118,16 @@ def format_product_result(pr):
 
     product = pr.get('product')
     display_name = product.get('name') + ' - ' + pr.get('name')
-    output += f"- product name is {display_name}\n"
+    output += f"{display_name}: \n"
 
     desc = pr.get('description')
     if desc:
-      output += f"- description is {desc}\n"
+      output += f"\tdescription: {desc}\n"
 
     listing = pr.get('listings')[0] #TODO - first one only for now
     price = listing.get('price')
     if price:
-      output += f"- price is ${price:.2f}\n"
+      output += f"\tprice: ${price:.2f}\n"
 
     metafields = product.get('metafieldEdges', [])
     if metafields:
@@ -141,7 +141,7 @@ def format_product_result(pr):
               #TODO - filter nodes by retailer whitelist
               if value and value != "":
                   clean_value = parse_html(value) #TODO - temporary, data eng will do this
-                  output += f"- {key} is {clean_value}\n"
+                  output += f"\t{key}: {clean_value}\n"
 
     return output
 

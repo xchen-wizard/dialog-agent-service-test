@@ -42,6 +42,8 @@ login_manager.init_app(app)
 
 client = WebApplicationClient(os.environ.get('GOOGLE_CLIENT_ID'))
 
+TURNS_TO_FETCH = 10
+HOURS_TO_FETCH = 24
 
 @app.route('/', methods=['GET'])
 def index():
@@ -146,8 +148,8 @@ async def conversation_response():
         merchant_id,
         user_id,
         service_channel_id,
-        k=int(req.get('k', 5)),
-        window=int(req.get('window', 12)),
+        k=int(req.get('k', TURNS_TO_FETCH)),# Its better to fetch more since we truncate the conversation later as needed.
+        window=int(req.get('window', HOURS_TO_FETCH)),
         test_merchant=req.get('testMerchant', ''),
         task_routing_config=task_routing_config
     )

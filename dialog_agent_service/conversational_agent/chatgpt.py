@@ -1,6 +1,7 @@
+import ast
 import os
 import re
-from textwrap import dedent
+from typing import List
 import logging
 import openai
 from .conversation_parser import Conversation, Turn
@@ -26,13 +27,13 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
     :param k: k turns to include
     :return: list of dict with role/content
     """
-    return [turn_to_chatgpt_format(turn) for turn in cnv_obj.turns[-k: ]]
+    return [turn_to_chatgpt_format(turn) for turn in cnv_obj.turns[-k:]]
 
 
-def answer_with_prompt(cnv_obj: Conversation, prompt):
+def answer_with_prompt(cnv_obj: Conversation, prompt, turns=10):
     messages = [
         {"role": "system", "content": prompt}
-    ] + conv_to_chatgpt_format(cnv_obj, 5)
+    ] + conv_to_chatgpt_format(cnv_obj, turns)
     logger.debug(f"LLM REQUEST - Model: {MODEL}, Temp: {TEMPERATURE}, Prompt: {messages}")
     resp = openai.ChatCompletion.create(
         model=MODEL,
@@ -43,57 +44,52 @@ def answer_with_prompt(cnv_obj: Conversation, prompt):
     return validate_response(llm_response)
 
 
-def product_qa(cnv_obj: Conversation, data: str, vendor: str):
-    prompt = dedent(f"""
-    You are a helpful salesperson for {vendor} and are trying to answer questions about products.
-    Use the following "Product Data" delimited by ``` to answer the Customer's question in a concise manner.
-    If the question can't be answered based on the "Product Data" alone, respond only with "HANDOFF TO CX".
-    Limit responses to no more than 50 words.
-    
-    Product Data:
-    ```{data}```
-    """).strip('\n')
-    return answer_with_prompt(cnv_obj, prompt)
+def generate_cart_mentions(cnv_obj: Conversation, current_cart: List):
+    context = "\n".join([str(t) for t in cnv_obj.turns[:-2]]) if cnv_obj.n_turns > 2 else ""
+    last_seller_utt = str(cnv_obj.turns[-2]) if cnv_obj.n_turns > 1 else ""
 
+    prompt = f"""
+BEGIN EXAMPLES
+Buyer: how does wizard shampoo cost?
+Buyer's Cart: []
+Seller: $12
+Buyer: Can you add wizard conditioner to my cart?
+Buyer's Cart: [("wizard conditioner", 1)]
+Seller: Done! Anything else?
+Buyer: Also add two gummy bears?
+Buyer's Cart: [("wizard conditioner", 1), ("gummy bears", 2)]
+Seller: Sure. Are you ready to checkout now?
+Buyer: Actually make that one. and remove the conditioner.
+Buyer's Cart: [("gummy bears", 1)] 
+END EXAMPLES
+A buyer's cart consists of the products that they want to purchase. To create a buyer's cart go through the conversation above
+ and create a list of tuples of product X quantity, e.g. [("product1", quantity1), ("product2", quantity2), ...] where products are the products that the buyer has asked to buy or add to their cart and quantity is an integer.
+    {context}
+    Buyer's Cart: {current_cart}
+    {last_seller_utt}
+    {cnv_obj.turns[-1]}
+    Buyer's Cart: 
+    """
+    messages = [
+        {"role": "user", "content": prompt}
+    ]
+    resp = openai.ChatCompletion.create(
+        model=MODEL,
+        temperature=TEMPERATURE,
+        messages=messages
+    )
+    llm_response = resp.choices[0].message.content
+    st = llm_response.find('[')
+    en = llm_response.rfind(']')
+    return ast.literal_eval(llm_response[st:en+1])
 
-def merchant_qa(cnv_obj: Conversation, data: str, vendor: str):
-    prompt = dedent(f"""
-    You are a kind and helpful e-commerce customer support agent that works for {vendor}.
-    
-    Your task is to help find the answer to the Customer's question using these steps:
-    1. Use each of the following POLICIES delimited by ``` to answer the Customer's question in a concise manner.
-    2. If the question can't be answered based on the POLICIES alone, response "HANDOFF TO CX".
-    3. Use the provided INSTRUCTIONS sections to further refine your answer.
-    4. Limit the answer to no more than 50 words.
-
-    INSTRUCTIONS:
-    - if you are responding to the first Customer message, respond with a greeting like "Hi there!" or "Thanks for your question!" before answering the question. Otherwise if we're in the middle of a conversation answer the question directly.
-    - unless the Customer indicates otherwise, we should assume they are asking about shipping to the USA
-        
-    POLICIES: 
-    ```{data}```
-    """).strip('\n')
-    return answer_with_prompt(cnv_obj, prompt)
-
-
-def recommend(cnv_obj: Conversation, data: str, vendor: str):
-    prompt = dedent(f"""
-    You are a salesperson for {vendor} 
-    Use the following "Context" delimited by ``` to make a recommendation for a product that matches the Customer's requirements.
-    If there is not enough information in the "Context" to make a recommendation, feel free to ask the Customer for more information.
-    Limit responses to no more than 50 words. 
-    
-    Context:
-    ```{data}```
-    """).strip('\n')
-    return answer_with_prompt(cnv_obj, prompt)
 
 def validate_response(llm_response):
     resp = {}
     logger.info(f"LLM Response: {llm_response}")
 
     if re.search(HANDOFF_TO_CX, llm_response):
-        logger.warn("LLM Failed Validation: handing off to CX")
+        logger.warning(f"LLM Validation failed for response: {llm_response}. Handing off to CX")
         resp = {'handoff': True, 'response': None}
     else:
         resp = {'handoff': False, 'response': llm_response}
