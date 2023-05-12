@@ -29,8 +29,8 @@ def gen_prompt(vendor, data):
     """).strip('\n')
 
 
-def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None):
-    product_input, _ = create_input_products(str(cnv_obj))
+def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, **kwargs):
+    product_input = create_input_products(str(cnv_obj))
     product_mentions = predict_fn(product_input)[0].split(",")
     product_context = [
         product_lookup(merchant_id, product_mention)

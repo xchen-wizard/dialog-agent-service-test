@@ -80,7 +80,7 @@ A buyer's cart consists of the products that they want to purchase. To create a 
     )
     llm_response = resp.choices[0].message.content
     st = llm_response.find('[')
-    en = llm_response.rfind(']')
+    en = llm_response.find(']', st)
     return ast.literal_eval(llm_response[st:en+1])
 
 

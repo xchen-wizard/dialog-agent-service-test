@@ -6,6 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 TURNS = 4
 
+
 def gen_prompt(vendor, data):
     return dedent(f"""
     You are a kind and helpful e-commerce customer support agent that works for {vendor}.
@@ -25,7 +26,7 @@ def gen_prompt(vendor, data):
     """).strip('\n')
 
 
-def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor=None):
+def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor=None, **kwargs):
     query = cnv_obj.turns[-1].formatted_text
     context = merchant_semantic_search(merchant_id, query)
     if not context:

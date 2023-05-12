@@ -69,15 +69,17 @@ class T5InferenceService:
             return task_routing_config.get(task, {}).get('responseType', "assisted")
 
         if any(fetch_task_response_type(task) == 'cx' for task in tasks):
-            response = default_handler()
+            response = None
         else:
             logger.debug(f"Current Cart: {current_cart}")
             res_acc = [
                 task_handler(task, cnv_obj=cnv_obj, vendor=vendor, merchant_id=merchant_id, predict_fn=predict_fn, current_cart=current_cart)
                 for task in tasks
             ]
-            if any(res['handoff'] for res in res_acc):
-                response = default_handler()
+            logger.info(f"Accumulated result from task handlers: {res_acc}")
+            res_handoff = next((res for res in res_acc if res.get('handoff', False)), None)
+            if res_handoff is not None:
+                response = res_handoff.get('response', '')
             else:
                 response = '\n'.join([
                     res['response']
@@ -86,14 +88,18 @@ class T5InferenceService:
                 cart = [res['cart'] for res in res_acc if 'cart' in res]
                 if cart:
                     cart = cart[0]  # Only one task will return cart
+                else:
+                    cart = None
                 model_predicted_cart = [
                     res['model_predicted_cart']
                     for res in res_acc if 'model_predicted_cart' in res
                 ]
                 if model_predicted_cart:
                     model_predicted_cart = model_predicted_cart[0]
+                else:
+                    model_predicted_cart = None
 
-        is_suggested = any(fetch_task_response_type(task) == 'assisted' for task in tasks)
+        is_suggested = not all(fetch_task_response_type(task) == 'automated' for task in tasks)
         ret_dict = {
             'task': ','.join(tasks),
             'response': response,

@@ -6,10 +6,11 @@ from enum import Enum
 import json
 import logging
 import os
-from .response import gen_cart_response
-from .response import gen_non_specific_product_response
-from .response import gen_variant_selection_response
-from .response import gen_opening_response
+from dialog_agent_service.conversational_agent.response import gen_cart_response
+from dialog_agent_service.conversational_agent.response import gen_non_specific_product_response
+from dialog_agent_service.conversational_agent.response import gen_variant_selection_response
+from dialog_agent_service.conversational_agent.response import gen_opening_response
+from dialog_agent_service import constants
 
 ProductResponseUnion = namedtuple(
     'ProductResponseUnion', ['products', 'response'],
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # ToDo: not ideal, replace later
 
-with open(os.path.join(os.path.dirname(__file__), '../../test_data/products_variants_prices.json')) as f:
+with open(f'{constants.ROOT_DIR}/test_data/products_variants_prices.json') as f:
     VARIANTS_OBJ = json.load(f)
     logger.info('loaded product variants and prices!')
 

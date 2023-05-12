@@ -15,12 +15,14 @@ from .infer import T5InferenceService
 from dialog_agent_service.app_utils import predict_custom_trained_model_sample
 from dialog_agent_service.db import get_mysql_cnx_cursor
 from dialog_agent_service.db import mongo_db
+from dialog_agent_service import constants
 
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
 CLEAR_HISTORY_COMMAND = 'CLEAR_HISTORY'
 
 logger = logging.getLogger(__name__)
-inference_obj = T5InferenceService('../test_data')
+inference_obj = T5InferenceService(f'{constants.ROOT_DIR}/test_data')
+
 
 async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: str, k: int, window: int):
     """
@@ -118,7 +120,8 @@ def process_past_k_turns(docs, vendor_id):
                     docs = docs[-1:]
     
     #TODO - return dict with a subset of keys {k:d[k] for k in l if k in d}
-    docs = [(doc.get('direction'), doc.get('body')) for doc in docs]
+    docs = [(doc.get('direction'), doc.get('body')) for doc in docs].response
+    logger.info(f"Dialogue History loaded as:\n{docs}")
     return docs
 
 

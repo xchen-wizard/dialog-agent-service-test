@@ -18,7 +18,7 @@ def gen_prompt(vendor, data):
     """).strip('\n')
 
 
-def handle_recommend_product(cnv_obj=None, merchant_id=None, vendor=None):
+def handle_recommend_product(cnv_obj=None, merchant_id=None, vendor=None, **kwargs):
     query = cnv_obj.turns[-1].formatted_text
     context = product_semantic_search(merchant_id, query)
     if not context:
