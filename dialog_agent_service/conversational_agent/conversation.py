@@ -50,15 +50,16 @@ async def handle_conversation_response(
         response = await run_inference(
             docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
             current_cart=current_cart, task_routing_config=task_routing_config)
-        cart = response.get('cart', [])
-        if cart:
-            cached_cart[merchant_id][user_id] = cart
-        return {
+        cart = response.get('cart', None)
+        ret_dict = {
             'task': response.get('task', ''),
-            'cart': cart,
             'response': response.get('response', ''),
             'suggested': response.get('suggested', True)
         }
+        if cart is not None:
+            cached_cart[merchant_id][user_id] = cart
+            ret_dict['cart'] = cart
+        return ret_dict
     logger.warning(f"""
         no messages retrieved for userId {user_id}, serviceChannelId {service_channel_id}, vendorId {merchant_id}.
         Skip calling the model endpoint

@@ -62,8 +62,8 @@ class T5InferenceService:
         tasks = [task.strip() for task in predict_fn(input)[0].split(',')]
         logger.info(f'Tasks Detected:{tasks}')
         logger.debug(f'Task Routing Config:{task_routing_config}')
-        cart = []
-        model_predicted_cart = []
+        cart = None
+        model_predicted_cart = None
 
         def fetch_task_response_type(task):
             return task_routing_config.get(task, {}).get('responseType', "assisted")
@@ -88,7 +88,7 @@ class T5InferenceService:
                     cart = cart[0]  # Only one task will return cart
                 model_predicted_cart = [
                     res['model_predicted_cart']
-                    for res in res_acc if 'cart' in res
+                    for res in res_acc if 'model_predicted_cart' in res
                 ]
                 if model_predicted_cart:
                     model_predicted_cart = model_predicted_cart[0]
@@ -96,15 +96,13 @@ class T5InferenceService:
         is_suggested = any(fetch_task_response_type(task) == 'assisted' for task in tasks)
         ret_dict = {
             'task': ','.join(tasks),
-            'cart': cart,
-            'model_predicted_cart': model_predicted_cart,
             'response': response,
             'suggested': is_suggested,
         }
-        if not ret_dict['response']:
-            del ret_dict['response']
-        if not ret_dict['cart']:
-            del ret_dict['cart']
+        if cart is not None:
+            ret_dict['cart'] = cart
+        if model_predicted_cart is not None:
+            ret_dict['model_predicted_cart'] = model_predicted_cart
         logger.debug(f'Returning json object: {ret_dict}')
         return ret_dict
 
