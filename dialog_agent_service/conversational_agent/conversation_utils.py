@@ -120,7 +120,7 @@ def process_past_k_turns(docs, vendor_id):
                     docs = docs[-1:]
     
     #TODO - return dict with a subset of keys {k:d[k] for k in l if k in d}
-    docs = [(doc.get('direction'), doc.get('body')) for doc in docs].response
+    docs = [(doc.get('direction'), doc.get('body')) for doc in docs]
     logger.info(f"Dialogue History loaded as:\n{docs}")
     return docs
 
