@@ -73,3 +73,16 @@ async def test_recommend_product():
     response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
                                task_routing_config=task_routing_config)
     assert len(response['response']) > 0
+
+
+@pytest.mark.asyncio
+async def test_none():
+    merchant_id = "29"
+    vendor_name = "G.O.A.T Fuel"
+    docs = [
+        ("inbound", "hello?")
+    ]
+    task_routing_config = {"None": {"responseType": "automated"}}
+    response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
+                               task_routing_config=task_routing_config)
+    assert response['task'] == 'None'

@@ -13,5 +13,5 @@ def camel_to_snake(name):
 
 
 def task_handler(task: str, **kwargs):
-    handler = getattr(th, f"handle_{camel_to_snake(task)}", "default_handler")
+    handler = getattr(th, f"handle_{camel_to_snake(task)}", th.default_handler)
     return handler(**kwargs)
