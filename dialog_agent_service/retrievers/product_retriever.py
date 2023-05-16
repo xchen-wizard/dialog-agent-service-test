@@ -42,12 +42,18 @@ def product_lookup(merchant_id: str, query: str):
         'merchantId': merchant_id,
         'query': query,
     }
-    resp = gql_client.execute(document=query_str, variable_values=vars)
+
+    try:
+      resp = gql_client.execute(document=query_str, variable_values=vars)
+    except Exception as err:
+       logger.error(f"Product Lookup GQL-API request failed: {err}")
+       return None
+    
     results = resp['productVariantLookup']
-    if not results:
+    if not results or len(results) == 0:
         logger.warn(f"productVariantLookup failed, no results:{query}")
         return None
-
+    
     results = results[0:10]
     logger.info(f"Query:{query}, productVariantLookup results: {results}")
 
@@ -60,6 +66,8 @@ def product_lookup(merchant_id: str, query: str):
 
 
 def product_semantic_search(merchant_id: str, query: str):
+    logger.info(f"PSS Query: {merchant_id}:{query}")
+
     """
     Args:
         merchant_id
@@ -96,9 +104,15 @@ def product_semantic_search(merchant_id: str, query: str):
         'merchantId': merchant_id,
         'query': query,
     }
-    resp = gql_client.execute(document=query_str, variable_values=vars)
+
+    try:
+      resp = gql_client.execute(document=query_str, variable_values=vars)
+    except Exception as err:
+      logger.error(f"Product Semantic Search GQL-API request failed: {err}")
+      return None
+
     results = resp['productVariantSemanticSearch']
-    if not results:
+    if not results or len(results) == 0:
         logger.warn(f"productVariantSemanticSearch failed, no results:{query}")
         return None
 

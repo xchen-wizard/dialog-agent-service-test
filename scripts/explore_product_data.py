@@ -35,7 +35,7 @@ BLACKLIST = [
     'stamped.badge', 'stamped.reviews'
 ]
 merchant_keys = {}
-with open('product_data_20230505.jsonl', 'r') as reader:
+with open('product_data_20230509.jsonl', 'r') as reader:
     line = reader.readline()
     count = 0
     while line != '':
@@ -44,7 +44,7 @@ with open('product_data_20230505.jsonl', 'r') as reader:
         count += 1
         try:
             rec = json.loads(line)
-            rec = rec['data']
+            # rec = rec['data']
         except:
             print(f"FAILED JSON PARSING:{line}{rec}")
         data = rec['data']
