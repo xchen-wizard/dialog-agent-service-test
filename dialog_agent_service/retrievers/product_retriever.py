@@ -105,7 +105,7 @@ def product_semantic_search(merchant_id: str, query: str):
     results = results[0:10]  #TODO: prompt stuffing strategy?
     logger.debug(f"Query:{query}, productVariantSemanticSearch results: {results}")
 
-    context = "\n"
+    context = "\n\n"
     for pr in results:
         context += format_product_result(pr)
         context += '\n'
@@ -113,7 +113,12 @@ def product_semantic_search(merchant_id: str, query: str):
     return context
 
 def format_product_result(pr):
-    BLACKLIST = ['widget']
+    BLACKLIST = [
+        'subscriptions.subscription_id', 
+        'subscriptions.original_to_hidden_variant_map', 
+        'mc-facebook.google_product_category', 
+        'img.images', 'img.image_2'
+    ]
     output = ""
 
     product = pr.get('product')
@@ -122,38 +127,26 @@ def format_product_result(pr):
 
     desc = pr.get('description')
     if desc:
-      output += f"\tdescription: {desc}\n"
+      output += f"- description is {desc}\n"
 
     listing = pr.get('listings')[0] #TODO - first one only for now
     price = listing.get('price')
     if price:
-      output += f"\tprice: ${price:.2f}\n"
+      output += f"- price is ${price:.2f}\n"
 
     metafields = product.get('metafieldEdges', [])
     if metafields:
       for mf in metafields:
           node = mf['node']
-          namespace = node.get('namespace')
-          key = node.get('key')
-          if key not in BLACKLIST:
+          namespace = node.get('namespace').strip('"')
+          key = node.get('key').strip('"')
+          field = namespace + '.' + key
+          if field not in BLACKLIST:
               value = node.get('value')
-              field = namespace + '.' + key
+              
               #TODO - filter nodes by retailer whitelist
               if value and value != "":
-                  clean_value = parse_html(value) #TODO - temporary, data eng will do this
-                  output += f"\t{key}: {clean_value}\n"
+                  clean_value = value.strip('"') #TODO - temporary, data eng will do this
+                  output += f"- {field} is {clean_value}\n"
 
     return output
-
-
-def parse_html(html):
-    elem = BeautifulSoup(html, 'html.parser')
-    text = ''
-    for e in elem.descendants:
-        if isinstance(e, str):
-            text += e.strip()
-        elif e.name in ['br',  'p', 'h1', 'h2', 'h3', 'h4','tr', 'th']:
-            text += '\n'
-        elif e.name == 'li':
-            text += '\n- '
-    return text

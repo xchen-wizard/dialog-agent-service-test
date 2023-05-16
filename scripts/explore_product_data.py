@@ -55,8 +55,8 @@ with open('product_data_20230505.jsonl', 'r') as reader:
         metafield_edges = data.get('metafieldsEdges', [])
         for mf in metafield_edges:
             node = mf['node']
-            namespace = node.get('namespace')
-            key = node.get("key")
+            namespace = node.get('namespace').strip('"')
+            key = node.get("key").strip('"')
             node_id = f"{namespace}.{key}"
             if node_id in BLACKLIST:
                 continue
@@ -69,7 +69,7 @@ with open('product_data_20230505.jsonl', 'r') as reader:
             
             merchant_keys[shop][node_id] += 1
         
-            value = node.get("value")
+            value = node.get("value").strip('"')
             clean_value = parse_html(value)
             tokens = num_tokens(clean_value)
             print(f"MERCHANT:{shop}")
