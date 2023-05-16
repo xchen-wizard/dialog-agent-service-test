@@ -210,6 +210,7 @@ def faq():
 @app.route('/get_embedding', methods=['GET'])
 def get_embedding():
     query = request.args.get('query')
+    logger.info(f"QUERY TO EMBED: {query}")
 
     endpoint_id = os.getenv('ST_VERTEX_AI_ENDPOINT_ID')
     project_id = os.getenv('VERTEX_AI_PROJECT_ID')
