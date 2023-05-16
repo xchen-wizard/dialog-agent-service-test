@@ -1,11 +1,14 @@
 import logging
 from gql import gql
 from dialog_agent_service import init_gql
+import json
 
 logger = logging.getLogger(__name__)
 gql_client = init_gql()
 
 def merchant_semantic_search(merchant_id: str, query: str):
+    query = query.split("\n")[0]
+    query = json.dumps(query)
     logger.info(f"MSS Query:{merchant_id}:{query}")
     """
     Args:
