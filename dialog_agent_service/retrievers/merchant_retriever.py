@@ -13,8 +13,8 @@ def merchant_semantic_search(merchant_id: str, query: str):
     """
 
     query_str = gql("""
-        query MerchantSemanticSearch($merchantId: String!, $query: String!, $minSearchScore: Float) {
-          merchantSemanticSearch(merchantId: $merchantId, query: $query, minSearchScore: $minSearchScore) {
+        query MerchantSemanticSearch($merchantId: String!, $query: String!, $minSearchScore: Float, $policyTypeFilter: [String!]) {
+  merchantSemanticSearch(merchantId: $merchantId, query: $query, minSearchScore: $minSearchScore, policyTypeFilter: $policyTypeFilter) {
             policyContents
             policyType
           }
@@ -44,8 +44,8 @@ def format_merchant_results(mr):
     output = ""
     policy_type = mr.get("policyType")
     policy_contents = mr.get("policyContents")
-    output += f"policy name is {policy_type}\n"
-    output += f"policy is {policy_contents}\n\n"
-
+    output += f"{policy_type}\n"
+    output += f"{policy_contents}\n"
+    
     return output
 
