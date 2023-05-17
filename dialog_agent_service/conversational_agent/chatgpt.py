@@ -90,7 +90,10 @@ def validate_response(llm_response):
 
     if re.search(HANDOFF_TO_CX, llm_response):
         logger.warning(f"LLM Validation failed for response: {llm_response}. Handing off to CX")
-        resp = {'handoff': True, 'response': None}
+        resp = {
+            'handoff': True,
+            'response': f"Model: {MODEL}, Issue: LLM Validation failed for response: {llm_response}"
+        }
     else:
         resp = {'handoff': False, 'response': llm_response}
 

@@ -79,7 +79,7 @@ class T5InferenceService:
             logger.info(f"Accumulated result from task handlers: {res_acc}")
             res_handoff = next((res for res in res_acc if res.get('handoff', False)), None)
             if res_handoff is not None:
-                response = res_handoff.get('response', '')
+                response = f"Handoff initiated. Tasks: {tasks}, {res_handoff.get('response', '')}"
             else:
                 response = '\n'.join([
                     res['response']
