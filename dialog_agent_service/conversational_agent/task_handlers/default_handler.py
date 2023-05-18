@@ -1,2 +1,3 @@
 def default_handler(**kwargs):
-    return {'response': "Handing off: task handler not implemented", 'handoff': True}
+    msg = kwargs.get('msg', 'task handler not implemented')
+    return {'response': "Issue: {msg}", 'handoff': True}
