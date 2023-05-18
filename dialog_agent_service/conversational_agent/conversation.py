@@ -39,7 +39,6 @@ async def handle_conversation_response(
         else return an empty json
     """
     docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
-    # Hotfix to clear cart. If docs is empty means either there is no history or it was cleared
     if clear_history and merchant_id in cached_cart and user_id in cached_cart[merchant_id]:
         del cached_cart[merchant_id][user_id]
 
