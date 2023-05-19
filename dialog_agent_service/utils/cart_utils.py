@@ -31,7 +31,7 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
           elif resolved_cart[listing_id]['quantity'] != converted_cart_quantities[listing_id]:
               quantity = resolved_cart[listing_id]['quantity']
               cart_set_item_quantity(float(listing_id), cart_id, quantity)
-              
+
       for listing_id in converted_cart:
           if listing_id not in resolved_cart:
               line_item_id = converted_cart[listing_id]['id']
@@ -78,3 +78,6 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
         resolved_cart[product_variant['listings'][0]['_id']] = product_variant
     
     return resolved_cart
+
+def sync_virtual_cart(merchant_id: str, user_id: int):
+    return active_cart_to_virtual_cart(cart_get(merchant_id, user_id))
