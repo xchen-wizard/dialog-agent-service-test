@@ -38,7 +38,10 @@ async def handle_conversation_response(
         if the endpoint was called
         else return an empty json
     """
-    docs, vendor_name = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
+    docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
+    if clear_history and merchant_id in cached_cart and user_id in cached_cart[merchant_id]:
+        del cached_cart[merchant_id][user_id]
+
     # Temp: for testing purposes, as not all merchants exist in dev or stage
     # ToDo: remove after we have come up with better e2e testing ideas
     if test_merchant:
