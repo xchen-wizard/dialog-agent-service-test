@@ -33,7 +33,7 @@ async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: str
         k: past k turns from now
         window: the window of past n hours
     Returns:
-        Tuple of concatenated messages and the vendor name as stored in vendors tabel
+        Tuple of concatenated messages and the vendor name as stored in vendors tabel and whether history should be cleared
     """
     data = await get_user_and_service_number(user_id, service_channel_id, vendor_id)
     # start and end time of the window
@@ -49,8 +49,8 @@ async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: str
         'createdAt': {'$lt': endtime, '$gt': starttime},
     }).sort('createdAt', DESCENDING).limit(k)
     docs_rev = list(docs)[::-1]
-    docs = process_past_k_turns(docs_rev, vendor_id)
-    return docs, data['vendorName']
+    docs, clear_history = process_past_k_turns(docs_rev, vendor_id)
+    return docs, data['vendorName'], clear_history
 
 
 async def get_user_and_service_number(user_id: int, service_channel_id: int, merchant_id: str):
@@ -90,8 +90,10 @@ def process_past_k_turns(docs, vendor_id):
     Returns:
         a list of tuples containing the "direction" and the "body" of the document if the last turn was "inbound"
         else return an empty list
+        boolean flag indicating whether the last command was clear_history
     """
-    
+
+    clear_history = False
     if len(docs) > 0:
         last_message = docs[-1]
         if last_message.get('direction') == 'outbound':
@@ -100,7 +102,7 @@ def process_past_k_turns(docs, vendor_id):
                 logger.warning(
                     'There has been a new outbound message since this call was made!',
                 )
-                return []
+                return [], clear_history
             else:  # system message
                 # filter the last system message out before sending to model
                 # ToDo: more advanced processing to remove the last n (> 1) auto messages
@@ -110,7 +112,7 @@ def process_past_k_turns(docs, vendor_id):
             #used for testing
             if last_message.get('body') == CLEAR_HISTORY_COMMAND:
                 logger.info("COMMAND:CLEAR_HISTORY, ignoring history")
-                return []
+                return [], True
             
             if len(docs) > 1:
                 previous_inbound = docs[-2]
@@ -122,7 +124,7 @@ def process_past_k_turns(docs, vendor_id):
     #TODO - return dict with a subset of keys {k:d[k] for k in l if k in d}
     docs = [(doc.get('direction'), doc.get('body')) for doc in docs]
     logger.info(f"Dialogue History loaded as:\n{docs}")
-    return docs
+    return docs, clear_history
 
 
 async def run_inference(docs: list[tuple], vendor_name: str, merchant_id: str, project_id: str, endpoint_id: str, current_cart = [], task_routing_config: dict = {}):
