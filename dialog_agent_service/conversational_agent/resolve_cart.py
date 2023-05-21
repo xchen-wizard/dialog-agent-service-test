@@ -11,6 +11,7 @@ from dialog_agent_service.conversational_agent.response import gen_non_specific_
 from dialog_agent_service.conversational_agent.response import gen_variant_selection_response
 from dialog_agent_service.conversational_agent.response import gen_opening_response
 from dialog_agent_service import constants
+from typing import List
 
 ProductResponseUnion = namedtuple(
     'ProductResponseUnion', ['products', 'response'],
@@ -26,6 +27,10 @@ with open(f'{constants.ROOT_DIR}/test_data/products_variants_prices.json') as f:
     VARIANTS_OBJ = json.load(f)
     logger.info('loaded product variants and prices!')
 
+products_list = {merchant_id: [product + ' - ' + variant for product, d1 in d.items() for variant in d1] for merchant_id, d in VARIANTS_OBJ.items()}
+
+class NoMatchException(Exception):
+    pass
 
 class MatchType(Enum):
     EXACT = 1
@@ -36,7 +41,13 @@ def custom_sim(s1, s2):
     return int(100*(1.0 - distance(s1, s2, weights=(1, 0, 1), score_cutoff=20) / float(max(len(s1), len(s2)))))
 
 
-def get_matches(query, string_list, sim_fn, threshold, prefer_exact=False):
+def match_mentions_to_products(merchant_id, mentions: List):
+    return [tup[0]
+            for mention in mentions
+            for tup in process.extract(mention, products_list[merchant_id], scorer=fuzz.token_set_ratio, limit=5)]
+
+
+def get_matches(query, string_list, sim_fn, threshold):
     matches = process.extract(query, string_list, scorer=sim_fn)
     logger.info(f"query: {query}, matches: {matches}")
     exact_matches = [tup[0] for tup in matches if tup[1] == 100]
@@ -53,6 +64,8 @@ def custom_match(query, string_list):
     if matches:
         return MatchType.EXACT, matches
     matches = get_matches(query, string_list, fuzz.token_set_ratio, FUZZY_MATCH_THRESHOLD)
+    if not matches:
+        raise NoMatchException(f"{query} did not produce any matches higher than the threshold {FUZZY_MATCH_THRESHOLD}")
     return MatchType.DISAMBIGUATE if len(matches) != 1 else MatchType.EXACT, matches
 
 
@@ -109,8 +122,7 @@ def match_product_variant(merchant_id: str, product_name: str) -> ProductRespons
                     product_name,
                     [product_match + ' - ' + variant for variant in variants_dict.keys()],
                     fuzz.token_set_ratio,
-                    FUZZY_MATCH_THRESHOLD,
-                    prefer_exact=True
+                    FUZZY_MATCH_THRESHOLD
                 )
                 if variant_matches and len(variant_matches) == 1:
                     full_name = variant_matches[0]
