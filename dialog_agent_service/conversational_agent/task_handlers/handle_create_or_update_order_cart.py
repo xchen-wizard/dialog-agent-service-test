@@ -1,7 +1,8 @@
 import ast
 from ..chatgpt import generate_cart_mentions
-from ..resolve_cart import resolve_cart, match_mentions_to_products,  NoMatchException
+from ..resolve_cart import gen_disambiguation_response, match_mentions_to_products, get_product_price
 from .handle_recommend_product import handle_recommend_product
+from ..response import gen_cart_response, gen_opening_response
 import logging
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,6 @@ cart: {current_cart}
 {last_seller_utt}
 {cnv_obj.turns[-1]}
 cart:"""
-    logger.info(f"T5 prompt for cart: {prompt}")
     return prompt
 
 
@@ -31,12 +31,14 @@ def handle_create_or_update_order_cart(cnv_obj=None, merchant_id=None, current_c
     products_from_history = list(set(match_mentions_to_products(merchant_id, mentions) + [t[0] for t in current_cart]))
     model_predicted_cart = generate_cart_mentions(cnv_obj, current_cart, products_from_history)
     logger.info(f"Cart predicted by chatgpt: {model_predicted_cart}")
-    try:
-        cart, response = resolve_cart(merchant_id, model_predicted_cart)
-    except NoMatchException:
-        # In case of no matches we use recommendation handler to find a suitable match
-        return handle_recommend_product(cnv_obj, merchant_id, kwargs['vendor'])
-
+    cart = [(d['product'], d['quantity']) for d in model_predicted_cart if 'product' in d]
+    product_mentions = [d['product_mention'] for d in model_predicted_cart if 'product_mention' in d]
+    if product_mentions:
+        response = "\n".join([gen_disambiguation_response(merchant_id, product_mention) for product_mention in product_mentions])
+    elif cart or current_cart:
+        response = gen_cart_response(cart, [get_product_price(merchant_id, p) for p, _ in cart])
+    else:
+        response = gen_opening_response()
     return {
         'cart': cart,
         'response': response,
