@@ -6,8 +6,8 @@ from typing import List
 import logging
 import openai
 from .conversation_parser import Conversation, Turn
+from dialog_agent_service.constants import OpenAIModel
 
-MODEL = "gpt-4"
 TEMPERATURE = 0.2
 HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI|language model'
 
@@ -32,13 +32,13 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
     return [turn_to_chatgpt_format(turn) for turn in cnv_obj.turns[-k:]]
 
 
-def answer_with_prompt(cnv_obj: Conversation, prompt, turns=10):
+def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, turns=10):
     messages = [
         {"role": "system", "content": prompt}
     ] + conv_to_chatgpt_format(cnv_obj, turns)
-    logger.debug(f"LLM REQUEST - Model: {MODEL}, Temp: {TEMPERATURE}, Prompt: {messages}")
+    logger.debug(f"LLM REQUEST - Model: {model}, Temp: {TEMPERATURE}, Prompt: {messages}")
     resp = openai.ChatCompletion.create(
-        model=MODEL,
+        model=model,
         temperature=TEMPERATURE,
         messages=messages
     )
@@ -88,9 +88,8 @@ Cart:"""
         {"role": "user", "content": prompt}
     ]
     resp = openai.ChatCompletion.create(
-        model="gpt-4",
-        top_p=0.1,
-        temperature=1,
+        model=OpenAIModel.GPT4,
+        temperature=0.2,
         messages=messages
     )
     llm_response = resp.choices[0].message.content
