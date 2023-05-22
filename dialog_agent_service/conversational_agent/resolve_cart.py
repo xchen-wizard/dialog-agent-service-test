@@ -17,7 +17,6 @@ ProductResponseUnion = namedtuple(
     'ProductResponseUnion', ['products', 'response'],
 )
 FUZZY_MATCH_THRESHOLD = 85
-LEVENSHTEIN_THRESHOLD = 90
 
 logger = logging.getLogger(__name__)
 
@@ -39,10 +38,6 @@ class MatchType(Enum):
     DISAMBIGUATE = 2
 
 
-def custom_sim(s1, s2):
-    return int(100 * (1.0 - distance(s1, s2, weights=(1, 0, 1), score_cutoff=20) / float(max(len(s1), len(s2)))))
-
-
 def match_mentions_to_products(merchant_id, mentions: List):
     return [tup[0]
             for mention in mentions
@@ -51,8 +46,7 @@ def match_mentions_to_products(merchant_id, mentions: List):
 
 
 def get_product_price(merchant_id, product_name):
-    product_match, _ = \
-    process.extract(product_name, product_price_map[merchant_id].keys(), scorer=fuzz.token_set_ratio, limit=1)[0]
+    product_match, _ = process.extract(product_name, product_price_map[merchant_id].keys(), scorer=fuzz.token_set_ratio, limit=1)[0]
     return product_price_map[merchant_id][product_match]
 
 
@@ -69,9 +63,6 @@ def get_matches(query, string_list, sim_fn, threshold):
 
 
 def custom_match(query, string_list):
-    matches, all_matches = get_matches(query, string_list, custom_sim, LEVENSHTEIN_THRESHOLD)
-    if matches:
-        return MatchType.EXACT, matches, all_matches
     matches, all_matches = get_matches(query, string_list, fuzz.token_set_ratio, FUZZY_MATCH_THRESHOLD)
     if not matches:
         return MatchType.DISAMBIGUATE, all_matches[:4], all_matches
