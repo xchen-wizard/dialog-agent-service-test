@@ -3,6 +3,7 @@ from .handle_answer_miscellaneous_questions import handle_answer_miscellaneous_q
 from dialog_agent_service.retrievers.product_retriever import product_lookup
 from textwrap import dedent
 from ..chatgpt import answer_with_prompt
+from dialog_agent_service.constants import OpenAIModel
 logger = logging.getLogger(__name__)
 max_conversation_chars_products = 1000
 TURNS = 4
@@ -22,7 +23,6 @@ def gen_prompt(vendor, data):
     You are a helpful salesperson for {vendor} and are trying to answer questions about products.
     Use the following "Product Data" delimited by ``` to answer the Customer's question in a concise manner.
     If the question can't be answered based on the "Product Data" alone, respond only with "HANDOFF TO CX".
-    If the question is about promotions or discounts, respond only with "HANDOFF TO CX".
     Limit responses to no more than 50 words.
     
     Product Data:
@@ -41,6 +41,6 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
     if context_str:
         logger.debug(f"Prompt Context:{context_str}")
         prompt = gen_prompt(vendor, context_str)
-        return answer_with_prompt(cnv_obj, prompt, turns=TURNS)
+        return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT4, turns=TURNS)
     logger.warning("In the absence of product mentions, we resort to default QA task answer miscellaneous qa")
     return handle_answer_miscellaneous_questions(cnv_obj=cnv_obj, merchant_id=merchant_id, vendor=vendor)

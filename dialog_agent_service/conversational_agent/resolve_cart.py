@@ -61,7 +61,7 @@ def get_matches(query, string_list, sim_fn, threshold):
     logger.info(f"query: {query}, matches: {matches}")
     exact_matches = [tup[0] for tup in matches if tup[1] == 100]
     if exact_matches and len(exact_matches) == 1:
-        return exact_matches, matches
+        return exact_matches, [tup[0] for tup in matches[:3]]
     return [
                tup[0]
                for tup in matches
