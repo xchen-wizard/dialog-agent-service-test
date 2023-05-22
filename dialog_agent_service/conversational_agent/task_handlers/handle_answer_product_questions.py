@@ -41,6 +41,6 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
     if context_str:
         logger.debug(f"Prompt Context:{context_str}")
         prompt = gen_prompt(vendor, context_str)
-        return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT4, turns=TURNS)
+        return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS)
     logger.warning("In the absence of product mentions, we resort to default QA task answer miscellaneous qa")
     return handle_answer_miscellaneous_questions(cnv_obj=cnv_obj, merchant_id=merchant_id, vendor=vendor)
