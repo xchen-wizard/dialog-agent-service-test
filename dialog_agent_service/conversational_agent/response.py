@@ -1,5 +1,4 @@
 import string
-from textwrap import dedent
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,11 +22,11 @@ Which one did you want?
     """
 
 
-def gen_cart_response(cart):
+def gen_cart_response(cart, prices):
     cart_display = "Your cart is empty"
     if cart:
         cart_display = "Your current cart has:"
-        for name, price, qty in cart:
+        for (name, qty), price in zip(cart, prices):
             cart_display += f"\n- {name}: ${price} x {qty}"
     return cart_display
 

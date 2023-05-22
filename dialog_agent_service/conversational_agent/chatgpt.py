@@ -97,7 +97,7 @@ Cart:"""
     st = llm_response.find('[')
     en = llm_response.find(']', st)
     cart_json = ast.literal_eval(llm_response[st:en+1])
-    return [(d.get("product", d.get("product_mention")), d["quantity"]) for d in cart_json]
+    return cart_json
 
 
 def validate_response(llm_response):
