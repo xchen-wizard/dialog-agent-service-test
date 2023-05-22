@@ -11,6 +11,29 @@ def cart_get(merchant_id: str, user_id: int):
     Args:
         merchant_id
         user_id
+    
+      Sample Response:
+        {
+          cartState: {
+              stage
+            }
+            lineItems: [..., {
+              id,
+              freeTextName,
+              currentPrice,
+              listingId,
+              quantity,
+            }, ...]
+            id,
+            cartDiscountsTotal,
+            itemsTotal,
+            taxTotal,
+            totalPrice,
+            shippingDiscountsTotal,
+            subtotal,
+            shippingSavings,
+          }
+        }
   '''
   query_str = gql('''
       query CartGetByCustomerMerchant($merchantId: Float!, $customerId: Float!) {
