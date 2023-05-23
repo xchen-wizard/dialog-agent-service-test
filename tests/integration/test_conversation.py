@@ -19,7 +19,7 @@ async def test_answer_product_question():
     task_routing_config = {}
     expected_response = {
         'task': 'AnswerProductQuestions',
-        'response': 'The Blueberry Lemonade - 12 Pack is priced at $35.99.',
+        'response': 'Blueberry Lemonade is priced at $35.99 for a 12 pack.',
         'suggested': True,
     }
 
@@ -37,7 +37,7 @@ async def test_answer_miscellaneous_question():
     task_routing_config = {}
     expected_response = {
         'task': 'AnswerMiscellaneousQuestions',
-        'response': 'Hi there! Shipping is always FREE and orders take approximately 3-5 business days to arrive.',
+        'response': 'Thanks for your question! Shipping is always FREE and orders take approximately 3-5 business days to arrive.',
         'suggested': True
     }
 
@@ -54,7 +54,7 @@ async def test_create_or_update_order_cart():
         ('outbound', '''
         Mango Passion Fruit is a 12 pack of G.O.A.T. Fuel with powerful, tropical flavors that taste like a vacation. It is priced at $35.99 and has a subscription option with a 10% discount. The subscription ID is 254332, and the shipping interval is every 30 days. The product is not subscription-only and falls under the Google product category 422.
         '''),
-        ('inbound', 'Can I add Acai Mixed Berry')
+        ('inbound', ' Can I add Acai Mixed Berry')
     ]
     task_routing_config = {}
     response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
@@ -86,5 +86,3 @@ async def test_none():
     response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
                                task_routing_config=task_routing_config)
     assert response['task'] == 'None'
-
-
