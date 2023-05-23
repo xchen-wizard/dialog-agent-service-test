@@ -13,7 +13,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG)
     task_routing_config = {}
-    """
     # Uncomment the below if needed.
     task_routing_config = {
         "CreateOrUpdateOrderCart": {"responseType": "automated"},
@@ -22,7 +21,6 @@ if __name__ == '__main__':
         "AnswerMiscellaneousQuestions": {"responseType": "automated"},
         "None": {"responseType": "automated"}
     }
-    """
 
     response = """
 Thanks for texting!
