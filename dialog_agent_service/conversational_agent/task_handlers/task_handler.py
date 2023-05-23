@@ -14,8 +14,4 @@ def camel_to_snake(name):
 
 def task_handler(task: str, **kwargs):
     handler = getattr(th, f"handle_{camel_to_snake(task)}", th.default_handler)
-    try:
-        return handler(**kwargs)
-    except Exception as e:
-        return th.default_handler(msg=f"Exception: {e}")
-
+    return handler(**kwargs)
