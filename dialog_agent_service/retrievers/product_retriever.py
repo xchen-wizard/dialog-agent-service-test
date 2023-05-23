@@ -1,10 +1,10 @@
 import logging
 from gql import gql
 from dialog_agent_service import init_gql
-from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 gql_client = init_gql()
+
 
 def product_lookup(merchant_id: str, query: str):
     """
@@ -103,6 +103,8 @@ def product_semantic_search(merchant_id: str, query: str):
     vars = {
         'merchantId': merchant_id,
         'query': query,
+        'minSearchScore': 0,
+        'limit': 10
     }
 
     try:
@@ -121,12 +123,12 @@ def product_semantic_search(merchant_id: str, query: str):
 
     context = "\n\n"
     for pr in results:
-        context += format_product_result(pr)
+        context += format_product_result(pr, include_metafields=False)
         context += '\n'
 
     return context
 
-def format_product_result(pr):
+def format_product_result(pr, include_metafields=True):
     BLACKLIST = [
         'subscriptions.subscription_id', 
         'subscriptions.original_to_hidden_variant_map', 
@@ -148,19 +150,20 @@ def format_product_result(pr):
     if price:
       output += f"- price is ${price:.2f}\n"
 
-    metafields = product.get('metafieldEdges', [])
-    if metafields:
-      for mf in metafields:
-          node = mf['node']
-          namespace = node.get('namespace').strip('"')
-          key = node.get('key').strip('"')
-          field = namespace + '.' + key
-          if field not in BLACKLIST:
-              value = node.get('value')
-              
-              #TODO - filter nodes by retailer whitelist
-              if value and value != "":
-                  clean_value = value.strip('"') #TODO - temporary, data eng will do this
-                  output += f"- {field} is {clean_value}\n"
+    if include_metafields:
+        metafields = product.get('metafieldEdges', [])
+        if metafields:
+          for mf in metafields:
+              node = mf['node']
+              namespace = node.get('namespace').strip('"')
+              key = node.get('key').strip('"')
+              field = namespace + '.' + key
+              if field not in BLACKLIST:
+                  value = node.get('value')
+
+                  #TODO - filter nodes by retailer whitelist
+                  if value and value != "":
+                      clean_value = value.strip('"') #TODO - temporary, data eng will do this
+                      output += f"- {field} is {clean_value}\n"
 
     return output
