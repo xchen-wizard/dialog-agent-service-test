@@ -9,7 +9,7 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
     try:
       resolved_cart = resolve_product_mentions(merchant_id, virtual_cart)
 
-      if not resolved_cart:
+      if virtual_cart and not resolved_cart:
           raise Exception('Could not resolve product mentions for cart')
 
       existing_cart = cart_get(merchant_id, user_id)
