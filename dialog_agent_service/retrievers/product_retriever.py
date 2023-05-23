@@ -62,7 +62,7 @@ def product_lookup(merchant_id: str, query: str):
         context += format_product_result(pr)
         context += '\n'
 
-    return context
+    return context, results
 
 
 def product_semantic_search(merchant_id: str, query: str):
