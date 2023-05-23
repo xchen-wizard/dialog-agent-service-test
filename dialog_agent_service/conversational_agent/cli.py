@@ -39,7 +39,8 @@ How can we help you today?
         utt = input()
         docs.append(('inbound', utt))
         print(f"Current Cart: {current_cart}")
-        ret = asyncio.run(handle_conversation_response(args.merchant_id, int(args.user_id), int(args.service_channel_id), 2, 24, test_merchant='',task_routing_config=task_routing_config))
+        test_args = { 'docs': docs, 'vendor_name': args.vendor, 'clear_history': False}
+        ret = asyncio.run(handle_conversation_response(args.merchant_id, int(args.user_id), int(args.service_channel_id), -1, 24, test_merchant='',task_routing_config=task_routing_config, test_args=test_args))
         '''ret = asyncio.run(run_inference(
             docs, args.vendor, args.merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
             current_cart=current_cart, task_routing_config=task_routing_config))'''

@@ -80,15 +80,16 @@ def cart_get(merchant_id: str, user_id: int):
   return cart
 
 
-def cart_create(merchant_id: str, user_id: int):
+def cart_create(merchant_id: str, user_id: int, retailer_id: str):
   '''
     Args:
         merchant_id
         user_id
+        retailer_id
   '''
   query_str = gql('''
-      mutation CartCreate($merchantId: Float!, $customerId: Float!) {
-        cartCreate(merchantId: $merchantId, customerId: $customerId) {
+      mutation CartCreate($merchantId: Float!, $customerId: Float!, $retailerId: Float!) {
+        cartCreate(merchantId: $merchantId, customerId: $customerId, retailerId: $retailerId) {
           cartState {
             stage
           }
@@ -111,8 +112,9 @@ def cart_create(merchant_id: str, user_id: int):
       }
       ''')
   vars = {
-      'merchantId': float(merchant_id),
-      'customerId': user_id
+      'merchantId': int(merchant_id),
+      'customerId': user_id,
+      'retailerId': int(retailer_id)
   }
 
   try:
@@ -162,7 +164,7 @@ def cart_add_catalog_item_by_listing_id(listing_id: str, cart_id: float):
       }
       ''')
   vars = {
-      'listingId': float(listing_id),
+      'listingId': listing_id,
       'cartId': cart_id
   }
 

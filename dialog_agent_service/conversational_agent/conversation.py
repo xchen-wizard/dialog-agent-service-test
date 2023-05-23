@@ -22,7 +22,7 @@ class ResponseType(Enum):
 
 async def handle_conversation_response(
     merchant_id: str, user_id: int, service_channel_id: int,
-    k: int, window: int, test_merchant: str, task_routing_config: dict = {}
+    k: int, window: int, test_merchant: str, task_routing_config: dict = {}, test_args: dict = {}
 ):
     """
     Handler to retrieve, process messages and obtain response from Vertex AI endpoint
@@ -38,7 +38,13 @@ async def handle_conversation_response(
         if the endpoint was called
         else return an empty json
     """
-    docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
+    if k == -1:
+        docs = test_args['docs']
+        vendor_name = test_args['vendor_name']
+        clear_history = test_args['clear_history']
+        print(docs, vendor_name, clear_history)
+    else:
+      docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
     if clear_history:
         pass
         # @preston: add api to clear cart here. This is just for testing, so its ok to skip this if you want too.
