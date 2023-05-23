@@ -1,4 +1,4 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
-  - git@github.com:wizardcommerce/kustomize-projects.git/projects/dialog-agent-service/env/prod?ref=7c7259f683795888fce343da4f97084150e0c6c7
+  - git@github.com:wizardcommerce/kustomize-projects.git/projects/dialog-agent-service/env/prod?ref=c76c9621482d16dd778894c13b41b4b85c40ed87
