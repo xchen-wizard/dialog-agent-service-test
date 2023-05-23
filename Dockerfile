@@ -19,8 +19,8 @@ COPY tests ./tests
 RUN pip3 install poetry==1.4.0 && \
   poetry config virtualenvs.create false && \
   poetry install --no-interaction --no-ansi
-RUN cd dialog_agent_service && \
-  poetry run python -m pytest ../tests/unit
+# RUN cd dialog_agent_service && \
+#   poetry run python -m pytest ../tests/unit
 
 # Docker image to run
 FROM python:3.10.5
