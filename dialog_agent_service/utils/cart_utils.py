@@ -85,5 +85,4 @@ def sync_virtual_cart(merchant_id: str, user_id: int):
     active_cart = cart_get(merchant_id, user_id)
     if not active_cart:
         return []
-    _, _, virtual_cart_list = active_cart_to_virtual_cart(active_cart)
-    return virtual_cart_list
+    return active_cart_to_virtual_cart(active_cart)

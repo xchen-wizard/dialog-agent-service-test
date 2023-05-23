@@ -56,7 +56,7 @@ async def handle_conversation_response(
         vendor_name = test_merchant
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
-        current_cart = sync_virtual_cart(merchant_id, user_id)
+        virtual_cart, _, current_cart = sync_virtual_cart(merchant_id, user_id)
         response = await run_inference(
             docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
             current_cart=current_cart, task_routing_config=task_routing_config)
@@ -69,6 +69,10 @@ async def handle_conversation_response(
         if cart is not None:
             create_or_update_active_cart(merchant_id, user_id, cart)
             ret_dict['cart'] = cart
+            # temporary hack to detect cart summary. In general it should be set downstream.
+            if response.get('response', '').startswith("Your current cart"):
+                ret_dict['cartId'] = virtual_cart['id']
+                ret_dict['messageType'] = "order-summary"
         return ret_dict
     logger.warning(f"""
         no messages retrieved for userId {user_id}, serviceChannelId {service_channel_id}, vendorId {merchant_id}.
