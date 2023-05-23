@@ -3,6 +3,7 @@ from .default_handler import default_handler
 from ..chatgpt import answer_with_prompt
 from textwrap import dedent
 import logging
+from dialog_agent_service.constants import OpenAIModel
 logger = logging.getLogger(__name__)
 TURNS = 4
 
@@ -20,6 +21,7 @@ def gen_prompt(vendor, data):
     INSTRUCTIONS:
     - if you are responding to the first Customer message, respond with a greeting like "Hi there!" or "Thanks for your question!" before answering the question. Otherwise if we're in the middle of a conversation answer the question directly.
     - unless the Customer indicates otherwise, we should assume they are asking about shipping to the USA
+    - if the question is about promotions or discounts, then reply only with "HANDOFF TO CX".
         
     POLICIES: 
     ```{data}```
@@ -33,4 +35,4 @@ def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor
         logger.warning("Can't retrieve context. Handing off")
         return default_handler(msg="merchant_semantic_search context retriever failed")
     logger.debug(f"Prompt Context: {context}")
-    return answer_with_prompt(cnv_obj, gen_prompt(vendor, context), turns=TURNS)
+    return answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT4, turns=TURNS)
