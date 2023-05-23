@@ -1,5 +1,6 @@
 import argparse
 import os
+from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
 from dialog_agent_service.conversational_agent.conversation_utils import run_inference
 import asyncio
 import logging
@@ -10,6 +11,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", "--merchant_id", help="vendor id to run interpreter", required=True)
     parser.add_argument("-v", "--vendor", help="vendor name to run interpreter", required=True)
+    parser.add_argument("-u", "--user_id", help="user id to run interpreter", required=True)
+    parser.add_argument("-sc", "--service_channel_id", help="service channel id to run interpreter", required=True)
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG)
     task_routing_config = {}
@@ -36,9 +39,10 @@ How can we help you today?
         utt = input()
         docs.append(('inbound', utt))
         print(f"Current Cart: {current_cart}")
-        ret = asyncio.run(run_inference(
+        ret = asyncio.run(handle_conversation_response(args.merchant_id, int(args.user_id), int(args.service_channel_id), 2, 24, test_merchant='',task_routing_config=task_routing_config))
+        '''ret = asyncio.run(run_inference(
             docs, args.vendor, args.merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
-            current_cart=current_cart, task_routing_config=task_routing_config))
+            current_cart=current_cart, task_routing_config=task_routing_config))'''
         if 'cart' in ret:
             current_cart = ret['cart']
         print(ret)

@@ -70,7 +70,7 @@ def cart_get(merchant_id: str, user_id: int):
       logger.error(f'Get cart GQL-API request failed: {err}')
       return None
   
-  cart = resp['CartGetByCustomerMerchant']
+  cart = resp['cartGetByCustomerMerchant']
   if not cart:
       logger.warn(f'CartGetByCustomerMerchant failed, no results merchant_id:{merchant_id}, user_id:{user_id}')
       return None
@@ -121,7 +121,7 @@ def cart_create(merchant_id: str, user_id: int):
       logger.error(f'Create cart GQL-API request failed: {err}')
       return None
   
-  cart = resp['CartCreate']
+  cart = resp['cartCreate']
   if not cart:
       logger.warn(f'CartCreate failed, no results merchant_id:{merchant_id}, user_id:{user_id}')
       return None
@@ -172,7 +172,7 @@ def cart_add_catalog_item_by_listing_id(listing_id: str, cart_id: float):
       logger.error(f'Add listing to cart GQL-API request failed: {err}')
       return None
   
-  cart = resp['cart_add_catalog_item_by_listing_id']
+  cart = resp['cartAddCatalogItemByListingId']
   if not cart:
       logger.warn(f'Add listing to cart failed, no results listingId:{listing_id}, cartId:{cart_id}')
       return None
@@ -223,7 +223,7 @@ def cart_remove_item(line_item_id: float, cart_id: float):
       logger.error(f'Remove item from cart GQL-API request failed: {err}')
       return None
   
-  cart = resp['cart_add_catalog_item_by_listing_id']
+  cart = resp['cartRemoveItem']
   if not cart:
       logger.warn(f'Remove item from cart failed, no results lineItemId:{line_item_id}, cartId:{cart_id}')
       return None
@@ -275,7 +275,7 @@ def cart_set_item_quantity(line_item_id: float, cart_id: float, quantity: float)
       logger.error(f'Set cart item quantity GQL-API request failed: {err}')
       return None
   
-  cart = resp['cart_add_catalog_item_by_listing_id']
+  cart = resp['cartSetItemQuantity']
   if not cart:
       logger.warn(f'Set cart item quantity failed, no results lineItemId:{line_item_id}, cartId:{cart_id}')
       return None

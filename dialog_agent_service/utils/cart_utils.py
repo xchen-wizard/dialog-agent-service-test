@@ -80,4 +80,8 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
     return resolved_cart
 
 def sync_virtual_cart(merchant_id: str, user_id: int):
-    return active_cart_to_virtual_cart(cart_get(merchant_id, user_id))
+    active_cart = cart_get(merchant_id, user_id)
+    if not active_cart:
+        return []
+    _, _, virtual_cart_list = active_cart_to_virtual_cart(active_cart)
+    return virtual_cart_list

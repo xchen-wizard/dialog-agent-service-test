@@ -4,7 +4,7 @@ import logging
 import os
 from enum import Enum
 from dialog_agent_service.actions.cart_actions import cart_get
-from dialog_agent_service.utils.cart_utils import create_or_update_active_cart
+from dialog_agent_service.utils.cart_utils import create_or_update_active_cart, sync_virtual_cart
 from .conversation_utils import get_past_k_turns
 from .conversation_utils import run_inference
 
@@ -40,6 +40,7 @@ async def handle_conversation_response(
     """
     docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
     if clear_history:
+        pass
         # @preston: add api to clear cart here. This is just for testing, so its ok to skip this if you want too.
 
     # Temp: for testing purposes, as not all merchants exist in dev or stage
@@ -49,9 +50,7 @@ async def handle_conversation_response(
         vendor_name = test_merchant
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
-        current_cart_backend = cart_get(merchant_id, user_id)
-        f = lambda x: [] # @preston remove this.
-        current_cart = f(current_cart_backend) # @preston can you write a small utility function to convert the big object to list of tuples of product, quantity
+        current_cart = sync_virtual_cart(merchant_id, user_id)
         response = await run_inference(
             docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
             current_cart=current_cart, task_routing_config=task_routing_config)
