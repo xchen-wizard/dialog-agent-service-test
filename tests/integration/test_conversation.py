@@ -19,7 +19,7 @@ async def test_answer_product_question():
     task_routing_config = {}
     expected_response = {
         'task': 'AnswerProductQuestions',
-        'response': 'Blueberry Lemonade is priced at $35.99 for a 12 pack.',
+        'response': 'The Blueberry Lemonade 12 Pack is priced at $35.99. Would you like to add it to your cart and try it out?',
         'suggested': True,
     }
 
@@ -37,7 +37,7 @@ async def test_answer_miscellaneous_question():
     task_routing_config = {}
     expected_response = {
         'task': 'AnswerMiscellaneousQuestions',
-        'response': 'Hi there! Shipping is always FREE and orders take approximately 3-5 business days to arrive.',
+        'response': "Hey there! Good news - shipping is always FREE for all orders! Once you place your order, it typically takes about 3-5 business days to arrive. Let me know if you'd like to start an order or if you have any other questions! 😊",
         'suggested': True
     }
 
