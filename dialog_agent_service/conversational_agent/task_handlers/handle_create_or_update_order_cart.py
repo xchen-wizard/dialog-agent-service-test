@@ -31,8 +31,8 @@ def handle_create_or_update_order_cart(cnv_obj=None, merchant_id=None, current_c
     products_from_history = list(set(match_mentions_to_products(merchant_id, mentions) + [t[0] for t in current_cart]))
     model_predicted_cart = generate_cart_mentions(cnv_obj, current_cart, products_from_history)
     logger.info(f"Cart predicted by chatgpt: {model_predicted_cart}")
-    cart = [(d['product'], d['quantity']) for d in model_predicted_cart if 'product' in d]
-    product_mentions = [d['product_mention'] for d in model_predicted_cart if 'product_mention' in d]
+    cart = [(d['product'], d['quantity']) for d in model_predicted_cart if 'product' in d and '||' not in d['product']]
+    product_mentions = [d['product_mention'] for d in model_predicted_cart if 'product_mention' in d and '||' in d['product']]
     if product_mentions:
         response = "\n".join([gen_disambiguation_response(merchant_id, product_mention) for product_mention in product_mentions])
     elif cart or current_cart:

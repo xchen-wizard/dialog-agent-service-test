@@ -19,7 +19,7 @@ async def test_answer_product_question():
     task_routing_config = {}
     expected_response = {
         'task': 'AnswerProductQuestions',
-        'response': 'The Blueberry Lemonade - 12 Pack is priced at $35.99.',
+        'response': 'Blueberry Lemonade is priced at $35.99 for a 12 pack.',
         'suggested': True,
     }
 
