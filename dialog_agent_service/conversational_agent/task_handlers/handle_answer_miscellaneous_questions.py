@@ -47,4 +47,4 @@ def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor
         logger.warning("Can't retrieve context. Handing off")
         return default_handler(msg="merchant_semantic_search context retriever failed")
     logger.debug(f"Prompt Context: {context}")
-    return answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT4, turns=TURNS)
+    return answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT35, turns=TURNS)
