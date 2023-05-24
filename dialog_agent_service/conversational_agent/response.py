@@ -37,7 +37,9 @@ def gen_cart_response(cart):
         cart_display = "Your current cart has:"
         for name, price, qty in cart:
             cart_display += f"\n- {name}: ${price} x {qty}"
-    return cart_display
+    cta = "Would you like to keep shopping, or are you ready to check out?"
+    return cart_display + "\n" + cta
+
 
 def gen_opening_response():
     return """
