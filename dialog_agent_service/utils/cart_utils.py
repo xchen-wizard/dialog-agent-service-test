@@ -68,7 +68,7 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
     resolved_cart = {}
 
     for mention in virtual_cart:
-        _, product_variants = product_lookup(merchant_id, mention[0])
+        product_variants = product_lookup(merchant_id, mention[0])
         
         if len(product_variants) == 0:
             logger.debug(f'could not resolve product mentions using productLookup')
