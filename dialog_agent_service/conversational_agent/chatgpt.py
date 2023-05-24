@@ -78,7 +78,7 @@ Buyer's Cart: [('gummy bears', 1)]
 FORMAT:
 - product: <product that the buyer has asked to buy or add to their cart>
 - quantity: <integer of the quantity of a product in the cart>
-- return a lsit of tuples, for example [(<product1>, <quantity1>), (<product2>, <quantity2>)]
+- return a list of tuples, for example [(<product1>, <quantity1>), (<product2>, <quantity2>)]
 
 {context}
 Buyer's Cart: {current_cart}
