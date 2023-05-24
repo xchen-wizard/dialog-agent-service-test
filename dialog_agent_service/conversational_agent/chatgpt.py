@@ -51,26 +51,37 @@ def generate_cart_mentions(cnv_obj: Conversation, current_cart: List):
     last_seller_utt = str(cnv_obj.turns[-2]) if cnv_obj.n_turns > 1 else ""
 
     prompt = f"""
-BEGIN EXAMPLES
+You are a friendly sales agent that manages a Buyer's cart that consists of the products that the Buyer wants to purchase. 
+
+Your task is to do the following steps:
+1. Read through the EXAMPLES delimited by ``` to generate the Buyer's Cart.
+2. Return the Buyer's Cart in the following FORMAT.
+
+EXAMPLES
+```
 Buyer: how does wizard shampoo cost?
 Buyer's Cart: []
 Seller: $12
 Buyer: Can you add wizard conditioner to my cart?
-Buyer's Cart: [("wizard conditioner", 1)]
+Buyer's Cart: [('wizard conditioner', 1)]
 Seller: Done! Anything else?
 Buyer: Also add two gummy bears?
-Buyer's Cart: [("wizard conditioner", 1), ("gummy bears", 2)]
+Buyer's Cart: [('wizard conditioner', 1), ('gummy bears', 2)]
 Seller: Sure. Are you ready to checkout now?
 Buyer: Actually make that one. and remove the conditioner.
-Buyer's Cart: [("gummy bears", 1)] 
-END EXAMPLES
-A buyer's cart consists of the products that they want to purchase. To create a buyer's cart go through the conversation above
- and create a list of tuples of product X quantity, e.g. [("product1", quantity1), ("product2", quantity2), ...] where products are the products that the buyer has asked to buy or add to their cart and quantity is an integer.
-    {context}
-    Buyer's Cart: {current_cart}
-    {last_seller_utt}
-    {cnv_obj.turns[-1]}
-    Buyer's Cart: 
+Buyer's Cart: [('gummy bears', 1)]
+```
+
+FORMAT:
+- product: <product that the buyer has asked to buy or add to their cart>
+- quantity: <integer of the quantity of a product in the cart>
+- return a lsit of tuples, for example [(<product1>, <quantity1>), (<product2>, <quantity2>)]
+
+{context}
+Buyer's Cart: {current_cart}
+{last_seller_utt}
+{cnv_obj.turns[-1]}
+Buyer's Cart:
     """
     messages = [
         {"role": "user", "content": prompt}
