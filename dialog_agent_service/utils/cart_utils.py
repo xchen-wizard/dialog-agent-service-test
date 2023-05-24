@@ -26,9 +26,6 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
           if listing_id not in converted_cart['listings']:
               cart_add_catalog_item_by_listing_id(listing_id, cart_id)
 
-              quantity = resolved_cart[listing_id]['quantity']
-              cart_set_item_quantity(listing_id, cart_id, quantity)
-
           elif resolved_cart[listing_id]['quantity'] != converted_cart_quantities[listing_id]:
               quantity = resolved_cart[listing_id]['quantity']
               line_item_id = converted_cart['listings'][listing_id]['id']
