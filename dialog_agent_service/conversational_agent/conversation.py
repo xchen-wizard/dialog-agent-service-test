@@ -70,6 +70,8 @@ async def handle_conversation_response(
             create_or_update_active_cart(merchant_id, user_id, cart)
             ret_dict['cart'] = cart
             # temporary hack to detect cart summary. In general it should be set downstream.
+            if 'id' not in virtual_cart:
+                virtual_cart['id'] = 0
             if response.get('response', '').startswith("Your current cart"):
                 ret_dict['cartId'] = virtual_cart['id']
                 ret_dict['messageType'] = "order-summary"
