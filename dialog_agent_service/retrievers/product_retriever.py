@@ -57,8 +57,15 @@ def product_lookup(merchant_id: str, query: str):
     results = results[0:10]
     logger.info(f"Query:{query}, productVariantLookup results: {results}")
 
+    return results
+
+def product_variants_to_context(product_variants: list):
+    """
+    Args:
+        product_variants: list of product_variants that are returned from product_lookup or product_semantic_search
+    """
     context = ""
-    for pr in results:
+    for pr in product_variants:
         context += format_product_result(pr)
         context += '\n'
 

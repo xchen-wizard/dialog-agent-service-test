@@ -1,6 +1,6 @@
 import logging
 from .handle_answer_miscellaneous_questions import handle_answer_miscellaneous_questions
-from dialog_agent_service.retrievers.product_retriever import product_lookup
+from dialog_agent_service.retrievers.product_retriever import product_lookup, product_variants_to_context
 from textwrap import dedent
 from ..chatgpt import answer_with_prompt
 from dialog_agent_service.constants import OpenAIModel
@@ -51,7 +51,7 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
     product_input = create_input_products(str(cnv_obj))
     product_mentions = predict_fn(product_input)[0].split(",")
     product_context = [
-        product_lookup(merchant_id, product_mention)
+        product_variants_to_context(product_lookup(merchant_id, product_mention))
         for product_mention in product_mentions
     ]
     context_str = "\n".join([c for c in product_context if c is not None])
