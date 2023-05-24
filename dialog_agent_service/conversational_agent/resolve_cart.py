@@ -115,4 +115,3 @@ def match_product_variant(merchant_id: str, product_name: str) -> ProductRespons
                     )
 
         return ProductResponseUnion(products, response)
-
