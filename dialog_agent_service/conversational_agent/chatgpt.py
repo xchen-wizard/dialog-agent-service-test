@@ -1,15 +1,15 @@
 import ast
-import json
 import os
 import re
+import timeit
 from typing import List
 import logging
 import openai
 from .conversation_parser import Conversation, Turn
 from dialog_agent_service.constants import OpenAIModel
 
-TEMPERATURE = 0.0 #for the tests
-HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI|language model'
+TEMPERATURE = 0.0
+HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI|language model|I\'m sorry, but I don\'t have that information on hand'
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -37,11 +37,14 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, t
         {"role": "system", "content": prompt}
     ] + conv_to_chatgpt_format(cnv_obj, turns)
     logger.debug(f"LLM REQUEST - Model: {model}, Temp: {TEMPERATURE}, Prompt: {messages}")
+    start_time = timeit.default_timer()
     resp = openai.ChatCompletion.create(
         model=model,
         temperature=TEMPERATURE,
         messages=messages
     )
+    duration = timeit.default_timer() - start_time
+    logger.info(f"LLM REQUEST - Model: {model}: request time: {duration}")
     llm_response = resp.choices[0].message.content
     return validate_response(model, llm_response)
 
