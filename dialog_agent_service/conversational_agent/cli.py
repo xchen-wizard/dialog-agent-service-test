@@ -24,7 +24,6 @@ if __name__ == '__main__':
         "AnswerMiscellaneousQuestions": {"responseType": "automated"},
         "None": {"responseType": "automated"}
     }
-
     response = """
 Thanks for texting!
 How can we help you today?
