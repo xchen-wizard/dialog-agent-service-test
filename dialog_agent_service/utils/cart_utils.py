@@ -1,5 +1,6 @@
 import logging
 from dialog_agent_service.actions.cart_actions import cart_add_catalog_item_by_listing_id, cart_create, cart_get, cart_remove_item, cart_set_item_quantity
+from dialog_agent_service.db import get_merchant
 from dialog_agent_service.retrievers.product_retriever import product_lookup
 
 logger = logging.getLogger(__name__)
@@ -15,7 +16,8 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
       existing_cart = cart_get(merchant_id, user_id)
 
       if not existing_cart:
-          retailer_id = '58'
+          merchant = get_merchant(merchant_id)
+          retailer_id = merchant['retailerId']
           existing_cart = cart_create(merchant_id, user_id, retailer_id)
 
       converted_cart, converted_cart_quantities, _ = active_cart_to_virtual_cart(existing_cart)
@@ -26,10 +28,16 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
           if listing_id not in converted_cart['listings']:
               cart_add_catalog_item_by_listing_id(listing_id, cart_id)
 
-          elif resolved_cart[listing_id]['quantity'] != converted_cart_quantities[listing_id]:
-              quantity = resolved_cart[listing_id]['quantity']
-              line_item_id = converted_cart['listings'][listing_id]['id']
-              cart_set_item_quantity(line_item_id, cart_id, quantity)
+      # resync cart so we can update quantities of newly added products
+      converted_cart, converted_cart_quantities, _ = active_cart_to_virtual_cart(existing_cart)
+
+      for listing_id in resolved_cart:
+        if listing_id not in converted_cart['listings']:
+            continue
+        elif resolved_cart[listing_id]['quantity'] != converted_cart_quantities[listing_id]:
+            quantity = resolved_cart[listing_id]['quantity']
+            line_item_id = converted_cart['listings'][listing_id]['id']
+            cart_set_item_quantity(line_item_id, cart_id, quantity)
 
       for listing_id in converted_cart['listings']:
           if listing_id not in resolved_cart:
