@@ -49,43 +49,46 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, t
     return validate_response(model, llm_response)
 
 
-def generate_cart_mentions(cnv_obj: Conversation, current_cart: List):
+def generate_cart_mentions(cnv_obj: Conversation, current_cart: List, products: List):
     context = "\n".join([str(t) for t in cnv_obj.turns[:-2]]) if cnv_obj.n_turns > 2 else ""
     last_seller_utt = str(cnv_obj.turns[-2]) if cnv_obj.n_turns > 1 else ""
 
     prompt = f"""
-You are a friendly sales agent that manages a Buyer's cart that consists of the products that the Buyer wants to purchase. 
-
-Your task is to do the following steps:
-1. Read through the EXAMPLES delimited by ``` to generate the Buyer's Cart.
-2. Return the Buyer's Cart in the following FORMAT.
-
-EXAMPLES
-```
-Buyer: how does wizard shampoo cost?
-Buyer's Cart: []
+BEGIN EXAMPLES
+List of products: ["Wizard Shampoo - 8 oz", "Wizard Shampoo - 16 oz", "Wizard Conditioner - 8 oz", "Wizard Conditioner - 16 oz", "Vanilla Ice Cream - 12 pk", "Chocolate Ice Cream - 12 pk"]
+Buyer: how much does wizard shampoo cost?
+Cart: []
 Seller: $12
-Buyer: Can you add wizard conditioner to my cart?
-Buyer's Cart: [('wizard conditioner', 1)]
+Buyer: Can you add wizard shampoo and conditioner to my cart?
+Cart: [("Wizard Shampoo - 8 oz || Wizard Shampoo - 16 oz", 1), ("Wizard Conditioner - 8 oz || Wizard Conditioner - 16 oz", 1)].
+Seller: 8 oz or 16 oz?
+Buyer: 8 oz
+Cart: [("Wizard Shampoo - 8 oz", 1), ("Wizard Conditioner - 8 oz", 1)]
 Seller: Done! Anything else?
-Buyer: Also add two gummy bears?
-Buyer's Cart: [('wizard conditioner', 1), ('gummy bears', 2)]
+Buyer: Add two
+Cart: [("Wizard Shampoo - 8 oz", 2), ("Wizard Conditioner - 8 oz", 2)] 
+Seller: Of course! would you like to checkout now?
+Buyer: two of the ice creams?
+Cart: [("Wizard Shampoo - 8 oz", 2), ("Wizard Conditioner - 8 oz", 2), ("Vanilla Ice Cream - 12 pk || Chocolate Ice Cream - 12 pk", 2)]
+Seller: Did you want chocolate or vanilla?
+Buyer: both
+Cart: [("Wizard Shampoo - 8 oz", 2), ("Wizard Conditioner - 8 oz", 2), ("Vanilla Ice Cream - 12 pk", 2), ("Chocolate Ice Cream - 12 pk", 2)]
 Seller: Sure. Are you ready to checkout now?
-Buyer: Actually make that one. and remove the conditioner.
-Buyer's Cart: [('gummy bears', 1)]
-```
-
-FORMAT:
-- product: <product that the buyer has asked to buy or add to their cart>
-- quantity: <integer of the quantity of a product in the cart>
-- return a list of tuples, for example [(<product1>, <quantity1>), (<product2>, <quantity2>)]
-
+Buyer: Actually remove the shampoo and conditioner.
+Cart: [("Vanilla Ice Cream - 12 pk", 2), ("Chocolate Ice Cream - 12 pk", 2)]]
+Seller: done. Your cart has been updated.
+Buyer: just one of each please.
+Cart: ("Vanilla Ice Cream - 12 pk", 1), ("Chocolate Ice Cream - 12 pk", 1)] 
+END EXAMPLES
+A Cart consists of the products that the buyer wants to purchase. To create the cart go through the conversation below and create a create a list of tuples of product X quantity, e.g. [("product1", quantity1), ("product2", quantity2), ...] where products are the names of products that the buyer has asked to buy or add to their cart and quantity is an integer. 
+The product names have to come from a give list of products. The buyer does not always provide the exact product name, so you have to infer the product name from the list below based on their utterance. If there are multiple products from the list that are equally likely to be a match, you can output them all separated by delimiter "||".
+Here is the list of all possible products: {products}
+BEGIN CONVERSATION
 {context}
-Buyer's Cart: {current_cart}
+Cart: {current_cart}
 {last_seller_utt}
 {cnv_obj.turns[-1]}
-Buyer's Cart:
-    """
+Cart:"""
     messages = [
         {"role": "user", "content": prompt}
     ]

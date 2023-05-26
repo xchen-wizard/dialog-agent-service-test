@@ -5,19 +5,14 @@ logger = logging.getLogger(__name__)
 
 newline = '\n'
 
-def gen_non_specific_product_response(product, matches):
+def gen_non_specific_product_response(matches):
     if matches:
         return f"""
-We found multiple items that match your search for {product}. Did you mean
+We found multiple items that matched your search. Did you mean
 
 {newline.join(f'{c}. {match}' for c, match in zip(string.ascii_uppercase, matches))}
 
 or let us know if it is something else. 
-        """
-    else:
-        # TODO: eventually we will just change the task to recommendation and let chatgpt respond
-        return f"""
-We couldn't narrow down your search for {product}. Would you like some recommendations.
         """
 
 
@@ -31,14 +26,15 @@ Which one did you want?
     """
 
 
-def gen_cart_response(cart):
+def gen_cart_response(cart, prices):
     cart_display = "Your cart is empty"
     if cart:
         cart_display = "Your current cart has:"
-        for name, price, qty in cart:
+        for (name, qty), price in zip(cart, prices):
             cart_display += f"\n- {name}: ${price} x {qty}"
     cta = "Would you like to keep shopping, or are you ready to check out?"
     return cart_display + "\n" + cta
+
 
 
 def gen_opening_response():
