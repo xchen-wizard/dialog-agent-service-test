@@ -1,7 +1,7 @@
 import argparse
 import os
-from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
 from dialog_agent_service.conversational_agent.conversation_utils import run_inference
+from dialog_agent_service.conversational_agent.conversation import handle_conversation_response
 import asyncio
 import logging
 ENDPOINT_ID = os.getenv('T5_VERTEX_AI_ENDPOINT_ID')
@@ -11,12 +11,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-id", "--merchant_id", help="vendor id to run interpreter", required=True)
     parser.add_argument("-v", "--vendor", help="vendor name to run interpreter", required=True)
-    parser.add_argument("-u", "--user_id", help="user id to run interpreter", required=True)
-    parser.add_argument("-sc", "--service_channel_id", help="service channel id to run interpreter", required=True)
+    parser.add_argument("-u", "--user_id", help="user id to run interpreter", required=False)
+    parser.add_argument("-sc", "--service_channel_id", help="service channel id to run interpreter", required=False)
     args = parser.parse_args()
     logging.basicConfig(level=logging.DEBUG)
-    task_routing_config = {}
-    # Uncomment the below if needed.
     task_routing_config = {
         "CreateOrUpdateOrderCart": {"responseType": "automated"},
         "RecommendProduct": {"responseType": "automated"},
@@ -24,6 +22,7 @@ if __name__ == '__main__':
         "AnswerMiscellaneousQuestions": {"responseType": "automated"},
         "None": {"responseType": "automated"}
     }
+
     response = """
 Thanks for texting!
 How can we help you today?
@@ -36,11 +35,15 @@ How can we help you today?
         utt = input()
         docs.append(('inbound', utt))
         print(f"Current Cart: {current_cart}")
-        test_args = { 'docs': docs, 'vendor_name': args.vendor, 'clear_history': False}
-        ret = asyncio.run(handle_conversation_response(args.merchant_id, int(args.user_id), int(args.service_channel_id), -1, 24, test_merchant='',task_routing_config=task_routing_config, test_args=test_args))
-        '''ret = asyncio.run(run_inference(
-            docs, args.vendor, args.merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
-            current_cart=current_cart, task_routing_config=task_routing_config))'''
+        test_args = {'docs': docs, 'vendor_name': args.vendor, 'clear_history': False}
+        if args.user_id and args.service_channel_id:
+            ret = asyncio.run(handle_conversation_response(
+                args.merchant_id, int(args.user_id), int(args.service_channel_id), -1, 24,
+                test_merchant='', task_routing_config=task_routing_config, test_args=test_args))
+        else:
+            ret = asyncio.run(run_inference(
+                docs, args.vendor, args.merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
+                current_cart=current_cart, task_routing_config=task_routing_config))
         if 'cart' in ret:
             current_cart = ret['cart']
         print(ret)
