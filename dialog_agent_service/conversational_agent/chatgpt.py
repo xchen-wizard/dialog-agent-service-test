@@ -3,13 +3,14 @@ import os
 import re
 import timeit
 from typing import List
+import json
 import logging
 import openai
 from .conversation_parser import Conversation, Turn
 from dialog_agent_service.constants import OpenAIModel
 
 TEMPERATURE = 0.0
-HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI|language model|I\'m sorry, but I don\'t have that information on hand'
+HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI|language model|I don\'t have that information|email|website|I didn\'t understand'
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -54,6 +55,9 @@ def generate_cart_mentions(cnv_obj: Conversation, current_cart: List, products: 
     last_seller_utt = str(cnv_obj.turns[-2]) if cnv_obj.n_turns > 1 else ""
 
     prompt = f"""
+A Cart consists of the products that the buyer wants to purchase. To create the cart go through a conversation  and create a list of tuples of product X quantity, e.g. [("product1", quantity1), ("product2", quantity2), ...] where products are the names of products that the buyer has asked to buy or add to their cart and quantity is an integer. 
+The product names have to come from a give list of products. The buyer does not always provide the exact product name, so you have to infer the product name from the list of product names. If you cannot, with complete certainty, infer a unique product name because there are multiple products from the list that are likely to be a match, you can output them all separated by delimiter "||". Unless you are absolutely sure, do not match to a product name and err on the side of generating multiple product names. Also, make sure you generate all likely product names.
+Below are a few examples to illustrate how cart is built. Follow them closely when building the cart for the conversation given at the end.
 BEGIN EXAMPLES
 List of products: ["Wizard Shampoo - 8 oz", "Wizard Shampoo - 16 oz", "Wizard Conditioner - 8 oz", "Wizard Conditioner - 16 oz", "Vanilla Ice Cream - 12 pk", "Chocolate Ice Cream - 12 pk"]
 Buyer: how much does wizard shampoo cost?
@@ -80,14 +84,13 @@ Seller: done. Your cart has been updated.
 Buyer: just one of each please.
 Cart: ("Vanilla Ice Cream - 12 pk", 1), ("Chocolate Ice Cream - 12 pk", 1)] 
 END EXAMPLES
-A Cart consists of the products that the buyer wants to purchase. To create the cart go through the conversation below and create a create a list of tuples of product X quantity, e.g. [("product1", quantity1), ("product2", quantity2), ...] where products are the names of products that the buyer has asked to buy or add to their cart and quantity is an integer. 
-The product names have to come from a give list of products. The buyer does not always provide the exact product name, so you have to infer the product name from the list below based on their utterance. If there are multiple products from the list that are equally likely to be a match, you can output them all separated by delimiter "||".
-Here is the list of all possible products: {products}
+Here is the list of all possible products: {json.dumps(products)}
 BEGIN CONVERSATION
 {context}
 Cart: {current_cart}
 {last_seller_utt}
 {cnv_obj.turns[-1]}
+END CONVERSATION
 Cart:"""
     messages = [
         {"role": "user", "content": prompt}
