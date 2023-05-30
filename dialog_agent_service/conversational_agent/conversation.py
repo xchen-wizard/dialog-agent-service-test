@@ -70,6 +70,7 @@ async def handle_conversation_response(
         if cart is not None:
             create_or_update_active_cart(merchant_id, user_id, cart)
             ret_dict['cart'] = cart
+            cached_cart[merchant_id][user_id] = cart
         return ret_dict
     logger.warning(f"""
         no messages retrieved for userId {user_id}, serviceChannelId {service_channel_id}, vendorId {merchant_id}.

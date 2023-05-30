@@ -1,5 +1,6 @@
 import dialog_agent_service.conversational_agent.task_handlers as th
 import re
+import logging
 
 pattern_1 = re.compile('(.)([A-Z][a-z]+)')
 pattern_2 = re.compile('([a-z0-9])([A-Z])')
@@ -17,5 +18,6 @@ def task_handler(task: str, **kwargs):
     try:
         return handler(**kwargs)
     except Exception as e:
+        logging.exception(f'Exception thrown in one of the task handlers: {e}')
         return th.default_handler(msg=f"Exception: {e}")
 
