@@ -46,8 +46,9 @@ async def handle_conversation_response(
         clear_history = test_args['clear_history']
     else:
         docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
-    if clear_history and merchant_id in cached_cart and user_id in cached_cart[merchant_id]:
-        del cached_cart[merchant_id][user_id]
+    if clear_history:
+        create_or_update_active_cart(merchant_id, user_id, [])
+
 
     # Temp: for testing purposes, as not all merchants exist in dev or stage
     # ToDo: remove after we have come up with better e2e testing ideas
