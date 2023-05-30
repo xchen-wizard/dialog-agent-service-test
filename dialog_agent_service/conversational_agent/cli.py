@@ -28,7 +28,7 @@ Thanks for texting!
 How can we help you today?
 """
     docs = []
-    current_cart = []
+    current_cart = {}
     while 1:
         print(response)
         docs.append(('outbound', response))

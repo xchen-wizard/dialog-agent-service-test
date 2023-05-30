@@ -52,6 +52,8 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
 
 
 def active_cart_to_virtual_cart(active_cart):
+    if not active_cart:
+        return {}, {}, []
     virtual_cart = { 'id': active_cart['id'], 'listings': {}}
     virtual_cart_quantities = {}
     virtual_cart_list = []

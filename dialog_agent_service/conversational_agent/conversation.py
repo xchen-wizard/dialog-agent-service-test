@@ -4,7 +4,7 @@ import logging
 import os
 from enum import Enum
 from dialog_agent_service.actions.cart_actions import cart_get
-from dialog_agent_service.utils.cart_utils import create_or_update_active_cart, sync_virtual_cart
+from dialog_agent_service.utils.cart_utils import create_or_update_active_cart
 from .conversation_utils import get_past_k_turns
 from .conversation_utils import run_inference
 from collections import defaultdict
@@ -57,11 +57,13 @@ async def handle_conversation_response(
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
         current_cart = cached_cart[merchant_id][user_id] if merchant_id in cached_cart and user_id in cached_cart[
-            merchant_id] else []
+            merchant_id] else {}
+        print('made it, cached cart is:', current_cart)
         response = await run_inference(
             docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
             current_cart=current_cart, task_routing_config=task_routing_config)
         cart = response.get('cart', None)
+        print('made it, cart is:', cart)
         ret_dict = {
             'task': response.get('task', ''),
             'response': response.get('response', ''),
