@@ -4,7 +4,7 @@ import logging
 import os
 from enum import Enum
 from dialog_agent_service.actions.cart_actions import cart_get
-from dialog_agent_service.utils.cart_utils import create_or_update_active_cart
+from dialog_agent_service.utils.cart_utils import create_or_update_active_cart, sync_virtual_cart
 from .conversation_utils import get_past_k_turns
 from .conversation_utils import run_inference
 from collections import defaultdict
@@ -56,14 +56,11 @@ async def handle_conversation_response(
         vendor_name = test_merchant
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
-        current_cart = cached_cart[merchant_id][user_id] if merchant_id in cached_cart and user_id in cached_cart[
-            merchant_id] else {}
-        print('made it, cached cart is:', current_cart)
+        current_cart = sync_virtual_cart(merchant_id, user_id)
         response = await run_inference(
             docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
             current_cart=current_cart, task_routing_config=task_routing_config)
         cart = response.get('cart', None)
-        print('made it, cart is:', cart)
         ret_dict = {
             'task': response.get('task', ''),
             'response': response.get('response', ''),
@@ -71,8 +68,8 @@ async def handle_conversation_response(
         }
         if cart is not None:
             create_or_update_active_cart(merchant_id, user_id, cart)
-            ret_dict['cart'] = cart
-            cached_cart[merchant_id][user_id] = cart
+            updated_cart = cart_get(merchant_id, user_id)
+            ret_dict['cart'] = updated_cart
         return ret_dict
     logger.warning(f"""
         no messages retrieved for userId {user_id}, serviceChannelId {service_channel_id}, vendorId {merchant_id}.
