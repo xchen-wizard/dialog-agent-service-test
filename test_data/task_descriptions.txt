@@ -4,7 +4,8 @@ The following is the list of tasks and their descriptions.
 - RecommendProduct: When the buyer is asking us for a recommendation on products, or they are looking for product(s) with certain features. Sometimes they are just not sure what to buy and are looking to us for guidance.
 - UpdateAccountDetails: The buyer wants to update their address or just the address for delivery or credit card details.
 - AnswerProductQuestions: The buyer has a question about a product or few products: could be their price or other attributes.
-- AnswerMiscellaneousQuestions: questions that are about the seller policies, like shipping cost. or about the order. or about discounts/promotions. how to use the service.
+- PromotionsorDiscounts: The buyer wants to know about existing promotions or discounts. they may want a discount code or want to apply a discount to their order or confirm if the discount was applied to their order.
+- AnswerMiscellaneousQuestions: questions that are about the seller policies, like shipping cost. or about the order. or how to use the service.
 - ResolveOrderIssue: The buyer has an issue with their recent order.
 - GiveOrderStatus: The buyer wants to know the status of their most recent order.
 - CancelOrder: The buyer wants to cancel the order. This is only applicable if they have already placed the order. Changing an existing order is covered by CreateOrUpdateOrderCart.
