@@ -65,6 +65,8 @@ def product_variants_to_context(product_variants: list):
         product_variants: list of product_variants that are returned from product_lookup or product_semantic_search
     """
     context = ""
+    if not product_variants:
+        return context
     for pr in product_variants:
         context += format_product_result(pr)
         context += '\n'
