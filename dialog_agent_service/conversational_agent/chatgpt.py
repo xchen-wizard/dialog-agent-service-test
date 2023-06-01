@@ -33,7 +33,7 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
     return [turn_to_chatgpt_format(turn) for turn in cnv_obj.turns[-k:]]
 
 
-def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, turns=10):
+def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, turns=10, json_output=False):
     messages = [
         {"role": "system", "content": prompt}
     ] + conv_to_chatgpt_format(cnv_obj, turns)
@@ -47,6 +47,16 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, t
     duration = timeit.default_timer() - start_time
     logger.info(f"LLM REQUEST - Model: {model}: request time: {duration}")
     llm_response = resp.choices[0].message.content
+    if json_output:
+        st = llm_response.find('{')
+        en = llm_response.find('}', st)
+        if st >= 0 and en >= 0:
+            logger.debug(f"LLM Response: {llm_response}")
+            response_dict = json.loads(llm_response[st:en + 1])
+            if response_dict.get("ANSWER_POSSIBLE", True) and not response_dict.get("MEDICAL", False) and response_dict.get("SPAN_ENTAILS_RESPONSE", True):
+                llm_response = response_dict["RESPONSE"]
+            else:
+                llm_response = "HANDOFF TO CX"
     return validate_response(model, llm_response)
 
 
