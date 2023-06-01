@@ -34,16 +34,19 @@ Keep your answer under 50 words.""").strip('\n')
 
 def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, **kwargs):
     product_input = create_input_products(str(cnv_obj))
-    product_mentions = predict_fn(product_input)[0].split(",")
-    product_context = [
-        product_variants_to_context(product_lookup(merchant_id, product_mention))
-        for product_mention in product_mentions
-    ]
-    context_str = "\n".join([c for c in product_context if c is not None])
-    context_str = context_str.strip()
-    if context_str:
-        logger.debug(f"Prompt Context:{context_str}")
-        prompt = gen_prompt(vendor, context_str)
-        return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS)
+    product_mentions_output = predict_fn(product_input)[0]
+    logger.info(f"Product question about: {product_mentions_output}")
+    if product_mentions_output:
+        product_mentions = product_mentions_output.split(",")
+        product_context = [
+            product_variants_to_context(product_lookup(merchant_id, product_mention))
+            for product_mention in product_mentions
+        ]
+        context_str = "\n".join([c for c in product_context if c is not None])
+        context_str = context_str.strip()
+        if context_str:
+            logger.debug(f"Prompt Context:{context_str}")
+            prompt = gen_prompt(vendor, context_str)
+            return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS)
     logger.warning("In the absence of product mentions, we resort to default QA task answer miscellaneous qa")
     return handle_answer_miscellaneous_questions(cnv_obj=cnv_obj, merchant_id=merchant_id, vendor=vendor)
