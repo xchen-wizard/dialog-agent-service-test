@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import logging
-
+import os
 from .conversation_parser import Conversation
-from .task_handlers import task_handler, default_handler
+from .task_handlers import task_handler
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
 max_conversation_chars_task = 600
 logger = logging.getLogger(__name__)
@@ -64,6 +64,7 @@ class T5InferenceService:
         logger.debug(f'Task Routing Config:{task_routing_config}')
         cart = None
         model_predicted_cart = None
+        is_suggested = False
 
         def fetch_task_response_type(task):
             return task_routing_config.get(task, {}).get('responseType', "assisted")
@@ -80,6 +81,8 @@ class T5InferenceService:
             res_handoff = next((res for res in res_acc if res.get('handoff', False)), None)
             if res_handoff is not None:
                 response = f"Handoff initiated. Tasks: {tasks}, {res_handoff.get('response', '')}"
+                if os.getenv('ENVIRONMENT') == 'prod':
+                    is_suggested = True
             else:
                 response = '\n'.join([
                     res['response']
@@ -99,7 +102,7 @@ class T5InferenceService:
                 else:
                     model_predicted_cart = None
 
-        is_suggested = not all(fetch_task_response_type(task) == 'automated' for task in tasks)
+        is_suggested = is_suggested or not all(fetch_task_response_type(task) == 'automated' for task in tasks)
         ret_dict = {
             'task': ','.join(tasks),
             'response': response,
