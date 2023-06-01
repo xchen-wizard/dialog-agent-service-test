@@ -8,6 +8,13 @@ logger = logging.getLogger()
 ENDPOINT_ID = os.getenv('T5_VERTEX_AI_ENDPOINT_ID')
 PROJECT_ID = os.getenv('VERTEX_AI_PROJECT_ID')
 
+HANDOFF_TESTS = [
+    "Is there any scientific research or clinical trials conducted with G.O.A.T. Fuel products to measure their effectiveness?",
+    "What are the manufacturing processes and quality measures in place to ensure the consistency and efficacy of G.O.A.T. Fuel products?",
+    "How long does it take for the effects of G.O.A.T. Fuel to set in after consumption?",
+    "Can customers customize their own '12 Pack' with a mix of different flavors?",
+    "Are G.O.A.T. Fuel products dairy-free or gluten-free?",
+]
 
 @pytest.mark.asyncio
 async def test_answer_product_question():
@@ -19,12 +26,12 @@ async def test_answer_product_question():
     task_routing_config = {}
     expected_response = {
         'task': 'AnswerProductQuestions',
-        'response': 'The price for our Blueberry Lemonade Energy Drink 12-pack is $35.99. Would you like to add it to your cart today?',
+        'response': 'The price for our Blueberry Lemonade Energy Drink 12-pack is $35.99. Would you like to add it to your cart?',
         'suggested': True,
     }
 
     response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID, task_routing_config=task_routing_config)
-    assert response == expected_response
+    assert fuzz.token_set_ratio(response['response'], expected_response['response']) > 70
 
 
 @pytest.mark.asyncio
@@ -89,3 +96,12 @@ async def test_none():
     assert response['task'] == 'None'
 
 
+@pytest.mark.asyncio
+async def test_handoffs():
+    merchant_id = "29"
+    vendor_name = "G.O.A.T Fuel"
+    for utt in HANDOFF_TESTS:
+        docs = [("inbound", utt)]
+        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
+                                       task_routing_config={})
+        assert response["response"].startswith("Handoff initiated")

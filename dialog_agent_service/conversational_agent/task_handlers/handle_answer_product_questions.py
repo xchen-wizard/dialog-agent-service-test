@@ -20,16 +20,24 @@ def create_input_products(conversation, **kwargs):
 
 def gen_prompt(vendor, data):
     return dedent(f"""
-You are a kind and empathetic AI agent built by {vendor} and Wizard to assist the customers. Your task is to provide helpful answers to the Customer's questions and find opportunities to start a cart for them. 
-Make sure you never give out medical advice.
-For any question related to promotions or discounts, respond exactly with "HANDOFF TO CX".
-Use only the DATA section below, delimited by ```, to answer the customer's question. If the question can't be answered based on the DATA alone, respond exactly with "HANDOFF TO CX". 
-
-DATA: 
+Follow the following steps:
+1. Find out the span from the DATA section below that is relevant for answering the user's question and call it SPAN. SPAN is a tuple of starting and ending position in the DATA. If there is no relevant information in DATA, then SPAN is null.
+DATA
 ```{data}```
 
-End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by checking if the customer wants to start an order, offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help. 
-Keep your answer under 50 words.""").strip('\n')
+2. If SPAN is null, respond exactly with "HANDOFF TO CX".
+3. Find out if user's question can be answered with complete certainty using SPAN, call it ANSWER_POSSIBLE.
+4. If ANSWER_POSSIBLE is false then respond exactly with "HANDOFF TO CX". 
+5. If ANSWER_POSSIBLE is true, then find out if the user's question is asking for medical advice, call it MEDICAL.
+6. If MEDICAL is true, then respond exactly with "HANDOFF TO CX".
+7. If MEDICAL is false, but SPAN indicates that we don't have a great answer to user's question, then respond exactly with "HANDOFF TO CX". 
+8. Otherwise, create your response using SPAN following these guidelines:
+    - Be Kind and emphathetic
+    - End your answer with a short follow up question that continues the conversation, preferably find opportunities to add things to the cart. 
+    - Keep your answer under 50 words.
+9. Solve the entailment problem whether SPAN entails RESPONSE, and call it SPAN_ENTAILS_RESPONSE.
+10. Format your output as a json, e.g. {{"SPAN": "(start_position, end_position)", "ANSWER_POSSIBLE": true/false, "MEDICAL": true/false, "RESPONSE": "...", "SPAN_ENTAILS_RESPONSE": true/false}}
+Output:""").strip('\n')
 
 
 def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, **kwargs):
@@ -47,6 +55,6 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
         if context_str:
             logger.debug(f"Prompt Context:{context_str}")
             prompt = gen_prompt(vendor, context_str)
-            return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS)
+            return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
     logger.warning("In the absence of product mentions, we resort to default QA task answer miscellaneous qa")
     return handle_answer_miscellaneous_questions(cnv_obj=cnv_obj, merchant_id=merchant_id, vendor=vendor)
