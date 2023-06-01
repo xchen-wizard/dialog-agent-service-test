@@ -75,7 +75,9 @@ class T5InferenceService:
         if any(fetch_task_response_type(task) == 'cx' for task in tasks):
             response = None
         else:
+            print('current_cart is:', current_cart)
             _, _, virtual_cart = active_cart_to_virtual_cart(current_cart)
+            print('virtual_cart is:', virtual_cart)
             logger.debug(f"Current Cart: {virtual_cart}")
             res_acc = [
                 task_handler(task, cnv_obj=cnv_obj, vendor=vendor, merchant_id=merchant_id, predict_fn=predict_fn, current_cart=virtual_cart)

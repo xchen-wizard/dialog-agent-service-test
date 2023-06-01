@@ -59,15 +59,20 @@ def active_cart_to_virtual_cart(active_cart):
     virtual_cart_list = []
 
     for item in active_cart['lineItems']:
+        display_name = item['productName']
+        if item['variantName']:
+            display_name += ' - ' + item['variantName']
         virtual_cart['listings'][str(item['listingId'])] = {
             'id': item['id'],
             'freeTextName': item['freeTextName'],
+            'productName': item['productName'],
+            'variantName': item['variantName'],
             'currentPrice': item['currentPrice'],
             'listingId': item['listingId'],
             'quantity': item['quantity']
         }
         virtual_cart_quantities[str(item['listingId'])] = item['quantity']
-        virtual_cart_list.append((item['freeTextName'], item['quantity']))
+        virtual_cart_list.append((display_name, item['quantity']))
     
     return virtual_cart, virtual_cart_quantities, virtual_cart_list
 

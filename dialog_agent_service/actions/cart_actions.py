@@ -21,6 +21,8 @@ def cart_get(merchant_id: str, user_id: int):
             lineItems: [..., {
               id,
               freeTextName,
+              productName,
+              variantName,
               currentPrice,
               listingId,
               quantity,
@@ -46,6 +48,8 @@ def cart_get(merchant_id: str, user_id: int):
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
@@ -99,6 +103,8 @@ def cart_create(merchant_id: str, user_id: int, retailer_id: str):
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
@@ -152,6 +158,8 @@ def cart_add_catalog_item_by_listing_id(listing_id: str, cart_id: float):
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
@@ -204,6 +212,8 @@ def cart_remove_item(line_item_id: float, cart_id: float):
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
@@ -256,6 +266,8 @@ def cart_set_item_quantity(line_item_id: float, cart_id: float, quantity: float)
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
