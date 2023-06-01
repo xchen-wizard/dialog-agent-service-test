@@ -32,12 +32,12 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
       converted_cart, converted_cart_quantities, _ = active_cart_to_virtual_cart(existing_cart)
 
       for listing_id in resolved_cart:
-        if listing_id not in converted_cart['listings']:
-            continue
-        elif resolved_cart[listing_id]['quantity'] != converted_cart_quantities[listing_id]:
-            quantity = resolved_cart[listing_id]['quantity']
-            line_item_id = converted_cart['listings'][listing_id]['id']
-            cart_set_item_quantity(line_item_id, cart_id, quantity)
+          if listing_id not in converted_cart['listings']:
+              continue
+          elif resolved_cart[listing_id]['quantity'] != converted_cart_quantities[listing_id]:
+              quantity = resolved_cart[listing_id]['quantity']
+              line_item_id = converted_cart['listings'][listing_id]['id']
+              cart_set_item_quantity(line_item_id, cart_id, quantity)
 
       for listing_id in converted_cart['listings']:
           if listing_id not in resolved_cart:
