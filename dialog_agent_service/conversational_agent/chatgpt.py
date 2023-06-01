@@ -10,7 +10,7 @@ from .conversation_parser import Conversation, Turn
 from dialog_agent_service.constants import OpenAIModel
 
 TEMPERATURE = 0.0
-HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI|language model|I don\'t have that information|email|website|I didn\'t understand'
+HANDOFF_TO_CX = 'HANDOFF TO CX|OpenAI|language model|I don\'t have that information|email|website|I didn\'t understand|doctor|medical'
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
