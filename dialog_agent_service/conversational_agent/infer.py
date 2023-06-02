@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import logging
 import os
+
+from dialog_agent_service.utils.cart_utils import active_cart_to_virtual_cart
+
 from .conversation_parser import Conversation
 from .task_handlers import task_handler
 from dialog_agent_service.search.SemanticSearch import SemanticSearch
@@ -31,7 +34,7 @@ class T5InferenceService:
         outputs = self.model.generate(**input, max_new_tokens=128)
         return self.tokenizer.batch_decode(outputs, skip_special_tokens=True)
 
-    def infer(self, docs, vendor, merchant_id, predict_fn, current_cart = [], task_routing_config: dict = {}):
+    def infer(self, docs, vendor, merchant_id, predict_fn, current_cart={}, task_routing_config: dict = {}):
         """
         :param conversation: Conversation formatted as follows:
         Seller: Are you interested in..
@@ -72,18 +75,20 @@ class T5InferenceService:
         if any(fetch_task_response_type(task) == 'cx' for task in tasks):
             response = None
         else:
-            logger.debug(f"Current Cart: {current_cart}")
             res_acc = [
-                task_handler(task, cnv_obj=cnv_obj, vendor=vendor, merchant_id=merchant_id, predict_fn=predict_fn, current_cart=current_cart)
+                task_handler(task, cnv_obj=cnv_obj, vendor=vendor, merchant_id=merchant_id,
+                             predict_fn=predict_fn, current_cart=current_cart)
                 for task in tasks
             ]
             logger.info(f"Accumulated result from task handlers: {res_acc}")
-            res_handoff = next((res for res in res_acc if res.get('handoff', False)), None)
+            res_handoff = next(
+                (res for res in res_acc if res.get('handoff', False)), None)
             if res_handoff is not None:
                 response = f"Handoff initiated. Tasks: {tasks}, {res_handoff.get('response', '')}"
                 if os.getenv('ENVIRONMENT') == 'prod':
                     is_suggested = True
             else:
+                print('res_acc:', res_acc)
                 response = '\n'.join([
                     res['response']
                     for res in res_acc if 'response' in res
@@ -102,7 +107,8 @@ class T5InferenceService:
                 else:
                     model_predicted_cart = None
 
-        is_suggested = is_suggested or not all(fetch_task_response_type(task) == 'automated' for task in tasks)
+        is_suggested = is_suggested or not all(
+            fetch_task_response_type(task) == 'automated' for task in tasks)
         ret_dict = {
             'task': ','.join(tasks),
             'response': response,

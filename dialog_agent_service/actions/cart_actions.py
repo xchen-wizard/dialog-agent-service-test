@@ -15,11 +15,14 @@ def cart_get(merchant_id: str, user_id: int):
       Sample Response:
         {
           cartState: {
+              id
               stage
             }
             lineItems: [..., {
               id,
               freeTextName,
+              productName,
+              variantName,
               currentPrice,
               listingId,
               quantity,
@@ -39,11 +42,14 @@ def cart_get(merchant_id: str, user_id: int):
       query CartGetByCustomerMerchant($merchantId: Float!, $customerId: Float!) {
         cartGetByCustomerMerchant(merchantId: $merchantId, customerId: $customerId) {
           cartState {
+            id
             stage
           }
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
@@ -91,11 +97,14 @@ def cart_create(merchant_id: str, user_id: int, retailer_id: str):
       mutation CartCreate($merchantId: Float!, $customerId: Float!, $retailerId: Float!) {
         cartCreate(merchantId: $merchantId, customerId: $customerId, retailerId: $retailerId) {
           cartState {
+            id
             stage
           }
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
@@ -143,11 +152,14 @@ def cart_add_catalog_item_by_listing_id(listing_id: str, cart_id: float):
       mutation CartAddCatalogItemByListingId($listingId: ObjectId!, $cartId: Float!) {
         cartAddCatalogItemByListingId(listingId: $listingId, cartId: $cartId) {
           cartState {
+            id
             stage
           }
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
@@ -194,11 +206,14 @@ def cart_remove_item(line_item_id: float, cart_id: float):
       mutation CartRemoveItem($lineItemId: Float!, $cartId: Float!) {
         cartRemoveItem(lineItemId: $lineItemId, cartId: $cartId) {
           cartState {
+            id
             stage
           }
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
@@ -245,11 +260,14 @@ def cart_set_item_quantity(line_item_id: float, cart_id: float, quantity: float)
       mutation CartSetItemQuantity($quantity: Float!, $lineItemId: Float!, $cartId: Float!) {
         cartSetItemQuantity(quantity: $quantity, lineItemId: $lineItemId, cartId: $cartId) {
           cartState {
+            id
             stage
           }
           lineItems {
             id
             freeTextName
+            productName
+            variantName
             currentPrice
             listingId
             quantity
