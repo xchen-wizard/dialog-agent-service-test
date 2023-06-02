@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import pytest
-
+from dialog_agent_service.app_utils import predict_custom_trained_model_sample
+import os
 
 @pytest.fixture
 def campaign_req():
@@ -32,3 +33,22 @@ def campaign_req_hi():
         'flowType': 'campaign',  # variant as defined in campaigns.campaignFlowType
         'payload': {'campaignId': '123'},
     }
+
+
+@pytest.fixture
+def predict_fn():
+    def predict_func(text: str | list[str]):
+        if isinstance(text, str):
+            text = [text]
+        responses = predict_custom_trained_model_sample(
+            project=os.getenv('VERTEX_AI_PROJECT_ID'),
+            endpoint_id=os.getenv('T5_VERTEX_AI_ENDPOINT_ID'),
+            location=os.getenv('VERTEX_AI_LOCATION', 'us-central1'),
+            api_endpoint=os.getenv(
+                'VERTEX_AI_ENDPOINT',
+                'us-central1-aiplatform.googleapis.com',
+            ),
+            instances=[{'data': {'context': t}} for t in text],
+        )
+        return responses
+    return predict_func
