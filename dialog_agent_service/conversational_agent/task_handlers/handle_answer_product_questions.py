@@ -1,9 +1,13 @@
+from __future__ import annotations
+
 import logging
-from .handle_answer_miscellaneous_questions import handle_answer_miscellaneous_questions
-from dialog_agent_service.retrievers.product_retriever import product_lookup, product_variants_to_context
 from textwrap import dedent
+
 from ..chatgpt import answer_with_prompt
 from dialog_agent_service.constants import OpenAIModel
+from dialog_agent_service.retrievers.merchant_retriever import merchant_semantic_search
+from dialog_agent_service.retrievers.product_retriever import product_lookup
+from dialog_agent_service.retrievers.product_retriever import product_variants_to_context
 logger = logging.getLogger(__name__)
 max_conversation_chars_products = 1000
 TURNS = 4
@@ -37,18 +41,22 @@ Output:
 def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, **kwargs):
     product_input = create_input_products(str(cnv_obj))
     product_mentions_output = predict_fn(product_input)[0]
-    logger.info(f"Product question about: {product_mentions_output}")
+    logger.info(f'Product question about: {product_mentions_output}')
+    context_data = []
     if product_mentions_output:
-        product_mentions = product_mentions_output.split(",")
+        product_mentions = product_mentions_output.split(',')
         product_context = [
-            product_variants_to_context(product_lookup(merchant_id, product_mention))
+            product_variants_to_context(
+                product_lookup(merchant_id, product_mention))
             for product_mention in product_mentions
         ]
-        context_str = "\n".join([c for c in product_context if c is not None])
-        context_str = context_str.strip()
-        if context_str:
-            logger.debug(f"Prompt Context:{context_str}")
-            prompt = gen_prompt(vendor, context_str)
-            return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
-    logger.warning("In the absence of product mentions, we resort to default QA task answer miscellaneous qa")
-    return handle_answer_miscellaneous_questions(cnv_obj=cnv_obj, merchant_id=merchant_id, vendor=vendor)
+        context_str = '\n'.join([c for c in product_context if c is not None])
+        context_data.append(context_str.strip())
+    # ToDo: make this an async call along with the product_lookup so that they can be called at the same time to reduce latancy
+    qa_policy_context = merchant_semantic_search(
+        merchant_id=merchant_id, query=cnv_obj.turns[-1].formatted_text)
+    context_data.append(qa_policy_context)
+    context = '\n'.join(context_data)
+    logger.debug(f'Prompt Context:{context}')
+    prompt = gen_prompt(vendor, context)
+    return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
