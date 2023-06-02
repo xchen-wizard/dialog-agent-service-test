@@ -101,6 +101,7 @@ async def get_campaign_variant_type(campaign_id: int) -> int | None:
     SELECT campaignFlowType FROM campaigns
     WHERE id = %s
     """
+
     with get_mysql_cnx_cursor() as cursor:
         cursor.execute(query, (campaign_id,))
         data = cursor.fetchone()
@@ -110,19 +111,26 @@ async def get_campaign_variant_type(campaign_id: int) -> int | None:
 
 def get_merchant(merchant_id: str):
     query = """
-  SELECT
-    id,
-    name,
-    siteId
-  FROM vendors
-  WHERE id = %s
-  """
+      SELECT
+        v.id,
+        v.name,
+        v.siteId,
+        r.id as retailerId
+      FROM 
+        vendors v
+      JOIN
+        retailers r
+      ON
+        v.name = r.name
+      WHERE v.id = %s
+    """
+  
 
     with get_mysql_cnx_cursor() as cursor:
         cursor.execute(query, [int(merchant_id)])
         data = cursor.fetchone()
 
-    return {'id': data.get('id'), 'name': data.get('name'), 'site_id': data.get('siteId')}
+    return {'id': data.get('v.id'), 'name': data.get('v.name'), 'site_id': data.get('v.siteId'), 'retailerId': data.get('r.id')}
 
 
 def get_merchant_site_ids():
