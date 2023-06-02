@@ -1,4 +1,6 @@
 import ast
+
+from dialog_agent_service.utils.cart_utils import active_cart_to_virtual_cart
 from ..chatgpt import generate_cart_mentions
 from ..resolve_cart import gen_disambiguation_response_llm, match_mentions_to_products, get_product_price
 from ..response import gen_cart_response, gen_opening_response
@@ -23,7 +25,9 @@ cart:"""
 
 
 def handle_create_or_update_order_cart(cnv_obj=None, merchant_id=None, current_cart=None, predict_fn=None, **kwargs):
-    product_input = create_input_cart_mentions(cnv_obj, current_cart)
+    _, _, virtual_cart = active_cart_to_virtual_cart(current_cart)
+    logger.debug(f"Current Cart: {virtual_cart}")
+    product_input = create_input_cart_mentions(cnv_obj, virtual_cart)
     model_predicted_cart = ast.literal_eval(predict_fn(product_input)[0])
     logger.info(f"Cart predicted by T5: {model_predicted_cart}")
     mentions = [t[0] for t in model_predicted_cart]

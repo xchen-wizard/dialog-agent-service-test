@@ -46,8 +46,9 @@ async def handle_conversation_response(
         clear_history = test_args['clear_history']
     else:
         docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
-    if clear_history and merchant_id in cached_cart and user_id in cached_cart[merchant_id]:
-        del cached_cart[merchant_id][user_id]
+    if clear_history:
+        create_or_update_active_cart(merchant_id, user_id, [])
+
 
     # Temp: for testing purposes, as not all merchants exist in dev or stage
     # ToDo: remove after we have come up with better e2e testing ideas
@@ -56,8 +57,7 @@ async def handle_conversation_response(
         vendor_name = test_merchant
         logger.info(f'Testing with {vendor_name}')
     if len(docs) > 0:
-        current_cart = cached_cart[merchant_id][user_id] if merchant_id in cached_cart and user_id in cached_cart[
-            merchant_id] else []
+        current_cart = sync_virtual_cart(merchant_id, user_id)
         response = await run_inference(
             docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
             current_cart=current_cart, task_routing_config=task_routing_config)
@@ -69,8 +69,8 @@ async def handle_conversation_response(
         }
         if cart is not None:
             create_or_update_active_cart(merchant_id, user_id, cart)
-            ret_dict['cart'] = cart
-            cached_cart[merchant_id][user_id] = cart
+            updated_cart = cart_get(merchant_id, user_id)
+            ret_dict['cart'] = updated_cart
         return ret_dict
     logger.warning(f"""
         no messages retrieved for userId {user_id}, serviceChannelId {service_channel_id}, vendorId {merchant_id}.
