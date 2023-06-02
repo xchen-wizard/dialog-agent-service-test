@@ -34,9 +34,12 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
 
 
 def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, turns=10, json_output=False):
-    messages = [
-        {"role": "system", "content": prompt}
-    ] + conv_to_chatgpt_format(cnv_obj, turns)
+    if json_output:
+        messages = [{"role": "user", "content": f"Conversation: ```{cnv_obj}```\n{prompt}"}]
+    else:
+        messages = [
+            {"role": "system", "content": prompt}
+        ] + conv_to_chatgpt_format(cnv_obj, turns)
     logger.debug(f"LLM REQUEST - Model: {model}, Temp: {TEMPERATURE}, Prompt: {messages}")
     start_time = timeit.default_timer()
     resp = openai.ChatCompletion.create(
@@ -50,13 +53,12 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, t
     if json_output:
         st = llm_response.find('{')
         en = llm_response.find('}', st)
-        if st >= 0 and en >= 0:
-            logger.debug(f"LLM Response: {llm_response}")
-            response_dict = json.loads(llm_response[st:en + 1])
-            if response_dict.get("ANSWER_POSSIBLE", True) and not response_dict.get("MEDICAL", False) and response_dict.get("SPAN_ENTAILS_RESPONSE", True):
-                llm_response = response_dict["RESPONSE"]
-            else:
-                llm_response = "HANDOFF TO CX"
+        logger.debug(f"LLM Response: {llm_response}")
+        response_dict = json.loads(llm_response[st:en + 1])
+        if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
+            llm_response = response_dict["RESPONSE"]
+        else:
+            llm_response = "HANDOFF TO CX"
     return validate_response(model, llm_response)
 
 
@@ -118,7 +120,7 @@ Cart:"""
 
 def validate_response(model, llm_response):
     resp = {}
-    logger.info(f"LLM Response: {llm_response}")
+    logger.info(f"Validating LLM Response: {llm_response}")
 
     if re.search(HANDOFF_TO_CX, llm_response):
         logger.warning(f"LLM Validation failed for response: {llm_response}. Handing off to CX")

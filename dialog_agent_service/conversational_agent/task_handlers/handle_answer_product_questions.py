@@ -20,24 +20,18 @@ def create_input_products(conversation, **kwargs):
 
 def gen_prompt(vendor, data):
     return dedent(f"""
-Follow the following steps:
-1. Find out the span from the DATA section below that is relevant for answering the user's question and call it SPAN. SPAN is a tuple of starting and ending position in the DATA. If there is no relevant information in DATA, then SPAN is null.
+Read the conversation above and then do the following step-by-step.
+1. Go through the DATA section below and decide whether there is enough information in DATA to answer buyer's question satisfactorily with a high degree of certainty. Call this ANSWER_POSSIBLE.
 DATA
 ```{data}```
-
-2. If SPAN is null, respond exactly with "HANDOFF TO CX".
-3. Find out if user's question can be answered with complete certainty using SPAN, call it ANSWER_POSSIBLE.
-4. If ANSWER_POSSIBLE is false then respond exactly with "HANDOFF TO CX". 
-5. If ANSWER_POSSIBLE is true, then find out if the user's question is asking for medical advice, call it MEDICAL.
-6. If MEDICAL is true, then respond exactly with "HANDOFF TO CX".
-7. If MEDICAL is false, but SPAN indicates that we don't have a great answer to user's question, then respond exactly with "HANDOFF TO CX". 
-8. Otherwise, create your response using SPAN following these guidelines:
-    - Be Kind and emphathetic
-    - End your answer with a short follow up question that continues the conversation, preferably find opportunities to add things to the cart. 
+2. Answer the buyer's question using only the DATA section. Call it RESPONSE. Follow the following guidelines when crafting your response:
+    - Answer as a kind and empathetic AI agent built by {vendor} and Wizard
+    - End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by checking if the customer wants to start an order, offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help.
     - Keep your answer under 50 words.
-9. Solve the entailment problem whether SPAN entails RESPONSE, and call it SPAN_ENTAILS_RESPONSE.
-10. Format your output as a json, e.g. {{"SPAN": "(start_position, end_position)", "ANSWER_POSSIBLE": true/false, "MEDICAL": true/false, "RESPONSE": "...", "SPAN_ENTAILS_RESPONSE": true/false}}
-Output:""").strip('\n')
+3. Set CONTAINED to true if every information present in RESPONSE is also present in DATA.
+4. Output a json in the following format: {{"ANSWER_POSSIBLE": true/false, "RESPONSE": "...", "CONTAINED": true/false}}
+Output:
+""").strip('\n')
 
 
 def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, **kwargs):
