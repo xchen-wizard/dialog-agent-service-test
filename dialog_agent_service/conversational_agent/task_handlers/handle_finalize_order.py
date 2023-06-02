@@ -5,7 +5,8 @@ logger = logging.getLogger(__name__)
 
 
 def handle_finalize_order(cnv_obj=None, merchant_id=None, current_cart=None, predict_fn=None, **kwargs):
-    message = create_order_summary_message(current_cart['id'])
+    response = create_order_summary_message(current_cart['id'])
+    message = ''.join([part['body'] for part in response['content']])
     logger.debug('order summary message:', message)
     return {
         'response': message,
