@@ -20,16 +20,18 @@ def create_input_products(conversation, **kwargs):
 
 def gen_prompt(vendor, data):
     return dedent(f"""
-You are a kind and empathetic AI agent built by {vendor} and Wizard to assist the customers. Your task is to provide helpful answers to the Customer's questions and find opportunities to start a cart for them. 
-Make sure you never give out medical advice.
-For any question related to promotions or discounts, respond exactly with "HANDOFF TO CX".
-Use only the DATA section below, delimited by ```, to answer the customer's question. If the question can't be answered based on the DATA alone, respond exactly with "HANDOFF TO CX". 
-
-DATA: 
+Read the conversation above and then do the following step-by-step.
+1. Go through the DATA section below and decide whether there is enough information in DATA to answer buyer's question satisfactorily with a high degree of certainty. Call this ANSWER_POSSIBLE.
+DATA
 ```{data}```
-
-End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by checking if the customer wants to start an order, offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help. 
-Keep your answer under 50 words.""").strip('\n')
+2. Answer the buyer's question using only the DATA section. Call it RESPONSE. Follow the following guidelines when crafting your response:
+    - Answer as a kind and empathetic AI agent built by {vendor} and Wizard
+    - End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by checking if the customer wants to start an order, offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help.
+    - Keep your answer under 50 words.
+3. Set CONTAINED to true if every information present in RESPONSE is also present in DATA.
+4. Output a json in the following format: {{"ANSWER_POSSIBLE": true/false, "RESPONSE": "...", "CONTAINED": true/false}}
+Output:
+""").strip('\n')
 
 
 def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, **kwargs):
@@ -47,6 +49,6 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
         if context_str:
             logger.debug(f"Prompt Context:{context_str}")
             prompt = gen_prompt(vendor, context_str)
-            return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS)
+            return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
     logger.warning("In the absence of product mentions, we resort to default QA task answer miscellaneous qa")
     return handle_answer_miscellaneous_questions(cnv_obj=cnv_obj, merchant_id=merchant_id, vendor=vendor)
