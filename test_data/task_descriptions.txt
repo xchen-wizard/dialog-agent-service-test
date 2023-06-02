@@ -12,3 +12,4 @@ The following is the list of tasks and their descriptions.
 - ReturnOrder: The buyer wants to return the order.
 - None: The buyer is not really expecting us to do anything or say anything in response.
 - Unknown: We cannot map the task buyer wants us to do to any of the above.
+- TransferToAgent: The buyer wants to talk to a human agent.
