@@ -4,3 +4,4 @@ from .handle_recommend_product import handle_recommend_product
 from .handle_answer_product_questions import handle_answer_product_questions
 from .handle_answer_miscellaneous_questions import handle_answer_miscellaneous_questions
 from .handle_create_or_update_order_cart import handle_create_or_update_order_cart
+from .handle_finalize_order import handle_finalize_order
