@@ -1,6 +1,6 @@
 import ast
 import logging
-from dialog_agent_service.actions.cart_actions import create_order_summary_message
+from dialog_agent_service.actions.order_summary_actions import create_order_summary_message
 logger = logging.getLogger(__name__)
 
 
