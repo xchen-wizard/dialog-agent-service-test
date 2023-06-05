@@ -62,7 +62,8 @@ class T5InferenceService:
         input = create_input_task(
             conversation, task_descriptions=self.task_descriptions,
         )
-        tasks = [task.strip() for task in predict_fn(input)[0].split(',')]
+        final_tasks = predict_fn(input)[0]
+        tasks = [task.strip() for task in final_tasks.split(',')]
         logger.info(f'Tasks Detected:{tasks}')
         logger.debug(f'Task Routing Config:{task_routing_config}')
         cart = None
@@ -81,14 +82,14 @@ class T5InferenceService:
                 for task in tasks
             ]
             logger.info(f"Accumulated result from task handlers: {res_acc}")
+            final_tasks = ','.join([res['task'] for res in res_acc if 'task' in res])
             res_handoff = next(
                 (res for res in res_acc if res.get('handoff', False)), None)
             if res_handoff is not None:
-                response = f"Handoff initiated. Tasks: {tasks}, {res_handoff.get('response', '')}"
+                response = f"Handoff initiated. Tasks: {final_tasks}, {res_handoff.get('response', '')}"
                 if os.getenv('ENVIRONMENT') == 'prod':
                     is_suggested = True
             else:
-                print('res_acc:', res_acc)
                 response = '\n'.join([
                     res['response']
                     for res in res_acc if 'response' in res
@@ -110,7 +111,7 @@ class T5InferenceService:
         is_suggested = is_suggested or not all(
             fetch_task_response_type(task) == 'automated' for task in tasks)
         ret_dict = {
-            'task': ','.join(tasks),
+            'task': final_tasks,
             'response': response,
             'suggested': is_suggested,
         }
