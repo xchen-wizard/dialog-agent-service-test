@@ -68,7 +68,8 @@ async def handle_conversation_response(
         }
         if cart is not None:
             if ret_dict['suggested'] == False:
-                create_or_update_active_cart(merchant_id, user_id, cart)
+                create_or_update_active_cart(
+                    merchant_id, user_id, cart)
             updated_cart = cart_get(merchant_id, user_id)
             ret_dict['cart'] = updated_cart
         return ret_dict
