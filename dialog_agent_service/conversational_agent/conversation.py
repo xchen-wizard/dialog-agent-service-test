@@ -49,7 +49,6 @@ async def handle_conversation_response(
     if clear_history:
         create_or_update_active_cart(merchant_id, user_id, [])
 
-
     # Temp: for testing purposes, as not all merchants exist in dev or stage
     # ToDo: remove after we have come up with better e2e testing ideas
     if test_merchant:
@@ -68,7 +67,8 @@ async def handle_conversation_response(
             'suggested': response.get('suggested', True)
         }
         if cart is not None:
-            create_or_update_active_cart(merchant_id, user_id, cart)
+            if ret_dict['suggested'] == False:
+                create_or_update_active_cart(merchant_id, user_id, cart)
             updated_cart = cart_get(merchant_id, user_id)
             ret_dict['cart'] = updated_cart
         return ret_dict
