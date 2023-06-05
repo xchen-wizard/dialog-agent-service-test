@@ -8,6 +8,7 @@ from dialog_agent_service.constants import OpenAIModel
 from dialog_agent_service.retrievers.merchant_retriever import merchant_semantic_search
 from dialog_agent_service.retrievers.product_retriever import product_lookup
 from dialog_agent_service.retrievers.product_retriever import product_variants_to_context
+from dialog_agent_service.utils.utils import handler_to_task_name
 logger = logging.getLogger(__name__)
 max_conversation_chars_products = 1000
 TURNS = 4
@@ -37,7 +38,8 @@ Output:
 """).strip('\n')
 
 
-def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, task=None, **kwargs):
+def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, **kwargs):
+    task = handler_to_task_name()
     product_input = create_input_products(str(cnv_obj))
     product_mentions_output = predict_fn(product_input)[0]
     logger.info(f'Product question about: {product_mentions_output}')
