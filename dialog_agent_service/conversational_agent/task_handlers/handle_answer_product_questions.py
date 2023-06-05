@@ -58,4 +58,4 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
     context = '\n'.join(context_data)
     logger.debug(f'Prompt Context:{context}')
     prompt = gen_prompt(vendor, context)
-    return {'task': task} | answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
+    return {'task': task} | answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT4, turns=TURNS, json_output=True)

@@ -33,7 +33,7 @@ def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor
         return default_handler(task=task, msg="merchant_semantic_search context retriever failed")
     context = f"Cart: {serialize_cart_for_prompt(current_cart)}" + "\n" + context
     logger.debug(f"Prompt Context: {context}")
-    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
+    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT4, turns=TURNS, json_output=True)
 
 
 def serialize_cart_for_prompt(cart):
