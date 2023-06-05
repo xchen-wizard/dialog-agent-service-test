@@ -1,3 +1,4 @@
+import json
 from dialog_agent_service.retrievers.merchant_retriever import merchant_semantic_search
 from .default_handler import default_handler
 from ..chatgpt import answer_with_prompt
@@ -24,11 +25,23 @@ DATA
 Output:""").strip('\n')
 
 
-def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor=None, **kwargs):
+def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor=None, current_cart=None, task=None, **kwargs):
     query = cnv_obj.turns[-1].formatted_text
     context = merchant_semantic_search(merchant_id, query)
     if not context:
         logger.warning("Can't retrieve context. Handing off")
-        return default_handler(msg="merchant_semantic_search context retriever failed")
+        return default_handler(task=task, msg="merchant_semantic_search context retriever failed")
+    context = f"Cart: {serialize_cart_for_prompt(current_cart)}" + "\n" + context
     logger.debug(f"Prompt Context: {context}")
-    return answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
+    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
+
+
+def serialize_cart_for_prompt(cart):
+    return json.dumps(
+        {
+            'items': {'name': lineItem['productName'] + ' - ' + lineItem['variantName'], 'price': lineItem['currentPrice'], 'quantity': lineItem['quantity']} for lineItem in cart.get('lineItems', [])
+        } | {
+            k: cart[k]
+            for k in ["cartDiscountsTotal", "itemsTotal", "taxTotal", "totalPrice", "shippingDiscountsTotal", "subtotal", "shippingSavings"]
+        }
+    )

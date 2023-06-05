@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 max_conversation_chars_products = 1000
 TURNS = 4
 
-
 def create_input_products(conversation, **kwargs):
     return f"""
     products the question is about:
@@ -38,7 +37,7 @@ Output:
 """).strip('\n')
 
 
-def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, **kwargs):
+def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, task=None, **kwargs):
     product_input = create_input_products(str(cnv_obj))
     product_mentions_output = predict_fn(product_input)[0]
     logger.info(f'Product question about: {product_mentions_output}')
@@ -59,4 +58,4 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
     context = '\n'.join(context_data)
     logger.debug(f'Prompt Context:{context}')
     prompt = gen_prompt(vendor, context)
-    return answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
+    return {'task': task} | answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT35, turns=TURNS, json_output=True)
