@@ -108,7 +108,7 @@ Cart:"""
         {"role": "user", "content": prompt}
     ]
     resp = openai.ChatCompletion.create(
-        model=OpenAIModel.GPT35,
+        model=OpenAIModel.GPT4,
         temperature=TEMPERATURE,
         messages=messages
     )
