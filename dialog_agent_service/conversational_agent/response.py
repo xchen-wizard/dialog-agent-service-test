@@ -28,6 +28,8 @@ Which would you like to add to your order?
 
 
 def gen_cart_response(cart, prices):
+    if not cart:
+        return "Is there anything else we can help you find today?"
     cart_display = "Your cart is empty"
     if cart:
         cart_display = "Your current cart has:"

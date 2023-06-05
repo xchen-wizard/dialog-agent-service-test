@@ -19,12 +19,12 @@ def gen_prompt(vendor, data):
     """).strip('\n')
 
 
-def handle_recommend_product(cnv_obj=None, merchant_id=None, vendor=None, **kwargs):
+def handle_recommend_product(cnv_obj=None, merchant_id=None, vendor=None, task=None, **kwargs):
     query = cnv_obj.turns[-1].formatted_text
     context = product_semantic_search(merchant_id, query)
     if not context:
         logger.warning("Can't retrieve context, handing off")
-        return default_handler(msg='product_semantic_search context retriever failed')
+        return default_handler(task=task, msg='product_semantic_search context retriever failed')
 
     logger.debug(f"Prompt Context:{context}")
-    return answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT4)
+    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT4)
