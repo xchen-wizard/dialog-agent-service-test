@@ -5,6 +5,7 @@ from ..chatgpt import answer_with_prompt
 from textwrap import dedent
 import logging
 from dialog_agent_service.constants import OpenAIModel
+from dialog_agent_service.utils.utils import handler_to_task_name
 logger = logging.getLogger(__name__)
 TURNS = 4
 
@@ -25,7 +26,8 @@ DATA
 Output:""").strip('\n')
 
 
-def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor=None, current_cart=None, task=None, **kwargs):
+def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor=None, current_cart=None, **kwargs):
+    task = handler_to_task_name()
     query = cnv_obj.turns[-1].formatted_text
     context = merchant_semantic_search(merchant_id, query)
     if not context:
@@ -43,5 +45,6 @@ def serialize_cart_for_prompt(cart):
         } | {
             k: cart[k]
             for k in ["cartDiscountsTotal", "itemsTotal", "taxTotal", "totalPrice", "shippingDiscountsTotal", "subtotal", "shippingSavings"]
+            if k in cart
         }
     )
