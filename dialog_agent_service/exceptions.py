@@ -1,2 +1,0 @@
-class CartGQLAPIException(Exception):
-    pass

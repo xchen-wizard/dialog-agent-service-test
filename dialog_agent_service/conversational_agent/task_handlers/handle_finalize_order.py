@@ -14,7 +14,7 @@ def handle_finalize_order(cnv_obj=None, merchant_id=None, current_cart=None, pre
         return handle_create_or_update_order_cart(cnv_obj, merchant_id, current_cart, predict_fn, task=task)
     cart_id = current_cart['id']
 
-    if current_cart['cartState']['id'] == 4:
+    if 'cartState' in current_cart and 'id' in current_cart['cartState'] and current_cart['cartState']['id'] == 4:
         cart_go_to_review_order(cart_id)
     response = create_order_summary_message(cart_id)
 
