@@ -61,19 +61,14 @@ async def handle_conversation_response(
             docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
             current_cart=current_cart, task_routing_config=task_routing_config)
         cart = response.get('cart', None)
-        ret_dict = {
-            'task': response.get('task', ''),
-            'response': response.get('response', ''),
-            'suggested': response.get('suggested', True)
-        }
         if cart is not None:
-            if ret_dict['suggested'] == False:
+            if not response['suggested']:
                 success = create_or_update_active_cart(
                     merchant_id, user_id, cart)
-                ret_dict['suggested'] = not success
+                response['suggested'] = not success
             updated_cart = cart_get(merchant_id, user_id)
-            ret_dict['cart'] = updated_cart
-        return ret_dict
+            response['cart'] = updated_cart
+        return response
     logger.warning(f"""
         no messages retrieved for userId {user_id}, serviceChannelId {service_channel_id}, vendorId {merchant_id}.
         Skip calling the model endpoint

@@ -1,14 +1,18 @@
-from dialog_agent_service.conversational_agent.conversation_utils import encode_sentence
+from dialog_agent_service.conversational_agent.conversation_utils import get_past_k_turns
 import logging
+import pytest
 
 logger = logging.getLogger()
 
-def test_encode_sentence():
-    resp = encode_sentence(
-        query='this is a test',
-        project_id='prod-us-333918',
-        endpoint_id='1561716274'
+
+@pytest.mark.asyncio
+async def test_get_past_k_turns():
+    docs, vendor_name, clear_history = await get_past_k_turns(
+        user_id=198330,
+        service_channel_id=50,
+        vendor_id='29',
+        k=12
     )
-    logger.info(resp)
-    assert isinstance(resp, list)
-    assert len(resp) == 768
+    assert len(docs) <= 12
+    assert vendor_name == 'G.O.A.T. Fuel'
+    assert not clear_history
