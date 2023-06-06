@@ -35,6 +35,7 @@ async def test_answer_product_question():
         'task': 'AnswerProductQuestions',
         'response': 'The price for our Blueberry Lemonade Energy Drink 12-pack is $35.99. Would you like to add it to your cart?',
         'suggested': True,
+        'handoff': False
     }
 
     response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID, task_routing_config=task_routing_config)
@@ -112,7 +113,7 @@ async def test_handoffs():
         docs = [("inbound", utt)]
         response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID,
                                        task_routing_config={})
-        if response["response"].startswith("Handoff initiated"):
+        if response["handoff"]:
             success += 1
         else:
             print(f"{utt} failed to handoff")
