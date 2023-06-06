@@ -8,6 +8,7 @@ import logging
 import openai
 from .conversation_parser import Conversation, Turn
 from dialog_agent_service.constants import OpenAIModel
+from dialog_agent_service.das_exceptions import LLMOutputFormatIncorrect, LLMOutputValidationFailed, LLMRequestFailed
 
 TEMPERATURE = 0.0
 HANDOFF_TO_CX = r"HANDOFF TO CX|OpenAI|language model|I don't have that information|I didn't understand|doctor|medical|email|website|((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*|^\S+@\S+\.\S+$"
@@ -42,23 +43,33 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, t
         ] + conv_to_chatgpt_format(cnv_obj, turns)
     logger.debug(f"LLM REQUEST - Model: {model}, Temp: {TEMPERATURE}, Prompt: {messages}")
     start_time = timeit.default_timer()
-    resp = openai.ChatCompletion.create(
-        model=model,
-        temperature=TEMPERATURE,
-        messages=messages
-    )
+    try:
+        resp = openai.ChatCompletion.create(
+            model=model,
+            temperature=TEMPERATURE,
+            messages=messages
+        )
+    except Exception as e:
+        logger.exception(f'LLM Request Failed: {e}')
+        raise LLMRequestFailed from e
+
     duration = timeit.default_timer() - start_time
     logger.info(f"LLM REQUEST - Model: {model}: request time: {duration}")
     llm_response = resp.choices[0].message.content
     if json_output:
-        st = llm_response.find('{')
-        en = llm_response.find('}', st)
-        logger.debug(f"LLM Response: {llm_response}")
-        response_dict = json.loads(llm_response[st:en + 1])
-        if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
-            llm_response = response_dict["RESPONSE"]
-        else:
-            llm_response = "HANDOFF TO CX"
+        try:
+            st = llm_response.find('{')
+            en = llm_response.find('}', st)
+            logger.debug(f"LLM Response: {llm_response}")
+            response_dict = json.loads(llm_response[st:en + 1])
+            if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
+                llm_response = response_dict["RESPONSE"]
+            else:
+                llm_response = "HANDOFF TO CX"
+        except Exception as e:
+            logger.exception(f"LLM Output {llm_response} not formatted as expected")
+            raise LLMOutputFormatIncorrect from e
+
     return validate_response(model, llm_response)
 
 
@@ -107,28 +118,27 @@ Cart:"""
     messages = [
         {"role": "user", "content": prompt}
     ]
-    resp = openai.ChatCompletion.create(
-        model=OpenAIModel.GPT35,
-        temperature=TEMPERATURE,
-        messages=messages
-    )
+    try:
+        resp = openai.ChatCompletion.create(
+            model=OpenAIModel.GPT35,
+            temperature=TEMPERATURE,
+            messages=messages
+        )
+    except Exception as e:
+        logger.exception(f"LLM Request failed for Cart Creation: {e}")
+        raise LLMRequestFailed from e
     llm_response = resp.choices[0].message.content
-    st = llm_response.find('[')
-    en = llm_response.find(']', st)
-    return ast.literal_eval(llm_response[st:en+1])
+    try:
+        st = llm_response.find('[')
+        en = llm_response.find(']', st)
+        return ast.literal_eval(llm_response[st:en+1])
+    except Exception as e:
+        logger.exception(f"LLM Cart Output not formatted correctly: {e}")
+        raise LLMOutputFormatIncorrect from e
 
 
 def validate_response(model, llm_response):
-    resp = {}
-    logger.info(f"Validating LLM Response: {llm_response}")
-
     if re.search(HANDOFF_TO_CX, llm_response):
         logger.warning(f"LLM Validation failed for response: {llm_response}. Handing off to CX")
-        resp = {
-            'handoff': True,
-            'response': f"Model: {model}, Issue: LLM Validation failed for response: {llm_response}"
-        }
-    else:
-        resp = {'handoff': False, 'response': llm_response}
-
-    return resp
+        raise LLMOutputValidationFailed(f"Model: {model}. LLM Validation failed for response: {llm_response}")
+    return {'handoff': False, 'response': llm_response}
