@@ -29,6 +29,8 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
                 cart_add_catalog_item_by_listing_id(listing_id, cart_id)
 
         # resync cart so we can update quantities of newly added products
+        existing_cart = cart_get(merchant_id, user_id)
+
         converted_cart, converted_cart_quantities, _ = active_cart_to_virtual_cart(
             existing_cart)
 
@@ -80,6 +82,7 @@ def active_cart_to_virtual_cart(active_cart):
 
 def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int]]):
     resolved_cart = {}
+    retailer_id = None
 
     for mention in virtual_cart:
         product_variants = product_lookup(merchant_id, mention[0])
