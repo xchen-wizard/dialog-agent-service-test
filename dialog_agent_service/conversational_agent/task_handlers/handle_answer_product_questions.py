@@ -9,6 +9,7 @@ from dialog_agent_service.retrievers.merchant_retriever import merchant_semantic
 from dialog_agent_service.retrievers.product_retriever import product_lookup
 from dialog_agent_service.retrievers.product_retriever import product_variants_to_context
 from dialog_agent_service.utils.utils import handler_to_task_name
+from dialog_agent_service.das_exceptions import RetrieverFailure
 logger = logging.getLogger(__name__)
 max_conversation_chars_products = 1000
 TURNS = 4
@@ -46,18 +47,18 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
     context_data = []
     if product_mentions_output:
         product_mentions = product_mentions_output.split(',')
-        product_context = [
+        context_data = [
             product_variants_to_context(
                 product_lookup(merchant_id, product_mention))
             for product_mention in product_mentions
         ]
-        context_str = '\n'.join([c for c in product_context if c is not None])
-        context_data.append(context_str.strip())
     # ToDo: make this an async call along with the product_lookup so that they can be called at the same time to reduce latancy
     qa_policy_context = merchant_semantic_search(
         merchant_id=merchant_id, query=cnv_obj.turns[-1].formatted_text)
     context_data.append(qa_policy_context)
-    context = '\n'.join(context_data)
+    context = "\n".join(filter(lambda c: c is not None and c.strip(), context_data))
+    if len(context) == 0:
+        raise RetrieverFailure
     logger.debug(f'Prompt Context:{context}')
     prompt = gen_prompt(vendor, context)
     return {'task': task} | answer_with_prompt(cnv_obj, prompt, model=OpenAIModel.GPT4, turns=TURNS, json_output=True)
