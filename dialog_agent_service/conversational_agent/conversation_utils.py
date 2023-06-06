@@ -36,17 +36,10 @@ async def get_past_k_turns(user_id: int, service_channel_id: int, vendor_id: str
         Tuple of concatenated messages and the vendor name as stored in vendors tabel and whether history should be cleared
     """
     data = await get_user_and_service_number(user_id, service_channel_id, vendor_id)
-    # # start and end time of the window
-    # utcnow = datetime.utcnow()
-    # endtime = utcnow.strftime(MONGO_TIME_STR_FORMAT)
-    # starttime = (
-    #     utcnow - timedelta(hours=window)
-    # ).strftime(MONGO_TIME_STR_FORMAT)
     # find past k turns up till now
     docs = mongo_db['messages'].find({
         'serviceNumber': data['serviceNumber'],
         'userNumber': data['userNumber'],
-        # 'createdAt': {'$lt': endtime, '$gt': starttime},
     }).sort('createdAt', DESCENDING).limit(k)
     docs_rev = list(docs)[::-1]
     docs, clear_history = process_past_k_turns(docs_rev)
