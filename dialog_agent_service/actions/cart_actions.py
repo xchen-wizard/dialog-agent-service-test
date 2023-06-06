@@ -305,7 +305,7 @@ def cart_set_item_quantity(line_item_id: float, cart_id: float, quantity: float)
 
     cart = resp['cartSetItemQuantity']
     if not cart:
-        logger.warn(
+        logger.warning(
             f'Set cart item quantity failed, no results lineItemId:{line_item_id}, cartId:{cart_id}')
         return None
 
@@ -313,3 +313,25 @@ def cart_set_item_quantity(line_item_id: float, cart_id: float, quantity: float)
         f'lineItemId:{line_item_id}, cartId:{cart_id}, Set cart item quantity results: {cart}')
 
     return cart
+
+
+def cart_delete(cart_id: int):
+    """
+    Delete cart to enable testing using the same merchant and user pairs
+    """
+    query_str = gql("""
+    mutation CartDelete($cartId: Float!) {
+      cartDelete(cartId: $cartId) {
+        id
+      }
+    }
+    """)
+    vars = {
+        'cartId': cart_id
+    }
+    try:
+        resp = gql_client.execute(document=query_str, variable_values=vars)
+        return resp.get('id')
+    except Exception as err:
+        logger.error(f'Delete cart {cart_id} GQL-API request failed: {err}')
+        return None

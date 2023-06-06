@@ -127,10 +127,10 @@ def get_merchant(merchant_id: str):
   
 
     with get_mysql_cnx_cursor() as cursor:
-        cursor.execute(query, [int(merchant_id)])
+        cursor.execute(query, (str(merchant_id),))
         data = cursor.fetchone()
 
-    return {'id': data.get('v.id'), 'name': data.get('v.name'), 'site_id': data.get('v.siteId'), 'retailerId': data.get('r.id')}
+    return {'id': data.get('id'), 'name': data.get('name'), 'site_id': data.get('siteId'), 'retailerId': data.get('retailerId')}
 
 
 def get_merchant_site_ids():

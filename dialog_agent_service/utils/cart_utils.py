@@ -6,7 +6,7 @@ from dialog_agent_service.retrievers.product_retriever import product_lookup
 logger = logging.getLogger(__name__)
 
 
-def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: list[tuple[str, int]]):
+def create_or_update_active_cart( merchant_id: str, user_id: int, virtual_cart: list[tuple[str, int]]):
     try:
         resolved_cart, retailer_id = resolve_product_mentions(
             merchant_id, virtual_cart)

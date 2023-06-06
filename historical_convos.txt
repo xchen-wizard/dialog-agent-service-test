@@ -1,0 +1,83 @@
+-----------------------------
+User: Yes
+Predicted Response: Handoff initiated. Tasks: None, Issue: task handler not implemented
+Predicated Task: None
+Wizard: Let's be great! What can we help you shop today? Would you like to try our bestseller, the Season 2 Variety 12 pk? 
+
+You'll receive 15% off your first text order!
+User: What are the flavors?
+Predicted Response: The Season 2 Variety 12 pk includes Watermelon, Gummy Bear, Mango Passionfruit, and Acai Mixed Berry. Would you like to start an order with this pack?
+Predicated Task: AnswerProductQuestions
+Wizard: The Season 2 Variety Pack includes Watermelon Fruit Punch, Acai Berry, Gummy Bear, and Mango Passion Fruit
+
+Are you interested in this pack?
+User: Yes. Can I order 2 please?
+Predicted Response: Your current cart has:
+- SEASON 2 VARIETY - 12 Pack: $35.99 x 2
+Would you like to keep shopping, or are you ready to check out?
+Predicated Task: CreateOrUpdateOrderCart
+Wizard: Great! We've added to your cart:
+- Season 2 Variety 12 Pack ($35.99) x 2
+
+Pricing is before tax and shipping. Don't forget you're getting 15% off your first text order!
+
+Reply YES to buy now.
+User: Yes
+Predicted Response: We've added to your cart:
+- SEASON 2 VARIETY ($35.99) x 1
+
+Pricing is before tax and shipping. Don't forget you're getting 15% off your first text order!
+
+Reply YES to buy now.
+Predicated Task: FinalizeOrder
+Wizard: We just need your shipping and billing info to complete your order. Tap this link to complete your checkout.
+https://wiz.fyi/shj72
+Thanks for submitting your account info, Darin! We're processing your order now and will send you a confirmation text shortly.
+Order confirmed - way to refuel like a GOAT! 
+
+Total is $61.18 with an estimated arrival in 3-5 business days. We'll text you a tracking link when it ships.
+
+Save our contact and let us know when you need to restock again!
+Good news! Your G.O.A.T. Fuel order is on its way.
+Tracking: https://wiz.fyi/hdsql
+Your G.O.A.T. Fuel order has been delivered. Enjoy!
+The Big Game is almost 2 weeks away… but today's game day at G.O.A.T. Fuel.
+
+🏈 Reply back to this message with your predictions for The Big Game on Feb 12 🏈
+
+1. Which team will win it all
+2. By how many points
+
+If you get it right, you'll be entered for a chance to win a FREE YEAR of G.O.A.T. Fuel. 
+
+The winner will be announced on 2/13. Game on 💪
+User: Bengals by 9
+Predicted Response: Handoff initiated. Tasks: PredictTheBigGamble, Issue: task handler not implemented
+Predicated Task: PredictTheBigGamble
+Wizard: Awesome! You’re in, G.O.A.T. We’ll announce the winner on Feb 13th... and maybe a few surprises before then 😏
+User: I need to check on an order I made a while ago. I paid but haven't received an email that it's being shipped yet.
+Predicted Response: Handoff initiated. Tasks: GiveOrderStatus, Issue: task handler not implemented
+Predicated Task: GiveOrderStatus
+Wizard: Hi, Darin! Was your order placed on the website or via text?
+User: For some reason I did it on the website. I guess doing via text was too easy for me.....
+Predicted Response: Handoff initiated. Tasks: GiveOrderStatus, Issue: task handler not implemented
+Predicated Task: GiveOrderStatus
+Wizard: We’re happy to look into your order. Please reach out to us at support@goatfuel.com and we will get back to you as soon as possible!
+G.O.A.T. Fuel: Bummer - your team was eliminated, but this game ain't over yet 🏆
+
+You have one more chance to win a year's supply of G.O.A.T. Fuel:
+
+On Feb 12, text us a pic of how G.O.A.T. Fuel fuels your party.
+
+If you've gotta stock up to make it happen, here's 15% OFF all text orders, this week only.
+
+Reply GAME to get 15% OFF
+Looks like it's time to order some more G.O.A.T Fuel! 
+
+Or, if you'd like to start a subscription and save 10% with delivery every 30 days, reply SUBSCRIBE. Let us know what we can get started for you today!
+G.O.A.T. Fuel: Today's the day to see who is the real #GOAT!
+
+Send in a pic of how G.O.A.T. Fuel is fueling your Big Game Party, and you'll be entered to win a FREE YEAR of G.O.A.T. Fuel.
+
+Just text us back here to enter!
+User: Am I subscribed with auto delivery?
