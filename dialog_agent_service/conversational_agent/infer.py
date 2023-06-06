@@ -69,12 +69,14 @@ class T5InferenceService:
         cart = None
         model_predicted_cart = None
         is_suggested = False
+        handoff = False
 
         def fetch_task_response_type(task):
             return task_routing_config.get(task, {}).get('responseType', "assisted")
 
         if any(fetch_task_response_type(task) == 'cx' for task in tasks):
             response = None
+            handoff = True
         else:
             res_acc = [
                 task_handler(task, cnv_obj=cnv_obj, vendor=vendor, merchant_id=merchant_id,
@@ -87,6 +89,7 @@ class T5InferenceService:
                 (res for res in res_acc if res.get('handoff', False)), None)
             if res_handoff is not None:
                 response = f"Handoff initiated. Tasks: {final_tasks}, {res_handoff.get('response', '')}"
+                handoff = True
                 if os.getenv('ENVIRONMENT') == 'prod':
                     is_suggested = True
             else:
@@ -114,6 +117,7 @@ class T5InferenceService:
             'task': final_tasks,
             'response': response,
             'suggested': is_suggested,
+            'handoff': handoff
         }
         if cart is not None:
             ret_dict['cart'] = cart

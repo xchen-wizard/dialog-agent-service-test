@@ -6,6 +6,7 @@ from textwrap import dedent
 import logging
 from dialog_agent_service.constants import OpenAIModel
 from dialog_agent_service.utils.utils import handler_to_task_name
+from dialog_agent_service.das_exceptions import RetrieverFailure
 logger = logging.getLogger(__name__)
 TURNS = 4
 
@@ -32,7 +33,7 @@ def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor
     context = merchant_semantic_search(merchant_id, query)
     if not context:
         logger.warning("Can't retrieve context. Handing off")
-        return default_handler(task=task, msg="merchant_semantic_search context retriever failed")
+        raise RetrieverFailure
     context = f"Cart: {serialize_cart_for_prompt(current_cart)}" + "\n" + context
     logger.debug(f"Prompt Context: {context}")
     return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT4, turns=TURNS, json_output=True)
