@@ -1,4 +1,5 @@
 import logging
+from dialog_agent_service.exceptions import CartGQLAPIException
 from gql import gql
 from dialog_agent_service import init_gql
 
@@ -74,7 +75,7 @@ def cart_get(merchant_id: str, user_id: int):
         resp = gql_client.execute(document=query_str, variable_values=vars)
     except Exception as err:
         logger.error(f'Get cart GQL-API request failed: {err}')
-        raise Exception(f'Get cart GQL-API request failed: {err}')
+        raise CartGQLAPIException(f'Get cart GQL-API request failed: {err}')
 
     cart = resp['cartGetByCustomerMerchant']
     if not cart:
@@ -132,7 +133,7 @@ def cart_create(merchant_id: str, user_id: int, retailer_id: str):
         resp = gql_client.execute(document=query_str, variable_values=vars)
     except Exception as err:
         logger.error(f'Create cart GQL-API request failed: {err}')
-        raise Exception(f'Create cart GQL-API request failed: {err}')
+        raise CartGQLAPIException(f'Create cart GQL-API request failed: {err}')
 
     cart = resp['cartCreate']
     if not cart:
@@ -188,7 +189,8 @@ def cart_add_catalog_item_by_listing_id(listing_id: str, cart_id: float):
         resp = gql_client.execute(document=query_str, variable_values=vars)
     except Exception as err:
         logger.error(f'Add listing to cart GQL-API request failed: {err}')
-        raise Exception(f'Add listing to cart GQL-API request failed: {err}')
+        raise CartGQLAPIException(
+            f'Add listing to cart GQL-API request failed: {err}')
 
     cart = resp['cartAddCatalogItemByListingId']
     if not cart:
@@ -244,7 +246,8 @@ def cart_remove_item(line_item_id: float, cart_id: float):
         resp = gql_client.execute(document=query_str, variable_values=vars)
     except Exception as err:
         logger.error(f'Remove item from cart GQL-API request failed: {err}')
-        raise Exception(f'Remove item from cart GQL-API request failed: {err}')
+        raise CartGQLAPIException(
+            f'Remove item from cart GQL-API request failed: {err}')
 
     cart = resp['cartRemoveItem']
     if not cart:
@@ -301,7 +304,7 @@ def cart_set_item_quantity(line_item_id: float, cart_id: float, quantity: float)
         resp = gql_client.execute(document=query_str, variable_values=vars)
     except Exception as err:
         logger.error(f'Set cart item quantity GQL-API request failed: {err}')
-        raise Exception(
+        raise CartGQLAPIException(
             f'Set cart item quantity GQL-API request failed: {err}')
 
     cart = resp['cartSetItemQuantity']
@@ -357,7 +360,7 @@ def cart_go_to_review_order(cart_id: float):
         resp = gql_client.execute(document=query_str, variable_values=vars)
     except Exception as err:
         logger.error(f'Cart go to review order GQL-API request failed: {err}')
-        raise Exception(
+        raise CartGQLAPIException(
             f'Cart go to review order GQL-API request failed: {err}')
 
     cart = resp['cartGoToReviewOrder']
