@@ -37,3 +37,8 @@ class T5CartOutputFailure(DASException):
     we throw this exception
     """
 
+
+class CartGQLAPIException(DASException):
+    """
+    Exception for when a cart API returns an error.
+    """
