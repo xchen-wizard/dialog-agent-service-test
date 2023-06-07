@@ -29,6 +29,7 @@ def cart_get(merchant_id: str, user_id: int):
                 quantity,
               }, ...]
               id,
+              staffId,
               cartDiscountsTotal,
               itemsTotal,
               taxTotal,
@@ -56,6 +57,7 @@ def cart_get(merchant_id: str, user_id: int):
             quantity
           }
           id
+          staffId
           cartDiscountsTotal
           itemsTotal
           taxTotal
@@ -113,6 +115,7 @@ def cart_create(merchant_id: str, user_id: int, retailer_id: str):
             quantity
           }
           id
+          staffId
           cartDiscountsTotal
           itemsTotal
           taxTotal
@@ -171,6 +174,7 @@ def cart_add_catalog_item_by_listing_id(listing_id: str, cart_id: float):
             quantity
           }
           id
+          staffId
           cartDiscountsTotal
           itemsTotal
           taxTotal
@@ -228,6 +232,7 @@ def cart_remove_item(line_item_id: float, cart_id: float):
             quantity
           }
           id
+          staffId
           cartDiscountsTotal
           itemsTotal
           taxTotal
@@ -285,6 +290,7 @@ def cart_set_item_quantity(line_item_id: float, cart_id: float, quantity: float)
             quantity
           }
           id
+          staffId
           cartDiscountsTotal
           itemsTotal
           taxTotal
@@ -343,6 +349,7 @@ def cart_go_to_review_order(cart_id: float):
             quantity
           }
           id
+          staffId
           cartDiscountsTotal
           itemsTotal
           taxTotal
