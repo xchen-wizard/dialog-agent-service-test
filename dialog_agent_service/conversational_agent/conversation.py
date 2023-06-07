@@ -65,7 +65,9 @@ async def handle_conversation_response(
             if not response['suggested']:
                 success = create_or_update_active_cart(
                     merchant_id, user_id, cart)
-                response['suggested'] = not success
+                if not success:
+                    response['suggested'] = True
+                    response['handoff'] = True
             updated_cart = cart_get(merchant_id, user_id)
             response['cart'] = updated_cart
         return response

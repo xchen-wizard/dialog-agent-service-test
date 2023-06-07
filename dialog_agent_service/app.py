@@ -30,6 +30,7 @@ from dialog_agent_service.df_utils import parse_df_response
 from dialog_agent_service.search.SemanticSearch import demo_search
 from dialog_agent_service.search.SemanticSearch import semanticSearch
 from dialog_agent_service.user import User
+from dialog_agent_service.das_exceptions import DASException
 
 formatter = init_logger()
 logger = logging.getLogger(__name__)
@@ -144,15 +145,31 @@ async def conversation_response():
         'merchantId': req.get('merchantId'),
         'serviceChannelId': req.get('serviceChannelId'),
     }
-    response = await handle_conversation_response(
-        merchant_id,
-        user_id,
-        service_channel_id,
-        k=int(req.get('k', TURNS_TO_FETCH)),# Its better to fetch more since we truncate the conversation later as needed.
-        window=int(req.get('window', HOURS_TO_FETCH)),
-        test_merchant=req.get('testMerchant', ''),
-        task_routing_config=task_routing_config
-    )
+    try:
+        response = await handle_conversation_response(
+            merchant_id,
+            user_id,
+            service_channel_id,
+            k=int(req.get('k', TURNS_TO_FETCH)),# Its better to fetch more since we truncate the conversation later as needed.
+            window=int(req.get('window', HOURS_TO_FETCH)),
+            test_merchant=req.get('testMerchant', ''),
+            task_routing_config=task_routing_config
+        )
+    except DASException as e:
+        logger.exception("Exception thrown in one of the cart api. Handing off.")
+        response = {
+            'handoff': True,
+            'suggested': True if os.getenv('ENVIRONMENT') == 'prod' else False,
+            'response': f'Handoff Initiated. Known Exception {e.__class__.__name__}'
+        }
+    except Exception:
+        logger.exception("Unknown Exception occurred.")
+        response = {
+            'handoff': True,
+            'suggested': True if os.getenv('ENVIRONMENT') == 'prod' else False,
+            'response': 'Handoff Initiated. Unknown Exception thrown at top-level'
+        }
+
     logger.debug(f'response: {response}')
     return make_response(jsonify(response))
 
