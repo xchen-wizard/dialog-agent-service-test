@@ -21,9 +21,6 @@ FUZZY_MATCH_THRESHOLD = 85
 logger = logging.getLogger(__name__)
 
 
-class UnexpectedProductVariantName(Exception):
-    pass
-
 # ToDo: not ideal, replace later
 
 with open(f'{constants.ROOT_DIR}/test_data/products_variants_prices.json') as f:
@@ -42,11 +39,11 @@ class MatchType(Enum):
     DISAMBIGUATE = 2
 
 
-def match_mentions_to_products(merchant_id, mentions: List):
-    return [tup[0]
+def match_mentions_to_products(merchant_id, mentions: List, limit=10):
+    return list({tup[0]
             for mention in mentions
             for tup in
-            process.extract(mention, product_price_map[merchant_id].keys(), scorer=fuzz.token_set_ratio, limit=10)]
+            process.extract(mention, product_price_map[merchant_id].keys(), scorer=fuzz.token_set_ratio, limit=limit)})
 
 
 def get_product_price(merchant_id, product_name):
@@ -103,8 +100,6 @@ def gen_disambiguation_response(merchant_id: str, product_name: str) -> str:
 
 
 def gen_disambiguation_response_llm(merchant_id, product_variant_name):
-    if product_variant_name.count('_') > 1:
-        raise UnexpectedProductVariantName("We assume no hyphen in product or variant name")
     merchant_id = str(merchant_id)
     product_variant_list = [s.strip() for s in product_variant_name.split('||')]
     product_names = list({name.split("-")[0].strip() for name in product_variant_list})

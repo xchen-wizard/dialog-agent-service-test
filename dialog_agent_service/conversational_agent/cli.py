@@ -14,7 +14,7 @@ if __name__ == '__main__':
     parser.add_argument("-u", "--user_id", help="user id to run interpreter", required=False)
     parser.add_argument("-sc", "--service_channel_id", help="service channel id to run interpreter", required=False)
     args = parser.parse_args()
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     task_routing_config = {
         "CreateOrUpdateOrderCart": {"responseType": "automated"},
         "RecommendProduct": {"responseType": "automated"},

@@ -10,9 +10,11 @@ from dialog_agent_service.retrievers.product_retriever import product_lookup
 from dialog_agent_service.retrievers.product_retriever import product_variants_to_context
 from dialog_agent_service.utils.utils import handler_to_task_name
 from dialog_agent_service.das_exceptions import RetrieverFailure
+from dialog_agent_service.conversational_agent.resolve_cart import match_mentions_to_products
 logger = logging.getLogger(__name__)
 max_conversation_chars_products = 1000
 TURNS = 4
+
 
 def create_input_products(conversation, **kwargs):
     return f"""
@@ -44,9 +46,11 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
     product_input = create_input_products(str(cnv_obj))
     product_mentions_output = predict_fn(product_input)[0]
     logger.info(f'Product question about: {product_mentions_output}')
+    product_mentions = product_mentions_output.split(',')
+    product_mentions = match_mentions_to_products(merchant_id, product_mentions, limit=2)
+    logger.info(f"Products list expanded to {product_mentions} based on fuzzy match.")
     context_data = []
-    if product_mentions_output:
-        product_mentions = product_mentions_output.split(',')
+    if product_mentions:
         context_data = [
             product_variants_to_context(
                 product_lookup(merchant_id, product_mention))

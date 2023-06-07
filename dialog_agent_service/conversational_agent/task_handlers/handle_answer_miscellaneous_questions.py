@@ -42,7 +42,7 @@ def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor
 def serialize_cart_for_prompt(cart):
     return json.dumps(
         {
-            'items': {'name': lineItem['productName'] + ' - ' + lineItem['variantName'], 'price': lineItem['currentPrice'], 'quantity': lineItem['quantity']} for lineItem in cart.get('lineItems', [])
+            'items': [{'name': lineItem['productName'] + ' - ' + lineItem['variantName'], 'price': lineItem['currentPrice'], 'quantity': lineItem['quantity']} for lineItem in cart.get('lineItems', [])]
         } | {
             k: cart[k]
             for k in ["cartDiscountsTotal", "itemsTotal", "taxTotal", "totalPrice", "shippingDiscountsTotal", "subtotal", "shippingSavings"]
