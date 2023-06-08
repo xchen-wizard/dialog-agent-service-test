@@ -22,6 +22,9 @@ def handle_finalize_order(cnv_obj=None, merchant_id=None, current_cart=None, pre
     logger.debug('order summary message:', message)
     return {
         'task': task,
+        'messageType': 'order-summary',
+        'cartId': current_cart['id'],
+        'cartStateId': current_cart['cartState']['id'],
         'response': message,
         'vendorId': int(merchant_id),
     }

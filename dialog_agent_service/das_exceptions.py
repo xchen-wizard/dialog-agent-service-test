@@ -42,3 +42,9 @@ class CartGQLAPIException(DASException):
     """
     Exception for when a cart API returns an error.
     """
+
+
+class CXCreatedCartException(DASException):
+    """
+    Exception for when a CX user already has an open cart
+    """

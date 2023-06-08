@@ -70,6 +70,9 @@ class T5InferenceService:
         model_predicted_cart = None
         is_suggested = False
         handoff = False
+        cartId = None
+        cartStateId = None
+        message_type = None
 
         def fetch_task_response_type(task):
             return task_routing_config.get(task, {}).get('responseType', "assisted")
@@ -84,7 +87,8 @@ class T5InferenceService:
                 for task in tasks
             ]
             logger.info(f"Accumulated result from task handlers: {res_acc}")
-            final_tasks = ','.join([res['task'] for res in res_acc if 'task' in res])
+            final_tasks = ','.join([res['task']
+                                   for res in res_acc if 'task' in res])
             res_handoff = next(
                 (res for res in res_acc if res.get('handoff', False)), None)
             if res_handoff is not None:
@@ -110,6 +114,17 @@ class T5InferenceService:
                     model_predicted_cart = model_predicted_cart[0]
                 else:
                     model_predicted_cart = None
+                cart_id = [res['cartId'] for res in res_acc if 'cartId' in res]
+                if cart_id:
+                    cart_id = cart_id[0]
+                cart_state_id = [res['cartStateId']
+                                 for res in res_acc if 'cartStateId' in res]
+                if cart_state_id:
+                    cart_state_id = cart_state_id[0]
+                message_type = [res['messageType']
+                                for res in res_acc if 'messageType' in res]
+                if message_type:
+                    message_type = message_type[0]
 
         is_suggested = is_suggested or not all(
             fetch_task_response_type(task) == 'automated' for task in tasks)
@@ -117,7 +132,10 @@ class T5InferenceService:
             'task': final_tasks,
             'response': response,
             'suggested': is_suggested,
-            'handoff': handoff
+            'handoff': handoff,
+            'cartId': cart_id,
+            'cartStateId': cart_state_id,
+            'messageType': message_type
         }
         if cart is not None:
             ret_dict['cart'] = cart
