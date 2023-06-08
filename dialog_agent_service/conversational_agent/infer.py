@@ -70,8 +70,8 @@ class T5InferenceService:
         model_predicted_cart = None
         is_suggested = False
         handoff = False
-        cartId = None
-        cartStateId = None
+        cart_id = None
+        cart_state_id = None
         message_type = None
 
         def fetch_task_response_type(task):
@@ -128,6 +128,7 @@ class T5InferenceService:
 
         is_suggested = is_suggested or not all(
             fetch_task_response_type(task) == 'automated' for task in tasks)
+        handoff = handoff or is_suggested
         ret_dict = {
             'task': final_tasks,
             'response': response,
