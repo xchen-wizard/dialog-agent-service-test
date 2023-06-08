@@ -1,4 +1,5 @@
 import ast
+import os
 
 from dialog_agent_service.utils.cart_utils import active_cart_to_virtual_cart
 from ..chatgpt import generate_cart_mentions
@@ -6,10 +7,12 @@ from ..resolve_cart import gen_disambiguation_response_llm, match_mentions_to_pr
 from ..response import gen_cart_response, gen_opening_response
 from dialog_agent_service.utils.utils import handler_to_task_name
 from dialog_agent_service.das_exceptions import CXCreatedCartException, T5CartOutputFailure
+from datetime import datetime, timezone
 import logging
 logger = logging.getLogger(__name__)
 
-BOT_STAFF_ID = 127
+SECONDS_IN_HOUR = 3600
+HOURS_IN_DAY = 24
 
 
 def create_input_cart_mentions(cnv_obj, current_cart):
@@ -31,11 +34,14 @@ cart:"""
 
 def handle_create_or_update_order_cart(cnv_obj=None, merchant_id=None, current_cart=None, predict_fn=None, **kwargs):
     task = handler_to_task_name()
-    if 'staffId' in current_cart and current_cart['staffId'] != BOT_STAFF_ID:
+
+    if 'staffId' in current_cart and current_cart['staffId'] != int(os.getenv('BOT_STAFF_ID')):
         raise CXCreatedCartException(
             'Attempting to update a cart that was created by CX')
+
     _, _, virtual_cart = active_cart_to_virtual_cart(current_cart)
     logger.debug(f"Current Cart: {virtual_cart}")
+
     product_input = create_input_cart_mentions(cnv_obj, virtual_cart)
     try:
         model_predicted_cart = ast.literal_eval(predict_fn(product_input)[0])
