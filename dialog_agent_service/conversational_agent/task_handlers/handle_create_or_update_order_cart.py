@@ -7,12 +7,8 @@ from ..resolve_cart import gen_disambiguation_response_llm, match_mentions_to_pr
 from ..response import gen_cart_response, gen_opening_response
 from dialog_agent_service.utils.utils import handler_to_task_name
 from dialog_agent_service.das_exceptions import CXCreatedCartException, T5CartOutputFailure
-from datetime import datetime, timezone
 import logging
 logger = logging.getLogger(__name__)
-
-SECONDS_IN_HOUR = 3600
-HOURS_IN_DAY = 24
 
 
 def create_input_cart_mentions(cnv_obj, current_cart):
