@@ -128,6 +128,7 @@ class T5InferenceService:
 
         is_suggested = is_suggested or not all(
             fetch_task_response_type(task) == 'automated' for task in tasks)
+        handoff = handoff or is_suggested
         ret_dict = {
             'task': final_tasks,
             'response': response,
