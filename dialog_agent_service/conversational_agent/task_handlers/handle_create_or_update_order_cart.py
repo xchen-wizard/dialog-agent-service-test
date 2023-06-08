@@ -6,7 +6,7 @@ from ..chatgpt import generate_cart_mentions
 from ..resolve_cart import gen_disambiguation_response_llm, match_mentions_to_products, get_product_price
 from ..response import gen_cart_response, gen_opening_response
 from dialog_agent_service.utils.utils import handler_to_task_name
-from dialog_agent_service.das_exceptions import CXCreatedCartException, T5CartOutputFailure
+from dialog_agent_service.das_exceptions import CXCreatedCartException
 import logging
 logger = logging.getLogger(__name__)
 
@@ -39,17 +39,16 @@ def handle_create_or_update_order_cart(cnv_obj=None, merchant_id=None, current_c
     logger.debug(f"Current Cart: {virtual_cart}")
 
     product_input = create_input_cart_mentions(cnv_obj, virtual_cart)
+    cart_prediction = predict_fn(product_input)[0]
     try:
-        model_predicted_cart = ast.literal_eval(predict_fn(product_input)[0])
+        model_predicted_cart = ast.literal_eval(cart_prediction)
+        logger.info(f"Cart predicted by T5: {model_predicted_cart}")
+        mentions = [t[0] for t in model_predicted_cart]
     except Exception as e:
-        logger.exception(f"Cart Prediction by T5 failed: {e}")
-        raise T5CartOutputFailure from e
-    logger.info(f"Cart predicted by T5: {model_predicted_cart}")
-    mentions = [t[0] for t in model_predicted_cart]
-    products_from_history = list(set(match_mentions_to_products(
-        merchant_id, mentions) + [t[0] for t in virtual_cart]))
-    model_predicted_cart = generate_cart_mentions(
-        cnv_obj, virtual_cart, products_from_history)
+        logger.exception(f"Parsing of Cart Prediction by T5 failed: {e}")
+        mentions = [cart_prediction]
+    products_from_history = list(set(match_mentions_to_products(merchant_id, mentions) + [t[0] for t in virtual_cart]))
+    model_predicted_cart = generate_cart_mentions(cnv_obj, virtual_cart, products_from_history)
     logger.info(f"Cart predicted by chatgpt: {model_predicted_cart}")
     cart = [tup for tup in model_predicted_cart if '||' not in tup[0]]
     ambiguous_products = [tup[0]

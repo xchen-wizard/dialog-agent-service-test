@@ -60,7 +60,7 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, t
         try:
             st = llm_response.find('{')
             en = llm_response.find('}', st)
-            logger.debug(f"LLM Response: {llm_response}")
+            logger.info(f"LLM Response: {llm_response}")
             response_dict = json.loads(llm_response[st:en + 1])
             if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
                 llm_response = response_dict["RESPONSE"]
