@@ -70,8 +70,8 @@ class T5InferenceService:
         model_predicted_cart = None
         is_suggested = False
         handoff = False
-        cartId = None
-        cartStateId = None
+        cart_id = None
+        cart_state_id = None
         message_type = None
 
         def fetch_task_response_type(task):
