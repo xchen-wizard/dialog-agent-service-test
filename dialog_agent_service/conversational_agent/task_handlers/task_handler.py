@@ -9,7 +9,9 @@ def task_handler(task: str, **kwargs):
     try:
         return handler(task=task, **kwargs)
     except DASException as e:
+        logging.exception(f"Task Handler caught known exception: {e}")
         return th.default_handler(msg=f"{e.__class__.__name__} {e}", task=task)
-    except Exception:
+    except Exception as e:
+        logging.exception(f"Task Handler Caught Unknown exception: {e}")
         return th.default_handler(msg='Unknown Exception thrown.', task=task)
 

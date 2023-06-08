@@ -11,7 +11,9 @@ from dialog_agent_service.conversational_agent.response import gen_non_specific_
 from dialog_agent_service.conversational_agent.response import gen_variant_selection_response
 from dialog_agent_service.conversational_agent.response import gen_opening_response
 from dialog_agent_service import constants
+from dialog_agent_service.das_exceptions import ProductResolutionFailure
 from typing import List
+import re
 
 ProductResponseUnion = namedtuple(
     'ProductResponseUnion', ['products', 'response'],
@@ -99,10 +101,18 @@ def gen_disambiguation_response(merchant_id: str, product_name: str) -> str:
                 )
 
 
+def product_variant_to_product_name(merchant_id, product_variant_name):
+    for i in re.finditer('-', product_variant_name):
+        product_name = product_variant_name[:i.start()].strip()
+        if product_name in VARIANTS_OBJ[merchant_id]:
+            return product_name
+    raise ProductResolutionFailure(f"Unable to find product name for {product_variant_name} from product dictionary")
+
+
 def gen_disambiguation_response_llm(merchant_id, product_variant_name):
     merchant_id = str(merchant_id)
     product_variant_list = [s.strip() for s in product_variant_name.split('||')]
-    product_names = list({name.split("-")[0].strip() for name in product_variant_list})
+    product_names = list({product_variant_to_product_name(merchant_id, name) for name in product_variant_list})
     if len(product_names) == 1:
         return gen_variant_selection_response(product_names[0], VARIANTS_OBJ[merchant_id][product_names[0]])
     return gen_non_specific_product_response(product_names)
