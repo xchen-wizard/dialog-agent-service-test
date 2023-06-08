@@ -47,7 +47,7 @@ How can we help you today?
         if 'cart' in ret:
             current_cart = ret['cart']
         print(ret)
-        if ret["suggested"]:
+        if ret["handoff"]:
             print("---Enter response manually below---")
             response = input()
         else:

@@ -44,7 +44,7 @@ def serialize_cart_for_prompt(cart):
         {
             'items': [{'name': lineItem['productName'] + ' - ' + lineItem['variantName'], 'price': lineItem['currentPrice'], 'quantity': lineItem['quantity']} for lineItem in cart.get('lineItems', [])]
         } | {
-            k: cart[k]
+            k: cart[k] if cart[k] is not None else "Not Available"
             for k in ["cartDiscountsTotal", "itemsTotal", "taxTotal", "totalPrice", "shippingDiscountsTotal", "subtotal", "shippingSavings"]
             if k in cart
         }
