@@ -48,13 +48,13 @@ class T5InferenceService:
         merchant_id = str(merchant_id)
         cnv_obj = Conversation(docs)
         if cnv_obj.n_turns == 0:
-            logger.error('Infer called with empty conversation. Aborting.')
+            logger.exception('Infer called with empty conversation. Aborting.')
             return dict()
         last_turn = cnv_obj.turns[-1]
         conversation = str(cnv_obj)
         logger.debug(f'Conversation Context: {conversation}')
         if last_turn.direction != 'inbound':
-            logger.error(
+            logger.exception(
                 'Infer called after an outbound. Aborting. Please only call when the latest turn is inbound',
             )
             return dict()

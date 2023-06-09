@@ -48,7 +48,7 @@ class SemanticSearch:
                     ),
                 )
         except Exception as e:
-            logger.error(
+            logger.exception(
                 f'Running into error while initializing ES instances: {e}',
             )
             self.client = None
@@ -237,7 +237,7 @@ class SemanticSearch:
                 },
             )
         except Exception as e:
-            logger.error('error suggesting spelling')
+            logger.exception('error suggesting spelling')
             return None
         return sem_sugg
 

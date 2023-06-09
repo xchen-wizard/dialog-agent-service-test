@@ -47,7 +47,7 @@ def product_lookup(merchant_id: str, query: str):
     try:
         resp = gql_client.execute(document=query_str, variable_values=vars)
     except Exception as err:
-        logger.error(f"Product Lookup GQL-API request failed: {err}")
+        logger.exception(f"Product Lookup GQL-API request failed: {err}")
         return None
 
     results = resp['productVariantLookup']
@@ -121,7 +121,8 @@ def product_semantic_search(merchant_id: str, query: str):
     try:
         resp = gql_client.execute(document=query_str, variable_values=vars)
     except Exception as err:
-        logger.error(f"Product Semantic Search GQL-API request failed: {err}")
+        logger.exception(
+            f"Product Semantic Search GQL-API request failed: {err}")
         return None
 
     results = resp['productVariantSemanticSearch']

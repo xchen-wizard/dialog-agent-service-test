@@ -46,6 +46,7 @@ client = WebApplicationClient(os.environ.get('GOOGLE_CLIENT_ID'))
 TURNS_TO_FETCH = 10
 HOURS_TO_FETCH = 24
 
+
 @app.route('/', methods=['GET'])
 def index():
     return 'Dialog Agent Service'
@@ -150,13 +151,15 @@ async def conversation_response():
             merchant_id,
             user_id,
             service_channel_id,
-            k=int(req.get('k', TURNS_TO_FETCH)),# Its better to fetch more since we truncate the conversation later as needed.
+            # Its better to fetch more since we truncate the conversation later as needed.
+            k=int(req.get('k', TURNS_TO_FETCH)),
             window=int(req.get('window', HOURS_TO_FETCH)),
             test_merchant=req.get('testMerchant', ''),
             task_routing_config=task_routing_config
         )
     except DASException as e:
-        logger.exception("Exception thrown in one of the cart api. Handing off.")
+        logger.exception(
+            "Exception thrown in one of the cart api. Handing off.")
         response = {
             'handoff': True,
             'suggested': True if os.getenv('ENVIRONMENT') == 'prod' else False,
@@ -193,7 +196,7 @@ async def agent():
     try:
         resp = await handle_request(req)
     except Exception as e:
-        logger.error(f'Something went wrong: {e}')
+        logger.exception(f'Something went wrong: {e}')
         raise Exception(e)
 
     return make_response(jsonify(resp))

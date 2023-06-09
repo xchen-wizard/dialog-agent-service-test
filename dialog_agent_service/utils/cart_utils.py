@@ -50,7 +50,7 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
         return True
 
     except Exception as err:
-        logger.error(f'update active cart failed: {err}')
+        logger.exception(f'update active cart failed: {err}')
         return False
 
 

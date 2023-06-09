@@ -20,6 +20,7 @@ load_dotenv(os.getenv('ENV_FILE') or '.env')
 logger = logging.getLogger(__name__)
 requests_logger.setLevel(logging.WARNING)
 
+
 class CustomJsonFormatter(jsonlogger.JsonFormatter):
     def __init__(self, fmt: str, extras: dict = None):
         super().__init__(fmt)
@@ -66,7 +67,8 @@ def init_mysql_db():
             )
             return mysql_pool
         except mysql.connector.Error as err:
-            logger.error(f'prolbem initializing mysql connector pool: {err}')
+            logger.exception(
+                f'prolbem initializing mysql connector pool: {err}')
             time.sleep(3)  # sleep for 3 secs
     raise Exception('mySQL connection error!')
 
