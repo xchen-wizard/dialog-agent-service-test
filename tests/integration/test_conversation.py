@@ -119,3 +119,36 @@ async def test_handoffs():
             print(f"{utt} failed to handoff")
         ct += 1
     assert success >= ct*0.66 #TODO: we should improve threshold
+
+
+@pytest.mark.asyncio
+async def test_create_subscription_order():
+    test_phrases = [
+        "Add to subscription",
+        "Subscribe",
+        "Subscribe to more flavors",
+        "Can I subscribe and save 1pk mango passion fruit and try 1 time order of season 1 pack"
+    ]
+    merchant_id = "29"
+    vendor_name = "G.O.A.T Fuel"
+    for tp in test_phrases:
+        docs = [('inbound', tp)]
+        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID)
+        logger.info(response)
+        assert response['task'].strip().lower() == "CreateSubscriptionOrder".lower()
+
+
+@pytest.mark.asyncio
+async def test_questions_about_subscription():
+    test_phrases = [
+        "When are my next subscriptions shipping",
+        # "How do i view my subscriptions",  # this would be AnswerMiscellaneousQuestions
+        "Am I subscribed with auto delivery?"
+    ]
+    merchant_id = "29"
+    vendor_name = "G.O.A.T Fuel"
+    for tp in test_phrases:
+        docs = [('inbound', tp)]
+        response = await run_inference(docs, vendor_name, merchant_id, project_id=PROJECT_ID, endpoint_id=ENDPOINT_ID)
+        logger.info(response)
+        assert response['task'].strip().lower() == "QuestionsAboutSubscription".lower()
