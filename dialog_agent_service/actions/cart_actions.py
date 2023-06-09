@@ -336,7 +336,6 @@ def cart_set_item_quantity(line_item_id: float, cart_id: float, quantity: float)
 def cart_go_to_review_order(cart_id: float):
     '''
       Args:
-          line_item_id
           cart_id
     '''
     query_str = gql('''
@@ -388,5 +387,62 @@ def cart_go_to_review_order(cart_id: float):
 
     logger.info(
         f'Set state review order for cartId:{cart_id}')
+
+    return cart
+
+
+def cart_delete(cart_id: float):
+    '''
+      Args:
+          cart_id
+    '''
+    query_str = gql('''
+      mutation cartDelete($cartId: Float!) {
+        cartDelete(cartId: $cartId) {
+          cartState {
+            id
+            stage
+          }
+          lineItems {
+            id
+            freeTextName
+            productName
+            variantName
+            currentPrice
+            listingId
+            quantity
+          }
+          id
+          staffId
+          cartDiscountsTotal
+          itemsTotal
+          taxTotal
+          totalPrice
+          shippingDiscountsTotal
+          subtotal
+          shippingSavings
+          updatedAt
+        }
+      }
+      ''')
+    vars = {
+        'cartId': cart_id
+    }
+
+    try:
+        resp = gql_client.execute(document=query_str, variable_values=vars)
+    except Exception as err:
+        logger.error(f'Cart delete GQL-API request failed: {err}')
+        raise CartGQLAPIException(
+            f'Cart delete GQL-API request failed') from err
+
+    cart = resp['cartDelete']
+    if not cart:
+        logger.warn(
+            f'Cart delete cartId:{cart_id}')
+        return None
+
+    logger.info(
+        f'Delete cart with cartId:{cart_id}')
 
     return cart
