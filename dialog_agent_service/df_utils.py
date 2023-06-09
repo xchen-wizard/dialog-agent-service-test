@@ -51,7 +51,7 @@ async def get_df_response(req: dict, user_contexts: dict):
                 if response.webhook_status.code == 0:
                     return MessageToDict(response._pb, preserving_proto_field_name=True)
                 elif response.webhook_status.code == 4:
-                    logger.error(
+                    logger.exception(
                         'DF webhook error:\n{response.webhook_status.message}',
                     )
                     return {
@@ -64,11 +64,11 @@ async def get_df_response(req: dict, user_contexts: dict):
             elif response.query_result.intent.display_name == 'Default Welcome Intent':  # welcome intent
                 return MessageToDict(response._pb, preserving_proto_field_name=True)
             else:  # not welcome intent and response does not contain webhook status
-                logger.error(
+                logger.exception(
                     'DF response does not contain webhook status! Retrying...',
                 )
         except Exception as e:
-            logger.error(f'Call to DF resulted in failure:\n{e}')
+            logger.exception(f'Call to DF resulted in failure:\n{e}')
     return None
 
 
