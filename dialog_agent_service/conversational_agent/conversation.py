@@ -48,6 +48,7 @@ async def handle_conversation_response(
     else:
         docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
     if clear_history:
+        print('MADE IT CLEAR_HISTORY')
         cart = cart_get(merchant_id, user_id)
         cart_delete(cart['id'])
         return {
