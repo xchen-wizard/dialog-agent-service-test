@@ -18,7 +18,7 @@ from dialog_agent_service.db import get_mysql_cnx_cursor
 from dialog_agent_service.db import mongo_db
 
 MONGO_TIME_STR_FORMAT = '%Y-%m-%dT%H:%M:%S.000Z'
-CLEAR_HISTORY_COMMAND = 'CLEAR_HISTORY'
+CLEAR_HISTORY_COMMAND = constants.CLEAR_HISTORY
 
 logger = logging.getLogger(__name__)
 inference_obj = T5InferenceService(f'{constants.ROOT_DIR}/test_data')
@@ -109,8 +109,8 @@ def process_past_k_turns(docs):
 
             # search for CLEAR_HISTORY in inbound messages in reverse
             for i in range(len(docs)-1, -1, -1):
-                if docs[i].get('direction') == 'inbound' and docs[i].get('body').strip().upper() == CLEAR_HISTORY_COMMAND:
-                    logger.info('Hack: Removed history up till CLEAR_HISTORY')
+                if docs[i].get('direction') == 'outbound' and docs[i].get('body') == constants.HISTORY_CLEARED:
+                    logger.info('Hack: Removed history up till HISTORY_CLEARED')
                     docs = docs[i+1:]
                     break
 
