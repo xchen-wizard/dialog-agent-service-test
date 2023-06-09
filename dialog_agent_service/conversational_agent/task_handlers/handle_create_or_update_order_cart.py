@@ -31,7 +31,7 @@ cart:"""
 def handle_create_or_update_order_cart(cnv_obj=None, merchant_id=None, current_cart=None, predict_fn=None, **kwargs):
     task = handler_to_task_name()
 
-    if 'staffId' in current_cart and current_cart['staffId'] != int(os.getenv('DAS_BOT_ID')):
+    if 'staffId' in current_cart and current_cart['staffId'] is not None and current_cart['staffId'] != int(os.getenv('DAS_BOT_ID')):
         raise CXCreatedCartException(
             'Attempting to update a cart that was created by CX')
 

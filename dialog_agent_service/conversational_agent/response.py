@@ -21,7 +21,7 @@ def gen_variant_selection_response(product, variants):
     return f"""
 Sure thing! The {product} is available in the following variations.
 
-{newline.join(f'{c}. {variant} (${price})' for c, (variant, price) in zip(string.ascii_uppercase, variants.items()))}
+{newline.join(f'{c}. {variant} (${price:.2f})' for c, (variant, price) in zip(string.ascii_uppercase, variants.items()))}
 
 Which would you like to add to your order?
 """
@@ -34,7 +34,7 @@ def gen_cart_response(cart, prices):
     if cart:
         cart_display = "Your current cart has:"
         for (name, qty), price in zip(cart, prices):
-            cart_display += f"\n- {name}: ${price} x {qty}"
+            cart_display += f"\n- {name}: ${price:.2f} x {qty}"
     cta = "Would you like to keep shopping, or are you ready to check out?"
     return cart_display + "\n" + cta
 
