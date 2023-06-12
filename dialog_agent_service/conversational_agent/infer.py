@@ -77,13 +77,16 @@ class T5InferenceService:
         def fetch_task_response_type(task):
             return task_routing_config.get(task, {}).get('responseType', "assisted")
 
+        def fetch_llm(task):
+            return task_routing_config.get(task, {}).get('llm', None)
+
         if any(fetch_task_response_type(task) == 'cx' for task in tasks):
             response = None
             handoff = True
         else:
             res_acc = [
                 task_handler(task, cnv_obj=cnv_obj, vendor=vendor, merchant_id=merchant_id,
-                             predict_fn=predict_fn, current_cart=current_cart)
+                             predict_fn=predict_fn, current_cart=current_cart, llm_model=fetch_llm(task))
                 for task in tasks
             ]
             logger.info(f"Accumulated result from task handlers: {res_acc}")
