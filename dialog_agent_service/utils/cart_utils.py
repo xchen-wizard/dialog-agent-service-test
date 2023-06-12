@@ -17,6 +17,8 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
         existing_cart = cart_get(merchant_id, user_id)
 
         if not existing_cart:
+            if not virtual_cart:
+                return True
             existing_cart = cart_create(merchant_id, user_id, retailer_id)
 
         converted_cart, converted_cart_quantities, _ = active_cart_to_virtual_cart(
