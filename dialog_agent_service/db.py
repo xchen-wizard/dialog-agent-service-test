@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 mysql_pool = init_mysql_db()  # type: ignore
 mongo_db = init_mongo_db()  # type: ignore
 
+
 @contextmanager
 def get_mysql_cnx_cursor():
     try:
@@ -28,7 +29,7 @@ def get_mysql_cnx_cursor():
         cursor = cnx.cursor(dictionary=True, buffered=True)
         yield cursor
     except mysql.connector.Error as err:
-        logger.error(
+        logger.exception(
             f'problem getting connection from pool or creating a cursor object {err}',
         )
     finally:
@@ -116,7 +117,7 @@ def get_merchant(merchant_id: str):
         v.name,
         v.siteId,
         r.id as retailerId
-      FROM 
+      FROM
         vendors v
       JOIN
         retailers r
@@ -124,7 +125,6 @@ def get_merchant(merchant_id: str):
         v.name = r.name
       WHERE v.id = %s
     """
-  
 
     with get_mysql_cnx_cursor() as cursor:
         cursor.execute(query, (str(merchant_id),))
@@ -215,7 +215,7 @@ def get_all_variants_by_merchant_id():
                     'price'
                 ]
         except Exception as e:
-            logger.error(f'no product id found in doc: {variant}')
+            logger.exception(f'no product id found in doc: {variant}')
     return ret_dict
 
 

@@ -3,11 +3,12 @@ from __future__ import annotations
 import logging
 import os
 from enum import Enum
-from dialog_agent_service.actions.cart_actions import cart_get
+from dialog_agent_service.actions.cart_actions import cart_delete, cart_get
 from dialog_agent_service.utils.cart_utils import create_or_update_active_cart, sync_virtual_cart
 from .conversation_utils import get_past_k_turns
 from .conversation_utils import run_inference
 from collections import defaultdict
+from dialog_agent_service.constants import HISTORY_CLEARED
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,14 @@ async def handle_conversation_response(
     else:
         docs, vendor_name, clear_history = await get_past_k_turns(user_id, service_channel_id, merchant_id, k=k, window=window)
     if clear_history:
-        create_or_update_active_cart(merchant_id, user_id, [])
+        cart = cart_get(merchant_id, user_id)
+        if cart is not None:
+            cart_delete(cart['id'])
+        return {
+            "response": HISTORY_CLEARED,
+            "suggested": False,
+            "handoff": False
+        }
 
     # Temp: for testing purposes, as not all merchants exist in dev or stage
     # ToDo: remove after we have come up with better e2e testing ideas

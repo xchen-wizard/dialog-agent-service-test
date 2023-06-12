@@ -30,15 +30,26 @@ class RetrieverFailure(DASException):
     """
 
 
-class T5CartOutputFailure(DASException):
-    """
-    We predict cart using T5 first to fetch a shortlist of products.
-    If that prediction fails or the output is not formatted correctly,
-    we throw this exception
-    """
-
-
 class CartGQLAPIException(DASException):
     """
     Exception for when a cart API returns an error.
+    """
+
+
+class CXCreatedCartException(DASException):
+    """
+    Exception for when a CX user already has an open cart
+    """
+
+
+class ProductResolutionFailure(DASException):
+    """
+    Resolving the product name to one in local json file failed
+    """
+
+
+class MultipleVariantsInCart(DASException):
+    """
+    We are temporarily disallowing adding multiple variants of the same
+    product to cart.
     """

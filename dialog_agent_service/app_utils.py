@@ -28,7 +28,7 @@ def get_google_provider_cfg():
     try:
         return requests.get(GOOGLE_DISCOVERY_URL).json()
     except Exception as e:
-        logger.error(f'error connecting to Google provider: {e}')
+        logger.exception(f'error connecting to Google provider: {e}')
 
 
 def generate_session_id(req: dict) -> str:

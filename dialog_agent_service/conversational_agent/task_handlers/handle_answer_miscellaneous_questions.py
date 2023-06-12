@@ -27,7 +27,7 @@ DATA
 Output:""").strip('\n')
 
 
-def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor=None, current_cart=None, **kwargs):
+def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor=None, current_cart=None, llm_model=None, **kwargs):
     task = handler_to_task_name()
     query = cnv_obj.turns[-1].formatted_text
     context = merchant_semantic_search(merchant_id, query)
@@ -36,15 +36,15 @@ def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor
         raise RetrieverFailure
     context = f"Cart: {serialize_cart_for_prompt(current_cart)}" + "\n" + context
     logger.debug(f"Prompt Context: {context}")
-    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT4, turns=TURNS, json_output=True)
+    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=llm_model, turns=TURNS, json_output=True)
 
 
 def serialize_cart_for_prompt(cart):
     return json.dumps(
         {
-            'items': {'name': lineItem['productName'] + ' - ' + lineItem['variantName'], 'price': lineItem['currentPrice'], 'quantity': lineItem['quantity']} for lineItem in cart.get('lineItems', [])
+            'items': [{'name': lineItem['productName'] + ' - ' + lineItem['variantName'], 'price': lineItem['currentPrice'], 'quantity': lineItem['quantity']} for lineItem in cart.get('lineItems', [])]
         } | {
-            k: cart[k]
+            k: cart[k] if cart[k] is not None else "Not Available"
             for k in ["cartDiscountsTotal", "itemsTotal", "taxTotal", "totalPrice", "shippingDiscountsTotal", "subtotal", "shippingSavings"]
             if k in cart
         }

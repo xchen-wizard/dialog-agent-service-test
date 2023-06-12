@@ -34,7 +34,9 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
     return [turn_to_chatgpt_format(turn) for turn in cnv_obj.turns[-k:]]
 
 
-def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, turns=10, json_output=False):
+def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json_output=False):
+    if model is None:
+        model = OpenAIModel.GPT35  # Default Model
     if json_output:
         messages = [{"role": "user", "content": f"Conversation: ```{cnv_obj}```\n{prompt}"}]
     else:
@@ -60,7 +62,7 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=OpenAIModel.GPT35, t
         try:
             st = llm_response.find('{')
             en = llm_response.find('}', st)
-            logger.debug(f"LLM Response: {llm_response}")
+            logger.info(f"LLM Response: {llm_response}")
             response_dict = json.loads(llm_response[st:en + 1])
             if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
                 llm_response = response_dict["RESPONSE"]

@@ -11,6 +11,8 @@ The following is the list of tasks and their descriptions.
 - CancelOrder: The buyer wants to cancel the order. This is only applicable if they have already placed the order. Changing an existing order is covered by CreateOrUpdateOrderCart.
 - ReturnOrder: The buyer wants to return the order.
 - None: The buyer is not really expecting us to do anything or say anything in response.
-- Unknown: We cannot map the task buyer wants us to do to any of the above.
 - MedicalorClinical: The buyer has a medical question or some question on health impact of our product.
 - TransferToAgent: The buyer wants to talk to a human agent.
+- CreateSubscriptionOrder: A buyer wants to subscribe & save on a product or add an item to subscription.
+- QuestionsAboutSubscription: A buyer has questions about their subscription order.
+- Unknown: We cannot map the task buyer wants us to do to any of the above.

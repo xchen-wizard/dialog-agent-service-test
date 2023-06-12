@@ -48,13 +48,13 @@ class T5InferenceService:
         merchant_id = str(merchant_id)
         cnv_obj = Conversation(docs)
         if cnv_obj.n_turns == 0:
-            logger.error('Infer called with empty conversation. Aborting.')
+            logger.exception('Infer called with empty conversation. Aborting.')
             return dict()
         last_turn = cnv_obj.turns[-1]
         conversation = str(cnv_obj)
         logger.debug(f'Conversation Context: {conversation}')
         if last_turn.direction != 'inbound':
-            logger.error(
+            logger.exception(
                 'Infer called after an outbound. Aborting. Please only call when the latest turn is inbound',
             )
             return dict()
@@ -70,9 +70,15 @@ class T5InferenceService:
         model_predicted_cart = None
         is_suggested = False
         handoff = False
+        cart_id = None
+        cart_state_id = None
+        message_type = None
 
         def fetch_task_response_type(task):
             return task_routing_config.get(task, {}).get('responseType', "assisted")
+
+        def fetch_llm(task):
+            return task_routing_config.get(task, {}).get('llm', None)
 
         if any(fetch_task_response_type(task) == 'cx' for task in tasks):
             response = None
@@ -80,11 +86,12 @@ class T5InferenceService:
         else:
             res_acc = [
                 task_handler(task, cnv_obj=cnv_obj, vendor=vendor, merchant_id=merchant_id,
-                             predict_fn=predict_fn, current_cart=current_cart)
+                             predict_fn=predict_fn, current_cart=current_cart, llm_model=fetch_llm(task))
                 for task in tasks
             ]
             logger.info(f"Accumulated result from task handlers: {res_acc}")
-            final_tasks = ','.join([res['task'] for res in res_acc if 'task' in res])
+            final_tasks = ','.join([res['task']
+                                   for res in res_acc if 'task' in res])
             res_handoff = next(
                 (res for res in res_acc if res.get('handoff', False)), None)
             if res_handoff is not None:
@@ -110,14 +117,29 @@ class T5InferenceService:
                     model_predicted_cart = model_predicted_cart[0]
                 else:
                     model_predicted_cart = None
+                cart_id = [res['cartId'] for res in res_acc if 'cartId' in res]
+                if cart_id:
+                    cart_id = cart_id[0]
+                cart_state_id = [res['cartStateId']
+                                 for res in res_acc if 'cartStateId' in res]
+                if cart_state_id:
+                    cart_state_id = cart_state_id[0]
+                message_type = [res['messageType']
+                                for res in res_acc if 'messageType' in res]
+                if message_type:
+                    message_type = message_type[0]
 
         is_suggested = is_suggested or not all(
             fetch_task_response_type(task) == 'automated' for task in tasks)
+        handoff = handoff or is_suggested
         ret_dict = {
             'task': final_tasks,
             'response': response,
             'suggested': is_suggested,
-            'handoff': handoff
+            'handoff': handoff,
+            'cartId': cart_id,
+            'cartStateId': cart_state_id,
+            'messageType': message_type
         }
         if cart is not None:
             ret_dict['cart'] = cart
