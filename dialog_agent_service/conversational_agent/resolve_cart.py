@@ -42,10 +42,14 @@ class MatchType(Enum):
 
 
 def match_mentions_to_products(merchant_id, mentions: List, limit=10):
-    return list({tup[0]
-            for mention in mentions
-            for tup in
-            process.extract(mention, product_price_map[merchant_id].keys(), scorer=fuzz.token_set_ratio, limit=limit)})
+    products = list()
+    for mention in mentions:
+        matches = process.extract(mention, product_price_map[merchant_id].keys(), scorer=fuzz.partial_token_sort_ratio, limit=limit)
+        matched_products = [t[0] for t in matches]
+        if mention in matched_products:  # exact match
+            matched_products = [mention]
+        products.extend(matched_products)
+    return list(set(products))
 
 
 def get_product_price(merchant_id, product_name):
@@ -112,7 +116,11 @@ def product_variant_to_product_name(merchant_id, product_variant_name):
 def gen_disambiguation_response_llm(merchant_id, product_variant_name):
     merchant_id = str(merchant_id)
     product_variant_list = [s.strip() for s in product_variant_name.split('||')]
-    product_names = list({product_variant_to_product_name(merchant_id, name) for name in product_variant_list})
+    product_names = list({product_variant_to_product_name(merchant_id, name) for name in product_variant_list if '-' in name})
     if len(product_names) == 1:
         return gen_variant_selection_response(product_names[0], VARIANTS_OBJ[merchant_id][product_names[0]])
     return gen_non_specific_product_response(product_names)
+
+
+def is_multi_variant(merchant_id, product_variant_name):
+    return len(VARIANTS_OBJ[str(merchant_id)][product_variant_to_product_name(merchant_id, product_variant_name)]) > 1
