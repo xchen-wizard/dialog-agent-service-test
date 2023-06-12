@@ -46,3 +46,10 @@ class ProductResolutionFailure(DASException):
     """
     Resolving the product name to one in local json file failed
     """
+
+
+class MultipleVariantsInCart(DASException):
+    """
+    We are temporarily disallowing adding multiple variants of the same
+    product to cart.
+    """
