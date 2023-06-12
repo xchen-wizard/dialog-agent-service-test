@@ -21,7 +21,7 @@ def gen_prompt(vendor, data):
     """).strip('\n')
 
 
-def handle_recommend_product(cnv_obj=None, merchant_id=None, vendor=None, **kwargs):
+def handle_recommend_product(cnv_obj=None, merchant_id=None, vendor=None, llm_model=None, **kwargs):
     task = handler_to_task_name()
     query = cnv_obj.turns[-1].formatted_text
     context = product_semantic_search(merchant_id, query)
@@ -30,4 +30,4 @@ def handle_recommend_product(cnv_obj=None, merchant_id=None, vendor=None, **kwar
         raise RetrieverFailure
 
     logger.debug(f"Prompt Context:{context}")
-    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=OpenAIModel.GPT4)
+    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=llm_model)
