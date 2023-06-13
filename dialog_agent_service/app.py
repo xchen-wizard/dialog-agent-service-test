@@ -128,7 +128,6 @@ def logout():
 @app.route('/conversation_response', methods=['POST'])
 async def conversation_response():
     req = request.get_json(force=True)
-    logger.debug(f'request: {req}')
     if req.get('merchantId') is None:
         raise Exception('missing merchant id')
     merchant_id = str(req.get('merchantId'))
@@ -142,10 +141,11 @@ async def conversation_response():
     task_routing_config = req.get('taskRoutingConfig', {})
     # add the metadata to logs
     formatter.extras = {
-        'userId': req.get('userId'),
-        'merchantId': req.get('merchantId'),
-        'serviceChannelId': req.get('serviceChannelId'),
+        'userId': user_id,
+        'merchantId': merchant_id,
+        'serviceChannelId': service_channel_id,
     }
+    logger.debug(f'request: {req}')
     try:
         response = await handle_conversation_response(
             merchant_id,
