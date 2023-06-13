@@ -63,7 +63,7 @@ class T5InferenceService:
             conversation, task_descriptions=self.task_descriptions,
         )
         final_tasks = predict_fn(input)[0]
-        tasks = [task.strip() for task in final_tasks.split(',')]
+        tasks = list({task.strip() for task in final_tasks.split(',')})
         logger.info(f'Tasks Detected:{tasks}')
         logger.debug(f'Task Routing Config:{task_routing_config}')
         cart = None
