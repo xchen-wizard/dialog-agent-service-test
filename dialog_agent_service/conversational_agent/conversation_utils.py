@@ -109,9 +109,10 @@ def process_past_k_turns(docs):
 
             # search for CLEAR_HISTORY in inbound messages in reverse
             for i in range(len(docs)-1, -1, -1):
-                if docs[i].get('direction') == 'outbound' and docs[i].get('body') == constants.HISTORY_CLEARED:
+                if (docs[i].get('direction') == 'outbound' and docs[i].get('body') == constants.HISTORY_CLEARED) \
+                        or (docs[i].get('direction') == 'inbound' and docs[i].get('body').strip().upper() == CLEAR_HISTORY_COMMAND):
                     logger.info('Hack: Removed history up till HISTORY_CLEARED')
-                    docs = docs[i+1:]
+                    docs = docs[i + 1:]
                     break
 
     # TODO - return dict with a subset of keys {k:d[k] for k in l if k in d}
