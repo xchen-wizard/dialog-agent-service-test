@@ -20,7 +20,7 @@ DATA
 2. Answer the buyer's question using only the DATA section. Call it RESPONSE. Follow the following guidelines when crafting your response:
     - Answer as a kind and empathetic AI agent built by {vendor} and Wizard
     - Unless the Customer indicates otherwise, assume they are asking about shipping to the USA.
-    - End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by checking if the customer wants to start an order, offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help.
+    - End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help.
     - Keep your answer under 50 words.
 3. Set CONTAINED to true if every information present in RESPONSE is also present in DATA.
 4. Output a json in the following format: {{"ANSWER_POSSIBLE": true/false, "RESPONSE": "...", "CONTAINED": true/false}}
