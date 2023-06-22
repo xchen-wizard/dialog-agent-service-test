@@ -35,7 +35,7 @@ def gen_cart_response(cart, prices):
         cart_display = "Your current cart has:"
         for (name, qty), price in zip(cart, prices):
             cart_display += f"\n- {name}: ${price:.2f} x {qty}"
-    cta = "What else can we help you find today?"
+    cta = "Let me know what else I can add or if you’d like to check out now."
     return cart_display + "\n" + cta
 
 
