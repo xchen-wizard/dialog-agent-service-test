@@ -13,6 +13,7 @@ from dialog_agent_service.das_exceptions import RetrieverFailure
 from dialog_agent_service.conversational_agent.resolve_cart import match_mentions_to_products
 logger = logging.getLogger(__name__)
 max_conversation_chars_products = 1000
+DATA_LIMIT = 10000
 TURNS = 4
 
 
@@ -30,7 +31,7 @@ def gen_prompt(vendor, data):
 Read the conversation above and then do the following step-by-step.
 1. Go through the DATA section below and decide whether there is enough information in DATA to answer buyer's question satisfactorily with a high degree of certainty. Call this ANSWER_POSSIBLE.
 DATA
-```{data}```
+```{data[:DATA_LIMIT]}```
 2. Answer the buyer's question using only the DATA section. Call it RESPONSE. Follow the following guidelines when crafting your response:
     - Answer as a kind and empathetic AI agent built by {vendor} and Wizard
     - End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by checking if the customer wants to add the product they are talking about to cart(if its not already in the cart), offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help.
@@ -65,4 +66,4 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
         raise RetrieverFailure
     logger.debug(f'Prompt Context:{context}')
     prompt = gen_prompt(vendor, context)
-    return {'task': task} | answer_with_prompt(cnv_obj, prompt, model=llm_model, turns=TURNS, json_output=True)
+    return {'task': task, 'docs': context} | answer_with_prompt(cnv_obj, prompt, model=llm_model, turns=TURNS, json_output=True)

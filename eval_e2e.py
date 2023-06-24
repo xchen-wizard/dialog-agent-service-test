@@ -16,7 +16,7 @@ stream_handler = logging.StreamHandler()
 logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
-BATCH_SIZE = 3
+BATCH_SIZE = 1
 VENDOR_NAME = 'G.O.A.T. Fuel'
 MERCHANT_ID = '29'
 PROJECT_ID = 'stage-us-334018'
@@ -39,8 +39,12 @@ async def batch_process(batch_data: list[str]):
 
 if __name__ == '__main__':
     # load data
-    dfs = pd.read_excel('/Users/xchen/data/G.O.A.T. Fuel - Sample Questions.xlsx',
-                        sheet_name=None, names=['query'], header=None)
+    # dfs = pd.read_excel('/Users/xchen/data/G.O.A.T. Fuel - Sample Questions.xlsx',
+    #                     sheet_name=None, names=['query'], header=None)
+    df = pd.read_csv('/Users/xchen/data/goatfuel_qa_dataset_generated.csv')
+    dfs = {
+        'goatfuel_qa_dataset_generated_gpt4': df
+    }
     for sheet_name in dfs:
         # if sheet_name not in ('FAQ - Not Covered', 'Handoff Cases', 'Common Policy Questions', 'Common Beverage Questions', 'ProductQA - Covered', 'ProductQA - Not Covered'):
         #     continue
@@ -70,17 +74,18 @@ if __name__ == '__main__':
             import pdb
             pdb.set_trace()
 
-    row_count = 0
-    new_dfs = []
-    for sheet_name in dfs:
-        df = dfs[sheet_name]
-        logger.info(df.shape)
-        row_count += df.shape[0]
-        df['task'] = df.response_obj.apply(lambda x: x.get('task', ''))
-        df['response'] = df.response_obj.apply(lambda x: x.get('response', ''))
-        df['query_type'] = '-'.join([VENDOR_NAME, sheet_name])
-        new_dfs.append(df[['query_type', 'query', 'task', 'response']])
-
-    pd.concat(new_dfs).to_csv(
-        'goatfule_sample_questions_responses_v2.csv', index=False)
-    logger.info(f'row count: {row_count}')
+    # row_count = 0
+    # new_dfs = []
+    # for sheet_name in dfs:
+    #     df = dfs[sheet_name]
+    #     logger.info(df.shape)
+    #     row_count += df.shape[0]
+    #     df['task'] = df.response_obj.apply(lambda x: x.get('task', ''))
+    #     df['response'] = df.response_obj.apply(lambda x: x.get('response', ''))
+    #     df['query_type'] = '-'.join([VENDOR_NAME, sheet_name])
+    #     df['docs'] = df.response_obj.apply(lambda x: x.get('docs', ''))
+    #     new_dfs.append(df[['query_type', 'query', 'task', 'response', 'docs']])
+    #
+    # pd.concat(new_dfs).to_csv(
+    #     'goatfuel_sample_questions_responses_v3.csv', index=False)
+    # logger.info(f'row count: {row_count}')

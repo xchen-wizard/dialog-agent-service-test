@@ -30,4 +30,4 @@ def handle_recommend_product(cnv_obj=None, merchant_id=None, vendor=None, llm_mo
         raise RetrieverFailure
 
     logger.debug(f"Prompt Context:{context}")
-    return {'task': task} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=llm_model)
+    return {'task': task, 'docs': context} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=llm_model)

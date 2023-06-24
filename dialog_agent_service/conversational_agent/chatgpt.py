@@ -67,7 +67,7 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json
             if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
                 llm_response = response_dict["RESPONSE"]
             else:
-                llm_response = "HANDOFF TO CX"
+                llm_response = "HANDOFF TO CX due to in-context guardrail"
         except Exception as e:
             logger.exception(f"LLM Output {llm_response} not formatted as expected")
             raise LLMOutputFormatIncorrect from e

@@ -132,6 +132,7 @@ class T5InferenceService:
         is_suggested = is_suggested or not all(
             fetch_task_response_type(task) == 'automated' for task in tasks)
         handoff = handoff or is_suggested
+        docs = ['\n\n'.join([res['docs'] for res in res_acc if 'docs' in res])]
         ret_dict = {
             'task': final_tasks,
             'response': response,
@@ -139,7 +140,8 @@ class T5InferenceService:
             'handoff': handoff,
             'cartId': cart_id,
             'cartStateId': cart_state_id,
-            'messageType': message_type
+            'messageType': message_type,
+            'docs': docs
         }
         if cart is not None:
             ret_dict['cart'] = cart
