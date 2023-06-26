@@ -84,9 +84,7 @@ def check_multi_variants_in_cart(cart: List[Tuple[str, int]], last_cart: List[Tu
     or the LLM hallucinated and picked a variant by itself.
     """
     last_cart_products = {t[0] for t in last_cart}
-    print(f"last cart products: {last_cart_products}")
     new_cart_products = [t[0] for t in cart if t not in last_cart_products]
-    print(f"new products added to cart: {new_cart_products}")
     multi_variants_added = [p for p in new_cart_products if is_multi_variant(merchant_id, p)]
     for product_variant_name in multi_variants_added:
         closest_mention = process.extract(product_variant_name, mentions, scorer=fuzz.token_set_ratio, limit=1)[0][0]
