@@ -1,5 +1,6 @@
 import logging
 from dialog_agent_service.actions.cart_actions import cart_add_catalog_item_by_listing_id, cart_create, cart_get, cart_remove_item, cart_set_item_quantity
+from dialog_agent_service.das_exceptions import CartValidationException
 from dialog_agent_service.db import get_merchant
 from dialog_agent_service.retrievers.product_retriever import product_lookup
 
@@ -41,8 +42,8 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
         for listing_id in resolved_cart:
             if listing_id not in converted_cart['listings']:
                 continue
-            elif resolved_cart[listing_id]['quantity'] == 0 or resolved_cart[listing_id]['quantity'] > MAX_CART_QUANTITY:
-                raise Exception('Invalid cart quantity')
+            elif resolved_cart[listing_id]['quantity'] <= 0 or resolved_cart[listing_id]['quantity'] > MAX_CART_QUANTITY:
+                raise CartValidationException('Invalid cart quantity')
             elif resolved_cart[listing_id]['quantity'] != converted_cart_quantities[listing_id]:
                 quantity = resolved_cart[listing_id]['quantity']
                 line_item_id = converted_cart['listings'][listing_id]['id']
@@ -103,7 +104,8 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
         retailer_id = product_variant['listings'][0]['retailerId']
 
         if product_variant['listings'][0]['_id'] in resolved_cart:
-            raise Exception('Duplicate item found in predicted cart')
+            raise CartValidationException(
+                'Duplicate item found in predicted cart')
 
         resolved_cart[product_variant['listings'][0]['_id']] = product_variant
 
