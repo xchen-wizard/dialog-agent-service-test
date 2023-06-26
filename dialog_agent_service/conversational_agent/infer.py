@@ -64,6 +64,9 @@ class T5InferenceService:
         )
         final_tasks = predict_fn(input)[0]
         tasks = list({task.strip() for task in final_tasks.split(',')})
+        # remove AMQ from task list if APQ is present, as APQ supersets AMQ in implementation
+        if "AnswerProductQuestions" in tasks:
+            tasks = [task for task in tasks if task != "AnswerMiscellaneousQuestions"]
         logger.info(f'Tasks Detected:{tasks}')
         logger.debug(f'Task Routing Config:{task_routing_config}')
         cart = None
