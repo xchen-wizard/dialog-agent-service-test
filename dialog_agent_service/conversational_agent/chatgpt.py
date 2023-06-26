@@ -122,7 +122,7 @@ Cart:"""
     ]
     try:
         resp = openai.ChatCompletion.create(
-            model=OpenAIModel.GPT35,
+            model=OpenAIModel.GPT35OLD,
             temperature=TEMPERATURE,
             messages=messages
         )
