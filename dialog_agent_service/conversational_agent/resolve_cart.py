@@ -106,6 +106,8 @@ def gen_disambiguation_response(merchant_id: str, product_name: str) -> str:
 
 
 def product_variant_to_product_name(merchant_id, product_variant_name):
+    if product_variant_name.strip() in VARIANTS_OBJ[merchant_id]:
+        return product_variant_name.strip()
     for i in re.finditer('-', product_variant_name):
         product_name = product_variant_name[:i.start()].strip()
         if product_name in VARIANTS_OBJ[merchant_id]:
