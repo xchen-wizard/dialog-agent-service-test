@@ -47,7 +47,7 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
 
             if resolved_quantity <= 0 or resolved_quantity > MAX_CART_QUANTITY:
                 raise CartValidationException(
-                    'Invalid cart quantity:', resolved_quantity)
+                    f"Invalid cart quantity: {resolved_quantity}")
             elif resolved_quantity != converted_cart_quantities[listing_id]:
                 line_item_id = converted_cart['listings'][listing_id]['id']
                 cart_set_item_quantity(
@@ -109,7 +109,7 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
 
         if product_variant['listings'][0]['_id'] in resolved_cart:
             raise CartValidationException(
-                'Duplicate item found in predicted cart:', product_variant['listings'][0]['_id'])
+                f"Duplicate item found in predicted cart: {product_variant['listings'][0]['_id']}")
 
         resolved_cart[product_variant['listings'][0]['_id']] = product_variant
 
