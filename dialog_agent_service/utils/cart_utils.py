@@ -106,12 +106,13 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
         product_variant = product_variants[0]
         product_variant['quantity'] = mention[1]
         retailer_id = product_variant['listings'][0]['retailerId']
+        listing_id = product_variant['listings'][0]['_id']
 
-        if product_variant['listings'][0]['_id'] in resolved_cart:
+        if listing_id in resolved_cart:
             raise CartValidationException(
-                f"Duplicate item found in predicted cart: {product_variant['listings'][0]['_id']}")
+                f"Duplicate item found in predicted cart: {listing_id}")
 
-        resolved_cart[product_variant['listings'][0]['_id']] = product_variant
+        resolved_cart[listing_id] = product_variant
 
     return resolved_cart, retailer_id
 
