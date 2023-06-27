@@ -44,13 +44,13 @@ Output:
 def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, llm_model=None, **kwargs):
     task = handler_to_task_name()
     product_input = create_input_products(str(cnv_obj))
-    product_mentions_output = predict_fn(product_input)[0]
+    product_mentions_output = predict_fn(product_input)[0].strip()
     logger.info(f'Product question about: {product_mentions_output}')
-    product_mentions = product_mentions_output.split(',')
-    product_mentions = match_mentions_to_products(merchant_id, product_mentions, limit=2)
-    logger.info(f"Products list expanded to {product_mentions} based on fuzzy match.")
     context_data = []
-    if product_mentions:
+    if product_mentions_output:
+        product_mentions = product_mentions_output.split(',')
+        product_mentions = match_mentions_to_products(merchant_id, product_mentions, limit=2)
+        logger.info(f"Products list expanded to {product_mentions} based on fuzzy match.")
         context_data = [
             product_variants_to_context(
                 product_lookup(merchant_id, product_mention))
