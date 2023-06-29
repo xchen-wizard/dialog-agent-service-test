@@ -6,11 +6,12 @@ logger = logging.getLogger(__name__)
 gql_client = init_gql()
 
 
-def product_lookup(merchant_id: str, query: str):
+def product_lookup(merchant_id: str, query: str, limit=25):
     """
     Args:
         merchant_id
         product_mention: the product mention
+        limit: how many variants to return
     """
     query_str = gql("""
         query ProductVariantLookup($merchantId: String!, $query: String!) {
@@ -42,6 +43,7 @@ def product_lookup(merchant_id: str, query: str):
     vars = {
         'merchantId': merchant_id,
         'query': query,
+        'limit': limit
     }
 
     try:
