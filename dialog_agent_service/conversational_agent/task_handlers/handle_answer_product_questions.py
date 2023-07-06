@@ -53,7 +53,7 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
         logger.info(f"Products list expanded to {product_mentions} based on fuzzy match.")
         context_data = [
             product_variants_to_context(
-                product_lookup(merchant_id, product_mention))
+                product_lookup(merchant_id, product_mention, limit=1))
             for product_mention in product_mentions
         ]
     # ToDo: make this an async call along with the product_lookup so that they can be called at the same time to reduce latancy
