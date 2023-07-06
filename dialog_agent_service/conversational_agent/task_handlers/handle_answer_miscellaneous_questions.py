@@ -7,6 +7,7 @@ import logging
 from dialog_agent_service.constants import OpenAIModel
 from dialog_agent_service.utils.utils import handler_to_task_name
 from dialog_agent_service.das_exceptions import RetrieverFailure
+from dialog_agent_service.conversational_agent.chatgpt import llm_retrieval
 logger = logging.getLogger(__name__)
 TURNS = 4
 
@@ -35,8 +36,9 @@ def handle_answer_miscellaneous_questions(cnv_obj=None, merchant_id=None, vendor
         logger.warning("Can't retrieve context. Handing off")
         raise RetrieverFailure
     context = f"Cart: {serialize_cart_for_prompt(current_cart)}" + "\n" + context
-    logger.info(f"Prompt Context: {context}")
-    return {'task': task, 'docs': context} | answer_with_prompt(cnv_obj, gen_prompt(vendor, context), model=llm_model, turns=TURNS, json_output=True)
+    logger.debug(f"Prompt Context: {context}")
+    prompt = llm_retrieval(query, context) and gen_prompt(vendor, context)
+    return {'task': task} | answer_with_prompt(cnv_obj, prompt, model=llm_model, turns=TURNS, json_output=True)
 
 
 def serialize_cart_for_prompt(cart):

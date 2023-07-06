@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from textwrap import dedent
 
-from ..chatgpt import answer_with_prompt
+from ..chatgpt import answer_with_prompt, llm_retrieval
 from dialog_agent_service.constants import OpenAIModel
 from dialog_agent_service.retrievers.merchant_retriever import merchant_semantic_search
 from dialog_agent_service.retrievers.product_retriever import product_lookup
@@ -58,12 +58,13 @@ def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=N
             for product_mention in product_mentions
         ]
     # ToDo: make this an async call along with the product_lookup so that they can be called at the same time to reduce latancy
+    query = cnv_obj.turns[-1].formatted_text
     qa_policy_context = merchant_semantic_search(
-        merchant_id=merchant_id, query=cnv_obj.turns[-1].formatted_text)
+        merchant_id=merchant_id, query=query)
     context_data.append(qa_policy_context)
     context = "\n".join(filter(lambda c: c is not None and c.strip(), context_data))
     if len(context) == 0:
         raise RetrieverFailure
     logger.debug(f'Prompt Context:{context}')
-    prompt = gen_prompt(vendor, context)
-    return {'task': task, 'docs': context} | answer_with_prompt(cnv_obj, prompt, model=llm_model, turns=TURNS, json_output=True)
+    prompt = llm_retrieval(query=query, data=context) and gen_prompt(vendor, context)
+    return {'task': task} | answer_with_prompt(cnv_obj, prompt, model=llm_model, turns=TURNS, json_output=True)
