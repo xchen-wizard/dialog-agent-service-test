@@ -39,7 +39,7 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
 
 def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json_output=False):
     if model is None:
-        model = OpenAIModel.GPT35  # Default Model
+        model = OpenAIModel.GPT35OLD  # Default Model
     if json_output:
         messages = [{"role": "user", "content": f"Conversation: ```{cnv_obj}```\n{prompt}"}]
     else:
@@ -164,7 +164,7 @@ def llm_retrieval(query: str, data: str) -> str:
     messages = retrieval_prompt(query, data)
     try:
         resp = openai.ChatCompletion.create(
-            model=OpenAIModel.GPT35,
+            model=OpenAIModel.GPT35OLD,
             temperature=TEMPERATURE,
             messages=messages  # for now, no convo context
         )

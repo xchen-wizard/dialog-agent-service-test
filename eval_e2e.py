@@ -11,12 +11,12 @@ from dialog_agent_service.conversational_agent.conversation_utils import run_inf
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
-file_handler = logging.FileHandler('goatful_test_2.log')
-stream_handler = logging.StreamHandler()
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
+# file_handler = logging.FileHandler('goatful_test_2.log')
+# stream_handler = logging.StreamHandler()
+# logger.addHandler(file_handler)
+# logger.addHandler(stream_handler)
 
-BATCH_SIZE = 1
+BATCH_SIZE = 3
 VENDOR_NAME = 'G.O.A.T. Fuel'
 MERCHANT_ID = '29'
 PROJECT_ID = 'stage-us-334018'
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     #                     sheet_name=None, names=['query'], header=None)
     df = pd.read_csv('/Users/xchen/data/goatfuel_qa_dataset_generated.csv')
     dfs = {
-        'goatfuel_qa_dataset_generated_gpt4': df
+        'goatfuel_qa_dataset_generated_gpt3.5-0301_removing_guardrail_answer-possible': df
     }
     for sheet_name in dfs:
         # if sheet_name not in ('FAQ - Not Covered', 'Handoff Cases', 'Common Policy Questions', 'Common Beverage Questions', 'ProductQA - Covered', 'ProductQA - Not Covered'):
@@ -59,6 +59,7 @@ if __name__ == '__main__':
             while i < len(messages):
                 logger.info(f'Batch = {i}: {i+BATCH_SIZE}')
                 batch_data = messages[i: i+BATCH_SIZE]
+                logger.info(batch_data)
                 start = time.time()
                 responses = asyncio.run(batch_process(batch_data))
                 end = time.time()
@@ -66,9 +67,9 @@ if __name__ == '__main__':
                 logger.info(f'batch size of {BATCH_SIZE} took {end-start}s')
                 response_objs.extend(responses)
             dfs[sheet_name]['response_obj'] = response_objs
+            dfs[sheet_name]['response'] = [res.get('response', '') for res in response_objs]
             # we save each file individually
-            dfs[sheet_name].to_json(
-                '-'.join([VENDOR_NAME, sheet_name]), lines=True, orient='records')
+            dfs[sheet_name].to_csv(sheet_name + '.csv', index=False)
         except Exception as e:
             logger.error(e)
             import pdb

@@ -4,7 +4,7 @@ from .default_handler import default_handler
 from ..chatgpt import answer_with_prompt
 from textwrap import dedent
 import logging
-from dialog_agent_service.constants import OpenAIModel
+from dialog_agent_service.constants import OpenAIModel, DATA_LIMIT
 from dialog_agent_service.utils.utils import handler_to_task_name
 from dialog_agent_service.das_exceptions import RetrieverFailure
 from dialog_agent_service.conversational_agent.chatgpt import llm_retrieval
@@ -14,17 +14,15 @@ TURNS = 4
 
 def gen_prompt(vendor, data):
     return dedent(f"""
-Read the conversation above and then do the following step-by-step.
-1. Go through the DATA section below and decide whether there is enough information in DATA to answer buyer's question satisfactorily with a high degree of certainty. Call this ANSWER_POSSIBLE.
-DATA
-```{data}```
-2. Answer the buyer's question using only the DATA section. Call it RESPONSE. Follow the following guidelines when crafting your response:
+DATA: ```{data[:DATA_LIMIT]}```
+Read the Conversation and DATA above and then do the following step-by-step.
+1. Answer the buyer's question in Conversation using only the DATA section. Call it RESPONSE. Follow the following guidelines when crafting your response:
     - Answer as a kind and empathetic AI agent built by {vendor} and Wizard
     - Unless the Customer indicates otherwise, assume they are asking about shipping to the USA.
     - End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help.
     - Keep your answer under 50 words.
-3. Set CONTAINED to true if every information present in RESPONSE is also present in DATA.
-4. Output a json in the following format: {{"ANSWER_POSSIBLE": true/false, "RESPONSE": "...", "CONTAINED": true/false}}
+2. Set CONTAINED to true if every information present in RESPONSE is also present in DATA.
+3. Output a json in the following format: {{"RESPONSE": "...", "CONTAINED": true/false}}
 Output:""").strip('\n')
 
 
