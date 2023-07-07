@@ -14,8 +14,8 @@ def product_lookup(merchant_id: str, query: str, limit=25):
         limit: how many variants to return
     """
     query_str = gql("""
-        query ProductVariantLookup($merchantId: String!, $query: String!) {
-          productVariantLookup(merchantId: $merchantId, query: $query) {
+        query ProductVariantLookup($merchantId: String!, $query: String!, $limit: Int) {
+          productVariantLookup(merchantId: $merchantId, query: $query, limit: $limit) {
             product {
               _id
               name
