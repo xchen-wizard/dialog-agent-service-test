@@ -108,9 +108,6 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
         retailer_id = product_variant['listings'][0]['retailerId']
         listing_id = product_variant['listings'][0]['_id']
 
-        print('RESOLVED CART:', resolved_cart, '\n LISTING ID:',
-              listing_id, '\n VIRTUAL CART:', virtual_cart)
-
         if listing_id in resolved_cart:
             raise CartValidationException(
                 f"Duplicate item found in predicted cart: {listing_id}")
