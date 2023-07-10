@@ -43,7 +43,7 @@ if __name__ == '__main__':
     #                     sheet_name=None, names=['query'], header=None)
     df = pd.read_csv('/Users/xchen/data/goatfuel_qa_dataset_generated.csv')
     dfs = {
-        'goatfuel_qa_dataset_generated_gpt3.5-0301_removing_guardrail_answer-possible': df
+        'goatfuel_qa_dataset_generated_gpt3.5-0301_removing_guardrail_both.csv': df
     }
     for sheet_name in dfs:
         # if sheet_name not in ('FAQ - Not Covered', 'Handoff Cases', 'Common Policy Questions', 'Common Beverage Questions', 'ProductQA - Covered', 'ProductQA - Not Covered'):
@@ -69,7 +69,7 @@ if __name__ == '__main__':
             dfs[sheet_name]['response_obj'] = response_objs
             dfs[sheet_name]['response'] = [res.get('response', '') for res in response_objs]
             # we save each file individually
-            dfs[sheet_name].to_csv(sheet_name + '.csv', index=False)
+            dfs[sheet_name].to_csv(sheet_name, index=False)
         except Exception as e:
             logger.error(e)
             import pdb

@@ -71,9 +71,9 @@ if __name__ == '__main__':
     try:
         while i < len(data):
             logger.info(f'Batch = {i}: {i+BATCH_SIZE}')
-            # batch_data = data[i: i+BATCH_SIZE]
-            batch_data = data[14: 15]
-            print(batch_data)
+            batch_data = data[i: i+BATCH_SIZE]
+            # batch_data = data[14: 15]
+            # print(batch_data)
             batch_inputs, batch_outputs = process_batch_data(batch_data)
             start = time.time()
             responses = asyncio.run(batch_process(batch_inputs))
@@ -83,7 +83,8 @@ if __name__ == '__main__':
             response_objs.extend(responses)
             inputs.extend(batch_inputs)
             outputs.extend(batch_outputs)
-            import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
+            # break
         # creates a df
         df = pd.DataFrame([(Conversation(input_msgs), vendor_name, vendor_id) for input_msgs, vendor_name, vendor_id in inputs],
                           columns=['messages', 'vendorName', 'vendorId'])
@@ -93,7 +94,7 @@ if __name__ == '__main__':
         df['docs'] = df.response_obj.apply(lambda x: x.get('docs', ''))
         df['expected_output'] = outputs
 
-        df.to_csv('/Users/xchen/data/multibrand_qa_dataset_06-10-23_06-21-23-gpt4.csv')
+        df.to_csv('/Users/xchen/data/multibrand_qa_dataset_06-10-23_06-21-23-gpt3.5-0301-no-guardrails_01.csv')
 
     except Exception as e:
         logger.error(e)

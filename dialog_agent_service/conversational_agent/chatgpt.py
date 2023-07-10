@@ -41,7 +41,9 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json
     if model is None:
         model = OpenAIModel.GPT35OLD  # Default Model
     if json_output:
-        messages = [{"role": "user", "content": f"Conversation: ```{cnv_obj}```\n{prompt}"}]
+        # messages = [{"role": "user", "content": f"Conversation: ```{cnv_obj}```\n{prompt}"}]
+        messages = conv_to_chatgpt_format(cnv_obj, k=turns)
+        messages.append({"role": "system", "content": prompt})
     else:
         messages = [
             {"role": "system", "content": prompt}
@@ -52,7 +54,7 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json
         resp = openai.ChatCompletion.create(
             model=model,
             temperature=TEMPERATURE,
-            messages=messages
+            messages=messages,
         )
     except Exception as e:
         logger.exception(f'LLM Request Failed: {e}')
@@ -61,10 +63,11 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json
     duration = timeit.default_timer() - start_time
     logger.info(f"LLM REQUEST - Model: {model}: request time: {duration}")
     llm_response = resp.choices[0].message.content
+
     if json_output:
         try:
-            st = llm_response.find('{')
-            en = llm_response.find('}', st)
+            st = llm_response.find(r'({)?"RESPONSE"') or 0
+            en = llm_response.find('}', st) if st else len(llm_response) - 1
             logger.info(f"LLM Response: {llm_response}")
             response_dict = json.loads(llm_response[st:en + 1])
             if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
@@ -72,7 +75,7 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json
             else:
                 llm_response = "HANDOFF TO CX due to in-context guardrail"
         except Exception as e:
-            logger.exception(f"LLM Output {llm_response} not formatted as expected")
+            logger.exception(f"LLM Output not formatted as expected: {llm_response}")
             raise LLMOutputFormatIncorrect from e
 
     return validate_response(model, llm_response)
