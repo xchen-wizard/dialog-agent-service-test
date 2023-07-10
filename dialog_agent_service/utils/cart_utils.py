@@ -96,7 +96,7 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
     retailer_id = None
 
     for mention in virtual_cart:
-        product_variants = product_lookup(merchant_id, mention[0])
+        product_variants = product_lookup(merchant_id, mention[0], limit=1)
 
         if len(product_variants) == 0:
             logger.debug(
