@@ -13,3 +13,4 @@ class OpenAIModel(str, Enum):
 
 HISTORY_CLEARED = 'HISTORY_CLEARED'
 CLEAR_HISTORY = 'CLEAR_HISTORY'
+DATA_LIMIT = 10000  # char limit for the data section of the prompt so that we don't exceed token limit

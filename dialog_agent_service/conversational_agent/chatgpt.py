@@ -5,13 +5,16 @@ import timeit
 from typing import List
 import json
 import logging
+from textwrap import dedent
 import openai
 from .conversation_parser import Conversation, Turn
-from dialog_agent_service.constants import OpenAIModel
+from dialog_agent_service.constants import OpenAIModel, DATA_LIMIT
 from dialog_agent_service.das_exceptions import LLMOutputFormatIncorrect, LLMOutputValidationFailed, LLMRequestFailed
+
 
 TEMPERATURE = 0.0
 HANDOFF_TO_CX = r"HANDOFF TO CX|OpenAI|language model|I don't have that information|I didn't understand|doctor|medical|email|website|((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*|^\S+@\S+\.\S+$"
+NO_DATA = r"insufficient|no (sufficient )?info|not (provide|contain) info|not mentioned"
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -36,9 +39,11 @@ def conv_to_chatgpt_format(cnv_obj: Conversation, k):
 
 def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json_output=False):
     if model is None:
-        model = OpenAIModel.GPT35  # Default Model
+        model = OpenAIModel.GPT35OLD  # Default Model
     if json_output:
-        messages = [{"role": "user", "content": f"Conversation: ```{cnv_obj}```\n{prompt}"}]
+        # messages = [{"role": "user", "content": f"Conversation: ```{cnv_obj}```\n{prompt}"}]
+        messages = conv_to_chatgpt_format(cnv_obj, k=turns)
+        messages.append({"role": "system", "content": prompt})
     else:
         messages = [
             {"role": "system", "content": prompt}
@@ -49,7 +54,7 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json
         resp = openai.ChatCompletion.create(
             model=model,
             temperature=TEMPERATURE,
-            messages=messages
+            messages=messages,
         )
     except Exception as e:
         logger.exception(f'LLM Request Failed: {e}')
@@ -58,19 +63,20 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json
     duration = timeit.default_timer() - start_time
     logger.info(f"LLM REQUEST - Model: {model}: request time: {duration}")
     llm_response = resp.choices[0].message.content
-    if json_output:
-        try:
-            st = llm_response.find('{')
-            en = llm_response.find('}', st)
-            logger.info(f"LLM Response: {llm_response}")
-            response_dict = json.loads(llm_response[st:en + 1])
-            if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
-                llm_response = response_dict["RESPONSE"]
-            else:
-                llm_response = "HANDOFF TO CX"
-        except Exception as e:
-            logger.exception(f"LLM Output {llm_response} not formatted as expected")
-            raise LLMOutputFormatIncorrect from e
+
+    # if json_output:
+    #     try:
+    #         st = llm_response.find(r'({)?"RESPONSE"') or 0
+    #         en = llm_response.find('}', st) if st else len(llm_response) - 1
+    #         logger.info(f"LLM Response: {llm_response}")
+    #         response_dict = json.loads(llm_response[st:en + 1])
+    #         if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
+    #             llm_response = response_dict["RESPONSE"]
+    #         else:
+    #             llm_response = "HANDOFF TO CX due to in-context guardrail"
+    #     except Exception as e:
+    #         logger.exception(f"LLM Output not formatted as expected: {llm_response}")
+    #         # raise LLMOutputFormatIncorrect from e
 
     return validate_response(model, llm_response)
 
@@ -136,7 +142,7 @@ Cart:"""
         return ast.literal_eval(llm_response[st:en+1])
     except Exception as e:
         logger.exception(f"LLM Cart Output not formatted correctly: {e}")
-        raise LLMOutputFormatIncorrect from e
+        raise LLMOutputFormatIncorrect(f'failed to parse {llm_response}') from e
 
 
 def validate_response(model, llm_response):
@@ -144,3 +150,51 @@ def validate_response(model, llm_response):
         logger.warning(f"LLM Validation failed for response: {llm_response}. Handing off to CX")
         raise LLMOutputValidationFailed(f"Model: {model}. LLM Validation failed for response: {llm_response}")
     return {'handoff': False, 'response': llm_response}
+
+
+def llm_retrieval(query: str, data: str) -> str:
+    """
+    Query the openai model to cite passages in response to query.
+    Args:
+         query: the query string
+         data: the retrieved documents
+    Returns:
+        the relevant passage
+    Raises
+        LLMRequestFailed if openai request fails
+        LLMOutputValidationFailed if the model determins there's no sufficient info in the data
+    """
+    messages = retrieval_prompt(query, data)
+    try:
+        resp = openai.ChatCompletion.create(
+            model=OpenAIModel.GPT35OLD,
+            temperature=TEMPERATURE,
+            messages=messages  # for now, no convo context
+        )
+    except Exception as e:
+        logger.exception(f"LLM Request failed for Cart Creation: {e}")
+        raise LLMRequestFailed from e
+
+    llm_response = resp.choices[0].message.content
+    if re.search(pattern=NO_DATA, string=llm_response, flags=re.I):
+        raise LLMOutputValidationFailed(f"No sufficient data to answer user query: {llm_response}")
+    logger.info(f"retrieved passage: {llm_response}")
+    return llm_response
+
+
+def retrieval_prompt(query, data):
+    """
+    helper function to prep the openai prompt for llm_retrieval
+    """
+    citation_prompt = dedent("""
+    You will be provided with a document delimited by triple quotes and a question. 
+    Your task is to answer the question using only the provided document and to cite the passage(s) of the document used to answer the question. 
+    If the document does not contain the information needed to answer any part of a question then simply write: "Insufficient information." 
+    If an answer to the question is provided, it must be annotated with a citation. 
+    Use the following format for to cite relevant passages {{"citation": …}}.
+    """).strip()
+    messages = [
+        {'role': 'system', 'content': citation_prompt},
+        {"role": "user", "content": f"\"\"\"{data[:DATA_LIMIT]}\"\"\"\nQuestion: {query}"}
+    ]
+    return messages

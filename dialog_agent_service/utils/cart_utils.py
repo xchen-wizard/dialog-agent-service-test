@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 from dialog_agent_service.actions.cart_actions import cart_add_catalog_item_by_listing_id, cart_create, cart_get, cart_remove_item, cart_set_item_quantity
 from dialog_agent_service.das_exceptions import CartValidationException
-from dialog_agent_service.db import get_merchant
 from dialog_agent_service.retrievers.product_retriever import product_lookup
 
 logger = logging.getLogger(__name__)
@@ -12,7 +13,8 @@ MAX_CART_QUANTITY = 10
 def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: list[tuple[str, int]]):
     try:
         resolved_cart, retailer_id = resolve_product_mentions(
-            merchant_id, virtual_cart)
+            merchant_id, virtual_cart,
+        )
 
         if virtual_cart and not resolved_cart:
             raise Exception('Could not resolve product mentions for cart')
@@ -25,7 +27,8 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
             existing_cart = cart_create(merchant_id, user_id, retailer_id)
 
         converted_cart, converted_cart_quantities, _ = active_cart_to_virtual_cart(
-            existing_cart)
+            existing_cart,
+        )
 
         cart_id = converted_cart['id']
 
@@ -37,7 +40,8 @@ def create_or_update_active_cart(merchant_id: str, user_id: int, virtual_cart: l
         existing_cart = cart_get(merchant_id, user_id)
 
         converted_cart, converted_cart_quantities, _ = active_cart_to_virtual_cart(
-            existing_cart)
+            existing_cart,
+        )
 
         for listing_id in resolved_cart:
             if listing_id not in converted_cart['listings']:
@@ -83,7 +87,7 @@ def active_cart_to_virtual_cart(active_cart):
             'variantName': item['variantName'],
             'currentPrice': item['currentPrice'],
             'listingId': item['listingId'],
-            'quantity': item['quantity']
+            'quantity': item['quantity'],
         }
         virtual_cart_quantities[str(item['listingId'])] = item['quantity']
         virtual_cart_list.append((display_name, item['quantity']))
@@ -100,7 +104,8 @@ def resolve_product_mentions(merchant_id: str, virtual_cart: list[tuple[str, int
 
         if len(product_variants) == 0:
             logger.debug(
-                f'could not resolve product mentions using productLookup')
+                f'could not resolve product mentions using productLookup',
+            )
             return None
 
         product_variant = product_variants[0]

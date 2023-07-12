@@ -1,3 +1,4 @@
+*.log
 error_log
 mprofile*
 .python-version

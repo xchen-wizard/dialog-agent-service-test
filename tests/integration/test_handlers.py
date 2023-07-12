@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-
 from dialog_agent_service.conversational_agent.conversation_parser import Conversation
 from dialog_agent_service.conversational_agent.task_handlers.handle_answer_product_questions import handle_answer_product_questions
 

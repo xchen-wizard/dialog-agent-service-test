@@ -45,7 +45,7 @@ Thanks for texting!
 How can we help you today?
 """
     docs = []
-    current_cart = {}
+    current_cart = [('SEASON 1 VARIETY - 12 Pack', 1)]
     while 1:
         print(response)
         docs.append(('outbound', response))
