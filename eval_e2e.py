@@ -16,7 +16,7 @@ logger = logging.getLogger()
 # logger.addHandler(file_handler)
 # logger.addHandler(stream_handler)
 
-BATCH_SIZE = 3
+BATCH_SIZE = 1
 VENDOR_NAME = 'G.O.A.T. Fuel'
 MERCHANT_ID = '29'
 PROJECT_ID = 'stage-us-334018'
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     #                     sheet_name=None, names=['query'], header=None)
     df = pd.read_csv('/Users/xchen/data/goatfuel_qa_dataset_generated.csv')
     dfs = {
-        'goatfuel_qa_dataset_generated_gpt3.5-0301_removing_guardrail_both.csv': df
+        'goatfuel_qa_dataset_generated_gpt3.5-0301_removing_guardrail_both_02.csv': df
     }
     for sheet_name in dfs:
         # if sheet_name not in ('FAQ - Not Covered', 'Handoff Cases', 'Common Policy Questions', 'Common Beverage Questions', 'ProductQA - Covered', 'ProductQA - Not Covered'):
@@ -53,7 +53,7 @@ if __name__ == '__main__':
             dfs[sheet_name]['query'].str.strip() != '')]
         messages = dfs[sheet_name]['query'].tolist()
         logger.info(f'messages: {len(messages)}')
-        i = 0
+        i = 17
         response_objs = []
         try:
             while i < len(messages):
@@ -66,6 +66,7 @@ if __name__ == '__main__':
                 i += BATCH_SIZE
                 logger.info(f'batch size of {BATCH_SIZE} took {end-start}s')
                 response_objs.extend(responses)
+                break
             dfs[sheet_name]['response_obj'] = response_objs
             dfs[sheet_name]['response'] = [res.get('response', '') for res in response_objs]
             # we save each file individually

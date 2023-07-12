@@ -18,7 +18,7 @@ stream_handler = logging.StreamHandler()
 # logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
-BATCH_SIZE = 3
+BATCH_SIZE = 1
 # VENDOR_NAME = 'G.O.A.T. Fuel'
 # MERCHANT_ID = '29'
 PROJECT_ID = 'stage-us-334018'
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     with open('/Users/xchen/data/multibrand_qa_dataset_06-10-23_06-21-23.json') as f:
         data = json.load(f)
     logger.info(f'total data length: {len(data)}')
-    i = 0
+    i = 18
     response_objs = []
     inputs = []
     outputs = []
@@ -94,7 +94,7 @@ if __name__ == '__main__':
         df['docs'] = df.response_obj.apply(lambda x: x.get('docs', ''))
         df['expected_output'] = outputs
 
-        df.to_csv('/Users/xchen/data/multibrand_qa_dataset_06-10-23_06-21-23-gpt3.5-0301-no-guardrails_01.csv')
+        df.to_csv('/Users/xchen/data/multibrand_qa_dataset_06-10-23_06-21-23-gpt3.5-0301-no-guardrails_02.csv')
 
     except Exception as e:
         logger.error(e)

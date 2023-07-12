@@ -30,12 +30,11 @@ def gen_prompt(vendor, data):
     return dedent(f"""
     Read the conversation above and then do the following step-by-step.
     DATA: \"\"\"{data[:DATA_LIMIT]}\"\"\"
-    1. Answer the buyer's question in Conversation using only the DATA section. Call it RESPONSE. Follow the following guidelines when crafting your response:
+    Answer the buyer's question in Conversation using only the DATA section. Call it RESPONSE. Follow the following guidelines when crafting your response:
         - Answer as a kind and empathetic AI agent built by {vendor} and Wizard
         - End your answer with a short follow up question that continues the conversation. Vary follow-up questions each time by checking if the customer wants to add the product they are talking about to cart(if its not already in the cart), offering assistance, asking about the customer's needs or preferences, or just letting the customer know you're here to help.
         - Keep your answer under 50 words.
-    2. Output a json in the following format: {{"RESPONSE": "..."}}
-    Output:""").strip()
+    RESPONSE:""").strip()
 
 
 def handle_answer_product_questions(predict_fn=None, merchant_id=None, cnv_obj=None, vendor=None, llm_model=None, **kwargs):

@@ -14,7 +14,7 @@ from dialog_agent_service.das_exceptions import LLMOutputFormatIncorrect, LLMOut
 
 TEMPERATURE = 0.0
 HANDOFF_TO_CX = r"HANDOFF TO CX|OpenAI|language model|I don't have that information|I didn't understand|doctor|medical|email|website|((http|https)\:\/\/)?[a-zA-Z0-9\.\/\?\:@\-_=#]+\.([a-zA-Z]){2,6}([a-zA-Z0-9\.\&\/\?\:@\-_=#])*|^\S+@\S+\.\S+$"
-NO_DATA = r"insufficient info|no (sufficient )?info|not provide info"
+NO_DATA = r"insufficient|no (sufficient )?info|not (provide|contain) info|not mentioned"
 
 logger = logging.getLogger(__name__)
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -64,19 +64,19 @@ def answer_with_prompt(cnv_obj: Conversation, prompt, model=None, turns=10, json
     logger.info(f"LLM REQUEST - Model: {model}: request time: {duration}")
     llm_response = resp.choices[0].message.content
 
-    if json_output:
-        try:
-            st = llm_response.find(r'({)?"RESPONSE"') or 0
-            en = llm_response.find('}', st) if st else len(llm_response) - 1
-            logger.info(f"LLM Response: {llm_response}")
-            response_dict = json.loads(llm_response[st:en + 1])
-            if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
-                llm_response = response_dict["RESPONSE"]
-            else:
-                llm_response = "HANDOFF TO CX due to in-context guardrail"
-        except Exception as e:
-            logger.exception(f"LLM Output not formatted as expected: {llm_response}")
-            raise LLMOutputFormatIncorrect from e
+    # if json_output:
+    #     try:
+    #         st = llm_response.find(r'({)?"RESPONSE"') or 0
+    #         en = llm_response.find('}', st) if st else len(llm_response) - 1
+    #         logger.info(f"LLM Response: {llm_response}")
+    #         response_dict = json.loads(llm_response[st:en + 1])
+    #         if response_dict.get("ANSWER_POSSIBLE", True) and response_dict.get("CONTAINED", True):
+    #             llm_response = response_dict["RESPONSE"]
+    #         else:
+    #             llm_response = "HANDOFF TO CX due to in-context guardrail"
+    #     except Exception as e:
+    #         logger.exception(f"LLM Output not formatted as expected: {llm_response}")
+    #         # raise LLMOutputFormatIncorrect from e
 
     return validate_response(model, llm_response)
 
